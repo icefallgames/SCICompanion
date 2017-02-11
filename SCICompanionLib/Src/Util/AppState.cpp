@@ -107,6 +107,11 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(this, &_resourceRecency)
     _fSaveScriptsBeforeRun = TRUE;
     _fTrackHeaderFiles = TRUE;
     _fCompileDirtyScriptsBeforeRun = TRUE;
+    _onionLeftTint = 0x80FF8080;
+    _onionRightTint = 0x808080FF;
+    _onionLeftOnTop = FALSE;
+    _onionRightOnTop = FALSE;
+    _onionWrap = TRUE;
 
     _pVocabTemplate = nullptr;
 

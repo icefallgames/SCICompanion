@@ -33,6 +33,7 @@
 #include "ImageUtil.h"
 #include "ClipboardUtil.h"
 #include "CustomMessageBox.h"
+#include "OnionSkinSettingsDialog.h"
 
 using namespace std;
 
@@ -125,14 +126,14 @@ void CRasterView::SelectionManager::_GenerateSelectionBits(int cCels, CSize size
         for (size_t i = 0; i < _selectionBits.size(); i++)
         {
             // Note we don't use CX_ACTUAL here!
-			_selectionBits[i].reset(new BYTE[size.cx * size.cy]);
+			_selectionBits[i].reset(new uint8_t[size.cx * size.cy]);
         }
     }
 }
 
-BYTE *CRasterView::SelectionManager::GetMainSelection(CSize &sizeOut)
+uint8_t *CRasterView::SelectionManager::GetMainSelection(CSize &sizeOut)
 {
-    BYTE *pData = nullptr;
+    uint8_t *pData = nullptr;
     if (_iMain != -1)
     {
         pData = _selectionBits[_iMain].get();
@@ -148,7 +149,7 @@ BYTE *CRasterView::SelectionManager::GetMainSelection(CSize &sizeOut)
 //
 void CRasterView::SelectionManager::LiftSelection(CRect rectSelection, int iMain, int cCels, std::vector<CelData> &celData, BOOL fClear, BOOL fGrabBits) 
 {
-    ASSERT(!rectSelection.IsRectEmpty());
+    assert(!rectSelection.IsRectEmpty());
     // Allocate a temporary buffer into which we copy the bits.
     size_t cb = rectSelection.Width() * rectSelection.Height(); // Off by 1?
     _GenerateSelectionBits(cCels, CSize(rectSelection.Width(), rectSelection.Height()));
@@ -157,7 +158,7 @@ void CRasterView::SelectionManager::LiftSelection(CRect rectSelection, int iMain
         _iMain = iMain;
         for (int i = 0; i < cCels; i++)
         {
-            BYTE bTransparent = celData[i].GetTransparentColor();
+            uint8_t bTransparent = celData[i].GetTransparentColor();
             DWORD iOffsetTemp = 0;
             // Copy the data out to a temp buffer, and fill the empty space with the
             // transparent color.
@@ -173,8 +174,8 @@ void CRasterView::SelectionManager::LiftSelection(CRect rectSelection, int iMain
             FillMemory(_selectionBits[i].get(), cb, bTransparent);
             for (int y = (rectVertInvert.bottom - 1); y >= rectVertInvert.top; y--)
             {
-                ASSERT(iOffsetTemp < cb);
-                BYTE *pSrc = celData[i].GetDataPtr() + xLeft + CX_ACTUAL(celData[i].GetSize().cx) * y;
+                assert(iOffsetTemp < cb);
+                uint8_t *pSrc = celData[i].GetDataPtr() + xLeft + CX_ACTUAL(celData[i].GetSize().cx) * y;
                 if (fGrabBits)
                 {
                     memcpy(_selectionBits[i].get() + iOffsetTemp, pSrc, cxLine);
@@ -196,7 +197,7 @@ void CRasterView::SelectionManager::LiftSelection(CRect rectSelection, int iMain
 // This converts a CX_ACTUAL(cx) * cy bitmap to a cx * cy selection-style bitmap,
 // and flips it vertically.
 //
-void _ConvertDrawnDIBBitsToSelectionBits(const BYTE *pBits, int cxSource, CSize sizeDest, BYTE *pBitsOut)
+void _ConvertDrawnDIBBitsToSelectionBits(const uint8_t *pBits, int cxSource, CSize sizeDest, uint8_t *pBitsOut)
 {
     for (int y = 0; y < sizeDest.cy; y++)
     {
@@ -205,7 +206,7 @@ void _ConvertDrawnDIBBitsToSelectionBits(const BYTE *pBits, int cxSource, CSize 
 }
 
 // This does the opposite of the above
-void _ConvertSelectionBitsToCelData(const BYTE *pBits, CSize size, BYTE *pBitsOut)
+void _ConvertSelectionBitsToCelData(const uint8_t *pBits, CSize size, uint8_t *pBitsOut)
 {
     for (int y = 0; y < size.cy; y++)
     {
@@ -213,18 +214,20 @@ void _ConvertSelectionBitsToCelData(const BYTE *pBits, CSize size, BYTE *pBitsOu
     }
 }
 
-CRect CRasterView::SelectionManager::PasteCel(const Cel &celPaste, int cCels, CSize sizeMain)
+CRect CRasterView::SelectionManager::PasteCel(const std::vector<Cel*> &celsPaste, int cCels, CSize sizeMain)
 {
+    assert(!celsPaste.empty());
     CRect rect;
     // Get rid of any selection.
     ClearSelection();
-    _sizeSelectionBits = CSize(min(sizeMain.cx, celPaste.size.cx), min(sizeMain.cy, celPaste.size.cy));
+    _sizeSelectionBits = CSize(min(sizeMain.cx, celsPaste.front()->size.cx), min(sizeMain.cy, celsPaste.front()->size.cy));
     _GenerateSelectionBits(cCels, _sizeSelectionBits);
     rect = CRect(0, 0, _sizeSelectionBits.cx, _sizeSelectionBits.cy);
     // Apply our new selection;
     for (int i = 0; i < cCels; i++)
     {
-        _ConvertDrawnDIBBitsToSelectionBits(&celPaste.Data[0], celPaste.size.cx, _sizeSelectionBits, _selectionBits[i].get());
+        size_t index = min((size_t)i, celsPaste.size() - 1);
+        _ConvertDrawnDIBBitsToSelectionBits(&celsPaste[index]->Data[0], celsPaste[index]->size.cx, _sizeSelectionBits, _selectionBits[i].get());
     }
     _fSelection = true;
     return rect;
@@ -257,14 +260,14 @@ void CRasterView::SelectionManager::DrawSelection(CRect rectSelection, int iInde
         int yTopSrc = rectIntersect.top - rectSelection.top;
         int cyRows = rectIntersect.Height();
 
-        BYTE bTransparent = celData.GetTransparentColor();
+        uint8_t bTransparent = celData.GetTransparentColor();
         for (int dy = 0; dy < cyRows; dy++)
         {
             // Copy from this point:
-            BYTE *pSrc = _selectionBits[iIndex].get() + xLeftSrc + (dy + yTopSrc) * rectSelection.Width();
+            uint8_t *pSrc = _selectionBits[iIndex].get() + xLeftSrc + (dy + yTopSrc) * rectSelection.Width();
             // To this point:
-            BYTE *pDest = celData.GetDataPtr() + xLeftView + (sizeData.cy - 1 - (dy + yTopView)) * CX_ACTUAL(sizeData.cx);
-            // ASSERT we aren't going to have a BO.
+            uint8_t *pDest = celData.GetDataPtr() + xLeftView + (sizeData.cy - 1 - (dy + yTopView)) * CX_ACTUAL(sizeData.cx);
+            // assert we aren't going to have a BO.
             // No longer works after doing multicel stuff
 
             if (fTransparent)
@@ -297,7 +300,7 @@ CRasterView::CRasterView()
     if (g_AffectAllBitmap.IsEmpty())
     {
         g_AffectAllBitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_BITMAPAFFECTALL));
-        ASSERT(!g_AffectAllBitmap.IsEmpty());
+        assert(!g_AffectAllBitmap.IsEmpty());
     }
 
     _iMainIndex = -1;
@@ -423,6 +426,9 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_VIEW_REMOVEEMBEDDEDPALETTE, RemoveVGAPalette)
     ON_COMMAND(ID_VIEW_REMAPPALETTE, RemapPalette)
     ON_COMMAND(ID_VIEW_SHIFTCOLORS, ShiftColors)
+    ON_COMMAND(ID_VIEW_LEFTONIONSKIN, ToggleLeftOnion)
+    ON_COMMAND(ID_VIEW_RIGHTONIONSKIN, ToggleRightOnion)
+    ON_COMMAND(ID_VIEW_ONIONSKINSETTINGS, OnOnionSkinSettings)
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -466,6 +472,8 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMAPPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_SHIFTCOLORS, OnUpdateAlwaysOn)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_LEFTONIONSKIN, OnUpdateLeftOnion)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_RIGHTONIONSKIN, OnUpdateRightOnion)
 END_MESSAGE_MAP()
 
 
@@ -528,7 +536,34 @@ const Cel *CRasterView::_GetSelectedCel() const
 {
     return _GetCel(_dwIndex);
 }
-
+const Cel *CRasterView::_GetPreviousCel(CelIndex &indexOut) const
+{
+    return _GetAdjacentCel(indexOut, -1);
+}
+const Cel *CRasterView::_GetNextCel(CelIndex &indexOut) const
+{
+    return _GetAdjacentCel(indexOut, 1);
+}
+const Cel *CRasterView::_GetAdjacentCel(CelIndex &indexOut, int offset) const
+{
+    const Cel *cel = nullptr;
+    const RasterComponent *raster = _GetRaster();
+    if (raster)
+    {
+        int nCel = _dwIndex.cel;
+        int nLoop = _dwIndex.loop;
+        nCel += offset;
+        raster->ValidateCelIndex(nLoop, nCel, !!appState->_onionWrap);
+        indexOut = CelIndex(nLoop, nCel);
+        // If the index didn't change, it means we weren't wrapping  and were at the end (or there was only one cel).
+        // In that case, it doesn't count as adjacent. So return null;
+        if (indexOut.index != _dwIndex.index)
+        {
+            cel = &raster->GetCel(indexOut);
+        }
+    }
+    return cel;
+}
 const Cel *CRasterView::_GetCel(CelIndex index) const
 {
     const Cel *cel = nullptr;
@@ -565,7 +600,7 @@ void CRasterView::_CommitSourceData()
         if (pDoc)
         {
             // And put it back into the source.
-            std::vector<BYTE*> rgpData(_cWorkingCels);
+            std::vector<uint8_t*> rgpData(_cWorkingCels);
             for (int i = 0; i < _cWorkingCels; i++)
             {
                 rgpData[i] = _celData[i].GetDataPtr();
@@ -596,7 +631,7 @@ void CRasterView::_EnsureScratchBuffer1(size16 size)
     if (size != _sizeScratch1)
     {
         _sizeScratch1 = size;
-        _pBitsScratch1 = std::make_unique<BYTE[]>(PaddedSize(_sizeScratch1));
+        _pBitsScratch1 = std::make_unique<uint8_t[]>(PaddedSize(_sizeScratch1));
     }
 }
 
@@ -623,7 +658,7 @@ void CRasterView::_RefreshViewData()
             size16 size = activeCel->size;
             bool fSizedChanged = !!(size != _sizeView);
 
-            ASSERT(!_fSizerCapturing);
+            assert(!_fSizerCapturing);
             _sizeNew = size;
             _sizeView = size;
             _cxViewZoom = _sizeView.cx * _iZoomFactor;
@@ -697,6 +732,11 @@ void CRasterView::OnInitialUpdate()
     }
 }
 
+void CRasterView::OnOnionSkinChanged()
+{
+    _InvalidateViewArea();
+}
+
 void CRasterView::OnColorShift()
 {
     CNewRasterResourceDocument *pDoc = GetDoc();
@@ -761,53 +801,9 @@ void CRasterView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 
 // CRasterView drawing
 
-void CRasterView::_OnDrawSelectionRectI(RECT *prc)
+uint8_t CRasterView::_GetCurrentTransparentColor()
 {
-    BOOL rgOnOff[] = { TRUE, TRUE, TRUE, FALSE, FALSE };
-    _iRubberBandFrameNumber %= ARRAYSIZE(rgOnOff);
-
-    int cx = _sizeView.cx;
-    int cy = _sizeView.cy;
-    // Instead, act directly on the bits
-    CRect rectView(0, 0, cx, cy);
-    CRect rect;
-    if (rect.IntersectRect(&rectView, prc))
-    {
-        int iFrame = _iRubberBandFrameNumber;
-        BYTE *pTop = _GetMainViewData() + CX_ACTUAL(cx) * (cy - 1 - rect.top) + rect.left;
-        BYTE *pBottom = _GetMainViewData() + CX_ACTUAL(cx) * (cy - rect.bottom) + rect.left;
-        for (int x = rect.left; x < rect.right; x++)
-        {
-            if (rgOnOff[iFrame])
-            {
-                *pTop = 0xf - *pTop;
-                *pBottom = 0xf - *pBottom;
-            }
-            pTop++;
-            pBottom++;
-            iFrame++;
-            iFrame %= ARRAYSIZE(rgOnOff);
-        }
-        BYTE *pLeft = _GetMainViewData() + CX_ACTUAL(cx) * (cy - 2 - rect.top) + rect.left;
-        BYTE *pRight = pLeft + rect.Width() - 1;
-        for (int y = rect.top + 1; y < (rect.bottom - 1); y++)
-        {
-            if (rgOnOff[iFrame])
-            {
-                *pLeft = 0xf - *pLeft;
-                *pRight = 0xf - *pRight;
-            }
-            pLeft -= CX_ACTUAL(cx);
-            pRight -= CX_ACTUAL(cx);
-            iFrame++;
-            iFrame %= ARRAYSIZE(rgOnOff);
-        }
-    }
-}
-
-BYTE CRasterView::_GetCurrentTransparentColor()
-{
-    BYTE bTransparent = 0;
+    uint8_t bTransparent = 0;
     CNewRasterResourceDocument *pDoc = GetDoc();
     if (pDoc)
     {
@@ -817,9 +813,9 @@ BYTE CRasterView::_GetCurrentTransparentColor()
     return bTransparent;
 }
 
-BYTE CRasterView::_GetTransparentColor(CelIndex dwIndex)
+uint8_t CRasterView::_GetTransparentColor(CelIndex dwIndex)
 {
-    BYTE bTransparent = 0;
+    uint8_t bTransparent = 0;
     const Cel *cel = _GetCel(dwIndex);
     if (cel)
     {
@@ -877,8 +873,10 @@ void CRasterView::_OnDrawSelectionBits(const RECT *prcSelection, BOOL fTranspare
     _selectionManager.DrawSelection(CRect(prcSelection), iIndex, fTransparent, _celData[iIndex]);
 }
 
-void CRasterView::_OnDrawSelectionRect(RECT *prc)
+void CRasterView::_OnDrawSelectionRect(RECT *prc, RECT *prcRectToDrawOut)
 {
+    *prcRectToDrawOut = CRect(); // empty it out.
+
     if (!IsRectEmpty(prc))
     {
         // We have a selection rect.
@@ -897,7 +895,7 @@ void CRasterView::_OnDrawSelectionRect(RECT *prc)
             _OnDrawSelectionBits(CRect(prc), _fSelectionTransparent, _iMainIndex);
         }
 
-        _OnDrawSelectionRectI(prc);
+        *prcRectToDrawOut = *prc;
     }
     else
     {
@@ -906,7 +904,7 @@ void CRasterView::_OnDrawSelectionRect(RECT *prc)
         {
             CRect rectInProgress;
             _MakeGoodRect(rectInProgress, _ptCurrentHover, _ptStartCapture);
-            _OnDrawSelectionRectI(&rectInProgress);
+            *prcRectToDrawOut = rectInProgress;
         }
     }
 }
@@ -934,11 +932,10 @@ void CRasterView::_OnDrawSizers(CDC *pDC, CPoint &ptWhatsLeft)
     ptWhatsLeft.y = sizeNewZoom.cy + SIZER_SIZE;
 }
 
-
 void CRasterView::_OnBltResized(CDC *pDCDest, CDC *pDCSrc)
 {
     // Hmm... the user may have shrunk the view smaller or larger than it actually is.
-    ASSERT(_sizeView.cx * _iZoomFactor == _cxViewZoom);
+    assert(_sizeView.cx * _iZoomFactor == _cxViewZoom);
     int cxSrc = _sizeView.cx;
     int cySrc = _sizeView.cy;
     int cxDest = _cxViewZoom;
@@ -995,8 +992,8 @@ void CRasterView::OnDraw(CDC* pDC)
         if (_fDoubleBuf)
         {
             // Draw the things that are in "view coordinates":
-            ASSERT(_pbitmapDoubleBuf);
-            HGDIOBJ hgdiObj = dcMem.SelectObject(_pbitmapDoubleBuf);
+            assert(_pbitmapDoubleBuf);
+            HGDIOBJ hgdiObj = dcMem.SelectObject(_pbitmapDoubleBuf.get());
             _OnDraw(&dcMem);
             _OnBltResized(pDC, &dcMem);
             dcMem.SelectObject(hgdiObj);
@@ -1053,21 +1050,41 @@ void CRasterView::OnDraw(CDC* pDC)
 
 void CRasterView::_DestroyDoubleBuffer()
 {
-    if (_pbitmapDoubleBuf)
-    {
-        delete _pbitmapDoubleBuf;
-        _pbitmapDoubleBuf = NULL;
-        _fDoubleBuf = false;
-    }
+    _pbitmapDoubleBuf = nullptr;
+    _fDoubleBuf = false;
 }
 
 void CRasterView::_GenerateDoubleBuffer(CDC *pDC)
 {
-    ASSERT(!_pbitmapDoubleBuf);
-    _pbitmapDoubleBuf = new CBitmap();
-    if (_pbitmapDoubleBuf)
+    assert(!_pbitmapDoubleBuf);
+    _pbitmapDoubleBuf = std::make_unique<CBitmap>();
+    _fDoubleBuf = (_pbitmapDoubleBuf->CreateCompatibleBitmap(pDC, _sizeView.cx, _sizeView.cy) != FALSE);
+}
+
+OnionSkinFrameOptions _defaultOptions;
+
+OnionSkinFrameOptions& CRasterView::_LeftOnionOptions()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
     {
-        _fDoubleBuf = (_pbitmapDoubleBuf->CreateCompatibleBitmap(pDC, _sizeView.cx, _sizeView.cy) != FALSE);
+        return pDoc->GetOnionSkin().Left;
+    }
+    else
+    {
+        return _defaultOptions;
+    }
+}
+OnionSkinFrameOptions& CRasterView::_RightOnionOptions()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        return pDoc->GetOnionSkin().Right;
+    }
+    else
+    {
+        return _defaultOptions;
     }
 }
 
@@ -1116,7 +1133,7 @@ void CRasterView::_InitPatternBrush()
     _brushPattern.DeleteObject();
     // Create a monochrome bitmap. 
     // WORD wFoo[4] = { 0xaaaa, 0x5555, 0xaaaa, 0x5555 };
-    if (_bitmapBrush.CreateBitmap(4, 4, 1, 1, (LPBYTE)wFoo))
+    if (_bitmapBrush.CreateBitmap(4, 4, 1, 1, (uint8_t*)wFoo))
     {
         _brushPattern.CreatePatternBrush(&_bitmapBrush);
     }
@@ -1140,7 +1157,7 @@ BOOL CRasterView::_CanResize()
 //
 void CRasterView::_PrepareCelOffsets(const CPoint &ptMain1, const CPoint &ptMain2)
 {
-    ASSERT(_cWorkingCels == _celData.size());
+    assert(_cWorkingCels == _celData.size());
     point16 ptPlacementMain = _celData[_iMainIndex].GetPlacement();
     size16 sizeMain = _celData[_iMainIndex].GetSize();
     for (size_t i = 0; i < _celData.size(); i++)
@@ -1312,45 +1329,172 @@ void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
 //
 void CRasterView::_DrawHotSpot(CDC *pDC)
 {
-    if (_fHotSpot)
+    const Cel *activeCel = _GetSelectedCel();
+    if (activeCel)
     {
-        const Cel *activeCel = _GetSelectedCel();
-        if (activeCel)
+        CPoint pointPlacement = PointToCPoint(activeCel->placement);
+        // Determine the origin style
+        CPoint point;
+        CNewRasterResourceDocument *pDoc = GetDoc();
+        if (pDoc)
         {
-            CPoint pointPlacement = PointToCPoint(activeCel->placement);
-            // Determine the origin style
-            CPoint point;
-            CNewRasterResourceDocument *pDoc = GetDoc();
-            if (pDoc)
+            OriginStyle originStyle = pDoc->GetComponent<RasterComponent>().Traits.OriginStyle;
+            switch (originStyle)
             {
-                OriginStyle originStyle = pDoc->GetComponent<RasterComponent>().Traits.OriginStyle;
-                switch (originStyle)
-                {
-                case OriginStyle::BottomCenter:
-                    point = CPoint(_sizeView.cx / 2, _sizeView.cy);
-                    point -= pointPlacement;
-                    point.y = _sizeView.cy - point.y;
-                    break;
+            case OriginStyle::BottomCenter:
+                point = CPoint(_sizeView.cx / 2, _sizeView.cy);
+                point -= pointPlacement;
+                point.y = _sizeView.cy - point.y;
+                break;
                     
-                case OriginStyle::TopLeft:
-                    point = CPoint(0, 0);
-                    point += pointPlacement;
-                    point.y = _sizeView.cy - point.y - 1;
-                    break;
-                }
+            case OriginStyle::TopLeft:
+                point = CPoint(0, 0);
+                point += pointPlacement;
+                point.y = _sizeView.cy - point.y - 1;
+                break;
             }
+        }
 
-            CRect rectView(0, 0, _sizeView.cx, _sizeView.cy);
-            if (rectView.PtInRect(point))
+        CRect rectView(0, 0, _sizeView.cx, _sizeView.cy);
+        if (rectView.PtInRect(point))
+        {
+            // Inverted for some reason...
+            point.y = _sizeView.cy - point.y - 1;
+            CPen pen;
+            pen.CreatePen(PS_SOLID, 1, _fHotSpot ? RGB(255, 255, 255) : RGB(0, 0, 0));
+            HGDIOBJ oldPen = pDC->SelectObject(pen);
+            pDC->MoveTo(point);
+            pDC->LineTo(point + CPoint(0, 1)); // Anywhere...
+            pDC->SelectObject(oldPen);
+        }
+    }
+}
+
+void _EnsureBuffer(CDC *pDC, std::unique_ptr<CBitmap> &buffer, size16 size)
+{
+    CSize sizeExisting;
+    if (buffer)
+    {
+        sizeExisting = buffer->GetBitmapDimension();
+    }
+    if ((sizeExisting.cx != size.cx) || (sizeExisting.cy != size.cy))
+    {
+        buffer = std::make_unique<CBitmap>();
+        buffer->CreateCompatibleBitmap(pDC, size.cx, size.cy);
+    }
+}
+
+void DashFromTo(std::vector<POINT> &points, const CPoint &from, const CPoint &to, const CPoint &direction, int &remaining)
+{
+    CPoint current = from;
+    CPoint startLine = current;
+    while (current != to)
+    {
+        if (remaining == 0)
+        {
+            startLine = current;
+        }
+        else if (remaining == 2)
+        {
+            // Draw a line
+            points.push_back(startLine);
+            points.push_back(current);
+        }
+        current += direction;
+        remaining++;
+        remaining %= 3;
+    }
+    if (remaining != 0)
+    {
+        points.push_back(startLine);
+        points.push_back(current);
+    }
+}
+
+void CRasterView::_DrawDashedSelectionRect(CDC *pDC, const CRect &rect)
+{
+    // Incredibly, GDI offers no way to control pen stoke length. One dot is always 4 pixels, which isn't suitable for our purposes.
+    // So we draw a ton of individual lines instead.
+
+    static bool polyPointsInitialized = false;
+    static DWORD polyPoints[500];
+    if (!polyPointsInitialized)
+    {
+        std::fill(begin(polyPoints), end(polyPoints), 2);
+        polyPointsInitialized = true;
+    }
+
+    std::vector<POINT> points;
+    points.reserve(200);
+    int count = 0;
+    _iRubberBandFrameNumber %= 3;
+    // Two on and one off
+    int remaining =  2 - _iRubberBandFrameNumber;
+    DashFromTo(points, rect.TopLeft(), CPoint(rect.right - 1, rect.top), CPoint(1, 0), remaining);
+    DashFromTo(points, CPoint(rect.right - 1, rect.top), rect.BottomRight() - CPoint(1, 1) , CPoint(0, 1), remaining);
+    DashFromTo(points, rect.BottomRight() - CPoint(1, 1), CPoint(rect.left, rect.bottom - 1), CPoint(-1, 0), remaining);
+    DashFromTo(points, CPoint(rect.left, rect.bottom - 1), rect.TopLeft(), CPoint(0, -1), remaining);
+
+    if (!points.empty())
+    {
+        CPen selectionPen;
+        selectionPen.CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+        HGDIOBJ oldPen = pDC->SelectObject(selectionPen);
+        int oldRop = pDC->SetROP2(R2_XORPEN);
+        pDC->PolyPolyline(&points[0], polyPoints, min((int)(points.size() / 2), ARRAYSIZE(polyPoints)));
+        pDC->SetROP2(oldRop);
+
+        pDC->SelectObject(oldPen);
+    }
+}
+
+void CRasterView::_DrawOnionSkin(RGBQUAD *pixels, RGBQUAD tint, const OnionSkinFrameOptions &options, const CelData &onion, const Cel &main)
+{
+    uint8_t sourceAlpha = tint.rgbReserved;
+    size16 onionSize = onion.GetSize();
+    CPoint pt;
+    size16 sizeDest = main.size;
+    CPoint sourceToDest = -onion.CalcOffset(main.placement, sizeDest, pt);
+    sourceToDest.y = (sizeDest.cy - onionSize.cy) -sourceToDest.y;
+    uint8_t tx = onion.GetTransparentColor();
+    for (int ySrc = 0; ySrc < onionSize.cy; ySrc++)
+    {
+        const uint8_t *source = onion.GetDataPtr() + ySrc * CX_ACTUAL(onionSize.cx);
+        int yDest = ySrc + sourceToDest.y;
+        if (yDest >= 0 && yDest < sizeDest.cy)
+        {
+            RGBQUAD *dest = pixels + yDest * sizeDest.cx;
+            for (int xSrc = 0; xSrc < onionSize.cx; xSrc++)
             {
-                BYTE *pLine = _ViewOffset(point.y);
-                BYTE *pPixel = pLine + point.x;
-
-                // Invert pixel
-                *pPixel = 15 - *pPixel;
+                int xDest = xSrc + sourceToDest.x;
+                if (xDest >= 0 && xDest < sizeDest.cx)
+                {
+                    uint8_t sourcePixel = *(source + xSrc);
+                    if (sourcePixel != tx)
+                    {
+                        RGBQUAD destColor = *(dest + xDest);
+                        RGBQUAD sourceColor = _palette[sourcePixel];
+                        destColor.rgbBlue = sourceColor.rgbBlue * tint.rgbBlue * sourceAlpha / 255 / 255 + destColor.rgbBlue * (255 - sourceAlpha) / 255;
+                        destColor.rgbGreen = sourceColor.rgbGreen * tint.rgbGreen * sourceAlpha / 255 / 255 + destColor.rgbGreen * (255 - sourceAlpha) / 255;
+                        destColor.rgbRed = sourceColor.rgbRed * tint.rgbRed * sourceAlpha / 255 / 255 + destColor.rgbRed * (255 - sourceAlpha) / 255;
+                        *(dest + xDest) = destColor;
+                    }
+                }
             }
         }
     }
+}
+
+#define GetAValue(rgb)      (LOBYTE((rgb)>>24))
+
+RGBQUAD RGBAQUADFromCOLORREF(COLORREF color)
+{
+    RGBQUAD quad;
+    quad.rgbBlue = GetBValue(color);
+    quad.rgbRed = GetRValue(color);
+    quad.rgbGreen = GetGValue(color);
+    quad.rgbReserved = GetAValue(color);
+    return quad;
 }
 
 void CRasterView::_OnDraw(CDC* pDC)
@@ -1365,7 +1509,7 @@ void CRasterView::_OnDraw(CDC* pDC)
         if (_GetMainViewData())
         {
 #ifdef DEBUG
-            ASSERT(activeCel->size == _sizeView);
+            assert(activeCel->size == _sizeView);
             // Otherwise, we'll have a buffer overrun in _pViewData
 #endif
             if (!_fPreviewPen)
@@ -1375,25 +1519,125 @@ void CRasterView::_OnDraw(CDC* pDC)
             }
         }
 
-        // Draw selection rect.
+        // Draw selection rect. Now, however, this only draws selection bits, and returns to us
+        // the rect in which selection should be drawn (so we can draw it after).
         CRect rectSelectionCopy = _rectSelection;
-        _OnDrawSelectionRect(&rectSelectionCopy);
+        CRect selectionRectToDrawAfter;
+        _OnDrawSelectionRect(&rectSelectionCopy, &selectionRectToDrawAfter);
 
         if (_fCapturing)
         {
+            // This is drawn using GDI - how does it not get overwritten???
+            // Ah, we copy our bits in... I get it.
             _DrawCaptureTool(pDC);
+        }
+
+        const OnionSkinOptions &onionOptions = GetDoc()->GetOnionSkin();
+        CelIndex leftIndex;
+        const Cel *leftCel = _GetPreviousCel(leftIndex);
+        CelIndex rightIndex;
+        const Cel *rightCel = _GetNextCel(rightIndex);
+        if ((onionOptions.Left.Enabled && leftCel) || (onionOptions.Right.Enabled && rightCel))
+        {
+            // If onion skin is enabled, we need to control drawing more precisely than GDI will let us.
+            // So we'll make a 32-bit DIB and copy the pixels to it manually (doing palette lookup)
+            BITMAPINFO bmi = { 0 };
+            bmi.bmiHeader.biSize = sizeof(BITMAPINFO);
+            bmi.bmiHeader.biBitCount = 32;
+            bmi.bmiHeader.biCompression = BI_RGB;
+            bmi.bmiHeader.biWidth = _sizeView.cx;
+            bmi.bmiHeader.biHeight = _sizeView.cy;
+            bmi.bmiHeader.biPlanes = 1;
+            RGBQUAD *pixels;
+            HBITMAP dib = CreateDIBSection(*pDC, &bmi, DIB_RGB_COLORS, reinterpret_cast<void**>(&pixels), nullptr, 0);
+            if (dib)
+            {
+                // Fill the background with the transparent color, so that we have the optional of not drawing transparent parts when
+                // we draw the main view (so the onion skin will show though)
+                std::fill(pixels, pixels + _sizeView.cx * _sizeView.cy, _palette[activeCel->TransparentColor]);
+
+                CelIndex prev = _dwIndex;
+                const OnionSkinFrameOptions &onionFrameLeft = onionOptions.Left;
+                const OnionSkinFrameOptions &onionFrameRight = onionOptions.Right;
+
+                CelData leftOnionBits;
+                if (onionOptions.Left.Enabled && leftCel)
+                {
+                    size16 celSize = leftCel->size;
+                    leftOnionBits.SetSize(leftIndex, leftCel->placement, leftCel->size, leftCel->TransparentColor);
+                    CopyBitmapData(*_GetRaster(), leftIndex, leftOnionBits.GetDataPtr(), leftOnionBits.GetSize());
+                }
+                CelData rightOnionBits;
+                if (onionOptions.Right.Enabled && rightCel)
+                {
+                    size16 celSize = rightCel->size;
+                    rightOnionBits.SetSize(rightIndex, rightCel->placement, rightCel->size, rightCel->TransparentColor);
+                    CopyBitmapData(*_GetRaster(), rightIndex, rightOnionBits.GetDataPtr(), rightOnionBits.GetSize());
+                }
+
+                if (onionFrameLeft.Enabled && !appState->_onionLeftOnTop)
+                {
+                    _DrawOnionSkin(pixels, RGBAQUADFromCOLORREF(appState->_onionLeftTint), onionFrameLeft, leftOnionBits, *activeCel);
+                }
+                if (onionFrameRight.Enabled && !appState->_onionRightOnTop)
+                {
+                    _DrawOnionSkin(pixels, RGBAQUADFromCOLORREF(appState->_onionRightTint), onionFrameRight, rightOnionBits, *activeCel);
+                }
+
+                uint8_t *sourceData = _GetMainViewData();
+                for (int y = 0; y < _sizeView.cy; y++)
+                {
+                    uint8_t *sourceLine = sourceData + (y * CX_ACTUAL(_sizeView.cx));
+                    RGBQUAD *destLine = pixels + (y * _sizeView.cx);
+                    for (int x = 0; x < _sizeView.cx; x++)
+                    {
+                        uint8_t sourceByte = *(sourceLine + x);
+                        if (sourceByte != activeCel->TransparentColor)
+                        {
+                            *(destLine + x) = _palette[sourceByte];
+                        }
+                    }
+                }
+
+                if (onionFrameLeft.Enabled && appState->_onionLeftOnTop)
+                {
+                    _DrawOnionSkin(pixels, RGBAQUADFromCOLORREF(appState->_onionLeftTint), onionFrameLeft, leftOnionBits, *activeCel);
+                }
+                if (onionFrameRight.Enabled && appState->_onionRightOnTop)
+                {
+                    _DrawOnionSkin(pixels, RGBAQUADFromCOLORREF(appState->_onionRightTint), onionFrameRight, rightOnionBits, *activeCel);
+                }
+
+                CDC dcMem;
+                if (dcMem.CreateCompatibleDC(pDC))
+                {
+                    HGDIOBJ hOld = dcMem.SelectObject(dib);
+                    StretchBlt(*pDC, 0, 0, _sizeView.cx, _sizeView.cy, dcMem, 0, 0, _sizeView.cx, _sizeView.cy, SRCCOPY);
+                    dcMem.SelectObject(hOld);
+                }
+
+                DeleteObject(dib);
+            }
+        }
+        else
+        {
+            // Just a straight copy from our raw bits to the buffer.
+            // - it involves palette conversion, so it could be expensive.
+            SCIBitmapInfo bmi(_sizeView.cx, _sizeView.cy, _palette, _paletteCount);
+            StretchDIBits((HDC)*pDC, 0, 0, _sizeView.cx, _sizeView.cy, 0, 0, _sizeView.cx, _sizeView.cy, _GetMainViewData(), &bmi, DIB_RGB_COLORS, SRCCOPY);
+        }
+
+        // Layers on top of our buffer. Selection rect and other stuff.
+
+        if (!selectionRectToDrawAfter.IsRectEmpty())
+        {
+            _DrawDashedSelectionRect(pDC, selectionRectToDrawAfter);
         }
 
         if (_currentTool == SetPlacement)
         {
             _DrawHotSpot(pDC);
         }
-
-        // Now copy to the memory dc.
-        // FEATURE: this could be optimized (when zoomed, by limiting how much we copy)
-        // - it involves palette conversion, so it could be expensive.
-        SCIBitmapInfo bmi(_sizeView.cx, _sizeView.cy, _palette, _paletteCount);
-        StretchDIBits((HDC)*pDC, 0, 0, _sizeView.cx, _sizeView.cy, 0, 0, _sizeView.cx, _sizeView.cy, _GetMainViewData(), &bmi, DIB_RGB_COLORS, SRCCOPY);
     }
 }
 
@@ -1750,11 +1994,11 @@ void CRasterView::_OnReplaceTool(CPoint point, BOOL fReplaceAll, bool fLeftClick
         }
 
         // Now we have our mask.  Replace colours in the original, based on that mask:
-        ASSERT(_sizeScratch1 == _celData[i].GetSize());
-        BYTE *pCurrentVD = _celData[i].GetDataPtr();
-        BYTE *pCurrentScratch = _pBitsScratch1.get();
-        BYTE bColor1 = fLeftClick ? _color : _alternateColor;
-        BYTE bColor2 = fLeftClick ? _alternateColor : _color;
+        assert(_sizeScratch1 == _celData[i].GetSize());
+        uint8_t *pCurrentVD = _celData[i].GetDataPtr();
+        uint8_t *pCurrentScratch = _pBitsScratch1.get();
+        uint8_t bColor1 = fLeftClick ? _color : _alternateColor;
+        uint8_t bColor2 = fLeftClick ? _alternateColor : _color;
         for (int j = 0; j < (CX_ACTUAL(_sizeScratch1.cx) * _sizeScratch1.cy); j++, pCurrentVD++, pCurrentScratch++)
         {
             if ((*pCurrentVD == bColor1) && (*pCurrentScratch == 0xf))
@@ -1941,7 +2185,7 @@ void CRasterView::_OnDrawCommand(ViewToolType type)
 // Copies pBitsSelection to the clipboard.  The size is assumed to be the "non-actual"
 // size (not aligned to 32 bit boundaries)
 //
-void CRasterView::_OnCopyBitsToClipboard(const BYTE *pBitsSelection, CSize size)
+void CRasterView::_OnCopyBitsToClipboard(const uint8_t *pBitsSelection, CSize size)
 {
     CWindowDC windowDC(this);
     CDC dcMem;
@@ -1950,7 +2194,7 @@ void CRasterView::_OnCopyBitsToClipboard(const BYTE *pBitsSelection, CSize size)
         CBitmap bitmap;
         // Make a temporary buffer, since our selection buffer is "upside down", plus it doesn't include
         // the padding bits at the end (32-bit scanline alignment)
-        std::unique_ptr<BYTE[]> pBitsTemp = std::make_unique<BYTE[]>(CX_ACTUAL(size.cx) * size.cy);
+        std::unique_ptr<uint8_t[]> pBitsTemp = std::make_unique<uint8_t[]>(CX_ACTUAL(size.cx) * size.cy);
         // Copy it over, flipping it.
         for (int y = 0; y < size.cy; y++)
         {
@@ -2074,7 +2318,7 @@ void CRasterView::OnCopyPic()
                 if (_selectionManager.HasSelection())
                 {
                     CSize sizeOut;
-                    BYTE *pBitsSelection = _selectionManager.GetMainSelection(sizeOut);
+                    uint8_t *pBitsSelection = _selectionManager.GetMainSelection(sizeOut);
                     if (pBitsSelection)
                     {
                         _OnCopyBitsToClipboard(pBitsSelection, sizeOut);
@@ -2159,7 +2403,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
     {
         success = true;
         _EnsureCelsLargeEnoughForPaste(cel->size);
-        _rectSelection = _selectionManager.PasteCel(*cel, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+        _rectSelection = _selectionManager.PasteCel(vector<Cel*> {cel.get()}, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
     }
     else if (IsClipboardFormatAvailable(CF_BITMAP))
     {
@@ -2239,7 +2483,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                             );
 
                             success = true;
-                            _rectSelection = _selectionManager.PasteCel(*finalCel, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                            _rectSelection = _selectionManager.PasteCel(vector<Cel*> {finalCel.get()}, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
                         }
                     }
                     else
@@ -2310,7 +2554,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                         if (finalResult)
                         {
                             success = true;
-                            _rectSelection = _selectionManager.PasteCel(*finalResult, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                            _rectSelection = _selectionManager.PasteCel(vector<Cel*> {finalResult.get()} , _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
                         }
                     }
                 }
@@ -2377,7 +2621,7 @@ void CRasterView::_OnCutOrDeleteSelection(BOOL fCut)
     _CommitSourceData();
 
     CSize sizeOut;
-    BYTE *pBitsMainSelection = _selectionManager.GetMainSelection(sizeOut);
+    uint8_t *pBitsMainSelection = _selectionManager.GetMainSelection(sizeOut);
     if (pBitsMainSelection)
     {
         // Copy this to the clipboard.
@@ -2470,6 +2714,40 @@ void CRasterView::OnUpdateIsVGA(CCmdUI *pCmdUI)
 void CRasterView::OnUpdateAlwaysOn(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable(TRUE);
+}
+
+void CRasterView::OnUpdateLeftOnion(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(TRUE);
+    pCmdUI->SetCheck((GetDoc() && GetDoc()->GetOnionSkin().Left.Enabled) ? BST_CHECKED : BST_UNCHECKED);
+}
+
+void CRasterView::OnUpdateRightOnion(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(TRUE);
+    pCmdUI->SetCheck((GetDoc() && GetDoc()->GetOnionSkin().Right.Enabled) ? BST_CHECKED : BST_UNCHECKED);
+}
+
+void CRasterView::ToggleLeftOnion()
+{
+    if (GetDoc())
+    {
+        GetDoc()->GetOnionSkin().Left.Enabled = !GetDoc()->GetOnionSkin().Left.Enabled;
+        _InvalidateViewArea();
+    }
+}
+void CRasterView::ToggleRightOnion()
+{
+    if (GetDoc())
+    {
+        GetDoc()->GetOnionSkin().Right.Enabled = !GetDoc()->GetOnionSkin().Right.Enabled;
+        _InvalidateViewArea();
+    }
+}
+void CRasterView::OnOnionSkinSettings()
+{
+    OnionSkinSettingsDialog dialog(*this);
+    dialog.DoModal();
 }
 
 void CRasterView::OnUpdateHasVGAPalette(CCmdUI *pCmdUI)
@@ -2586,10 +2864,10 @@ void CRasterView::OnFlipHorz()
         {
             for (int x = 0; x < rectEffect.Width() / 2; x++)
             {
-                BYTE *pLine = _ViewOffset(i, y) + rectEffect.left;
+                uint8_t *pLine = _ViewOffset(i, y) + rectEffect.left;
                 int xRight = rectEffect.Width() - x - 1;
                 int xLeft = x;
-                BYTE bTemp = pLine[x];
+                uint8_t bTemp = pLine[x];
                 pLine[x] = pLine[xRight];
                 pLine[xRight] = bTemp;
             }
@@ -2672,7 +2950,7 @@ void CRasterView::OnFlipVert()
     {
         CRect rectEffect = _GetEffectArea(i);
         CSize sizeView = _celData[i].GetCSize();
-		std::unique_ptr<BYTE[]> pTemp = std::make_unique<BYTE[]>(sizeView.cx);
+		std::unique_ptr<uint8_t[]> pTemp = std::make_unique<uint8_t[]>(sizeView.cx);
         int bottom = rectEffect.Height() / 2 + rectEffect.top;
         for (int y = rectEffect.top; y < bottom; y++)
         {
@@ -2699,10 +2977,10 @@ void CRasterView::OnInvert()
         CSize sizeCel = _celData[i].GetCSize();
         for (int y = 0; y < sizeCel.cy; y++)
         {
-            BYTE *pLine = _ViewOffset(i, y);
+            uint8_t *pLine = _ViewOffset(i, y);
             for (int x = 0; x < sizeCel.cx; x++)
             {
-                ASSERT(pLine[x] <= 0xf);
+                assert(pLine[x] <= 0xf);
                 pLine[x] = 0xf - pLine[x];
             }
         }
@@ -2719,11 +2997,11 @@ void CRasterView::OnGreyScale()
         CSize sizeCel = _celData[i].GetCSize();
         for (int y = 0; y < sizeCel.cy; y++)
         {
-            BYTE *pLine = _ViewOffset(i, y);
+            uint8_t *pLine = _ViewOffset(i, y);
             for (int x = 0; x < sizeCel.cx; x++)
             {
 
-                ASSERT((pLine + x) <
+                assert((pLine + x) <
                     (_celData[i].GetDataPtr() + CX_ACTUAL(sizeCel.cx) * sizeCel.cy));
                 switch (pLine[x])
                 {
@@ -3006,8 +3284,8 @@ void CRasterView::_EnsureRectWithinBounds(CRect &rect)
 {
     int cx = rect.Width();
     int cy = rect.Height();
-    ASSERT(cx <= _sizeView.cx);
-    ASSERT(cy <= _sizeView.cy);
+    assert(cx <= _sizeView.cx);
+    assert(cy <= _sizeView.cy);
 
     if (rect.left < 0)
     {
@@ -3046,7 +3324,7 @@ void CRasterView::OnMouseMove(UINT nFlags, CPoint point)
     if (_fSizerCapturing)
     {
         // We're in capture.  Figure out the diff.
-        ASSERT(_onSizerType != None);
+        assert(_onSizerType != None);
         switch (_onSizerType)
         {
         case Diagonal:
@@ -3214,7 +3492,7 @@ void CRasterView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
         if ((point.x != 0) || (point.y != 0))
         {
-            GetDoc()->MoveSelectedCel(point);
+            GetDoc()->MoveSelectedCel(point, true);
         }
     }
 }

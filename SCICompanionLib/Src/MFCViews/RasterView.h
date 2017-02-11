@@ -17,6 +17,7 @@
 #include "View.h"
 #include "ColorShiftCallback.h"
 #include "PaletteDefinitionCallback.h"
+#include "OnionSkinSettingsCallback.h"
 
 // #define FORCE_REDRAW
 
@@ -24,10 +25,11 @@
 class CNewRasterResourceDocument;
 struct RasterComponent;
 struct Cel;
+struct OnionSkinFrameOptions;
 
 // CRasterView view
 
-class CRasterView : public CScrollingThing<CView>, public IColorShiftCallback, public IVGAPaletteDefinitionCallback
+class CRasterView : public CScrollingThing<CView>, public IColorShiftCallback, public IVGAPaletteDefinitionCallback, public IOnionSkinCallback
 {
 	DECLARE_DYNCREATE(CRasterView)
 
@@ -56,6 +58,7 @@ public:
     virtual BOOL OnSetCursor(CWnd *pWnd, UINT nHitTest, UINT message);
 
     virtual void OnInitialUpdate();
+    virtual void OnOnionSkinChanged();
 
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -157,13 +160,23 @@ private:
             return (*this);
         }
 
-        void SetSize(CelIndex index, point16 ptPlacement, size16 size, BYTE bTransparent)
+        void SetSize(CelIndex index, point16 ptPlacement, size16 size, uint8_t bTransparent)
         {
             _index = index;
             _ptPlacement = ptPlacement;
             _size = size;
             _bTransparent = bTransparent;
-            _pData.reset(new BYTE[CX_ACTUAL(size.cx) * size.cy]);
+            _pData.reset(new uint8_t[CX_ACTUAL(size.cx) * size.cy]);
+        }
+        CPoint CalcOffset(point16 ptPlacementMain, size16 sizeMain, CPoint pt) const
+        {
+            // NOTE: this assumes ORIGINSTYLE_BOTTOMCENTER.  The origin is type-specific.
+            // However, for fonts and views, it is centered at the bottom center, and cursors
+            // only ever have one cel, so in the end it won't matter.
+            CPoint ptOriginMain = CPoint(sizeMain.cx / 2, sizeMain.cy - 1) - PointToCPoint(ptPlacementMain);
+            // Now adjust the point
+            CPoint ptOriginThis = CPoint(_size.cx / 2, _size.cy - 1) - PointToCPoint(_ptPlacement);
+            return ptOriginThis - (ptOriginMain - pt);
         }
         void CalcOffset(point16 ptPlacementMain, size16 sizeMain, CPoint pt1, CPoint pt2)
         {
@@ -208,11 +221,15 @@ private:
         {
             return _pData.get();
         }
+        const uint8_t *GetDataPtr() const
+        {
+            return _pData.get();
+        }
         const point16 &GetPlacement() const
         {
             return _ptPlacement;
         }
-        BYTE GetTransparentColor() const
+        uint8_t GetTransparentColor() const
         {
             return _bTransparent;
         }
@@ -220,7 +237,7 @@ private:
         CPoint _point2;     // temporary point buffer
 
     private:
-        std::unique_ptr<BYTE[]> _pData;       // The pixels
+        std::unique_ptr<uint8_t[]> _pData;       // The pixels
         size16 _size;        // The size of this cel
         CelIndex _index;    // In index in the resource object of this cel
         point16 _ptPlacement;
@@ -239,17 +256,17 @@ private:
         bool HasSelection();
 
         void LiftSelection(CRect rcMain, int iMain, int cCels, std::vector<CRasterView::CelData> &celData, BOOL fClear, BOOL fGrabBits);
-        BYTE *GetMainSelection(CSize &sizeOut);
+        uint8_t *GetMainSelection(CSize &sizeOut);
         void DrawSelection(CRect rectSelection, int iIndex, BOOL fTransparent, CelData &celData);
         void ClearSelection() { _GenerateSelectionBits(0, CSize(0, 0)); }
-        CRect PasteCel(const Cel &celPaste, int cCels, CSize sizeMain);
+        CRect PasteCel(const std::vector<Cel*> &celsPaste, int cCels, CSize sizeMain);
 
     private:
         CRect _GetBottomOriginRect(CSize sizeCel, const RECT *prc);
         void _GenerateSelectionBits(int cCels, CSize size);
 
         bool _fSelection;
-        std::vector<std::unique_ptr<BYTE[]>> _selectionBits;
+        std::vector<std::unique_ptr<uint8_t[]>> _selectionBits;
         CSize _sizeSelectionBits;
         int _iMain;
     };
@@ -279,6 +296,8 @@ private:
     afx_msg void OnIndicatorCoords(CCmdUI *pCmdUI);
     afx_msg void OnIndicatorRasterSize(CCmdUI *pCmdUI);
     afx_msg void OnIndicatorPixelColor(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateLeftOnion(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateRightOnion(CCmdUI *pCmdUI);
     afx_msg void OnFlipHorz();
     afx_msg void OnFlipVert();
     afx_msg void OnInvert();
@@ -291,6 +310,10 @@ private:
     afx_msg void RemoveVGAPalette();
     afx_msg void RemapPalette();
     afx_msg void ShiftColors();
+    afx_msg void ToggleLeftOnion();
+    afx_msg void ToggleRightOnion();
+    afx_msg void OnOnionSkinSettings();
+    
 
     void _OnShift(int x, int y);
     void _EnsureCelsLargeEnoughForPaste(size16 size);
@@ -298,8 +321,9 @@ private:
     void _OnDraw(CDC* pDC);
     void _OnBltResized(CDC *pDCDest, CDC *pDCSrc);
     void _OnDrawSizers(CDC *pDC, CPoint &ptWhatsLeft);
-    void _OnDrawSelectionRect(RECT *prc);
-    void _OnDrawSelectionRectI(RECT *prc);
+    void _DrawDashedSelectionRect(CDC *pDC, const CRect &rect);
+    void _OnDrawSelectionRect(RECT *prc, RECT *prcRectToDraw);
+    void _DrawOnionSkin(RGBQUAD *pixels, RGBQUAD tint, const OnionSkinFrameOptions &options, const CelData &onion, const Cel &main);
     void _OnDrawSelectionBits(const RECT *prcSelection, BOOL fTransparent, int iIndex);
     void _DrawHotSpot(CDC *pDC);
     void _LiftSelection();
@@ -325,16 +349,14 @@ private:
     void _GrabSourceData();
     void _CommitSourceData();
     OnSizerType _OnSizer(CPoint &ptClient);
-    BYTE _GetCurrentTransparentColor();
-    BYTE _GetTransparentColor(CelIndex dwIndex);
-    CRect _GetBottomOriginRect(const RECT *prc);
+    uint8_t _GetCurrentTransparentColor();
+    uint8_t _GetTransparentColor(CelIndex dwIndex);
     void _EnsurePointWithinBounds(CPoint &pointView);
     void _EnsureRectWithinBounds(CRect &rect);
     void _CommitSelectionBits();
     void _GetRidOfSelection();
     void _OnCutOrDeleteSelection(BOOL fCut);
-    void _OnCopyBitsToClipboard(const BYTE *pBitsSelection, CSize size);
-    BYTE *_CreateSelectionByteArray(BOOL fCleanOutView, BOOL fGrabBits, BOOL fReturnSingle);
+    void _OnCopyBitsToClipboard(const uint8_t *pBitsSelection, CSize size);
     void _StartRubberBandTimer() { SetTimer(RubberBandTimer, RubberBandMs, NULL); }
     void _KillRubberBandTimer() { KillTimer(RubberBandTimer); }
     void _StartHotSpotTimer() { SetTimer(HotSpotTimer, HotSpotMs, NULL); }
@@ -346,9 +368,9 @@ private:
     BOOL _IsPenTool() { return ((_currentTool == Pen) || (_currentTool == Replace)); }
     void _OnPaste(bool fTransparent, bool provideOptions);
     void _DrawDitheredPen(CDC *pDC, CPoint point);
-    BYTE *_ViewOffset(int y) { return (_iMainIndex == -1) ? NULL : _ViewOffset(_iMainIndex, y); }
-    BYTE *_ViewOffset(int iIndex, int y) { return _celData[iIndex].GetDataPtr() + CX_ACTUAL(_celData[iIndex].GetSize().cx) * y; }
-    BYTE *_GetMainViewData() { return _ViewOffset(0); }
+    uint8_t *_ViewOffset(int y) { return (_iMainIndex == -1) ? NULL : _ViewOffset(_iMainIndex, y); }
+    uint8_t *_ViewOffset(int iIndex, int y) { return _celData[iIndex].GetDataPtr() + CX_ACTUAL(_celData[iIndex].GetSize().cx) * y; }
+    uint8_t *_GetMainViewData() { return _ViewOffset(0); }
     BOOL _PointInView(CPoint point) { CRect rect(0, 0, _sizeView.cx, _sizeView.cy); return rect.PtInRect(point); }
     void _InitPatternBrush();
     BOOL _CanResize();
@@ -360,12 +382,18 @@ private:
     const RasterComponent *_GetRaster() const;
     const Cel *_GetSelectedCel() const;
     const Cel *_GetCel(CelIndex dwIndex) const;
+    const Cel *_GetPreviousCel(CelIndex &indexOut) const;
+    const Cel *_GetNextCel(CelIndex &indexOut) const;
+    const Cel *_GetAdjacentCel(CelIndex &indexOut, int offset) const;
+    
     CNewRasterResourceDocument *GetDoc() const;
     void _SyncColor(CNewRasterResourceDocument *pDoc);
     void _CopyCelDataToClipboard(const Cel *cel);
     std::unique_ptr<Cel> _GetClipboardDataIfPaletteMatches();
     bool _EnsurePenBitmap();
     int  _GetPenWidth();
+    OnionSkinFrameOptions & _LeftOnionOptions();
+    OnionSkinFrameOptions & _RightOnionOptions();
 
     // Scrolling
     virtual int _GetViewWidth() { return _cxViewZoom; }
@@ -389,7 +417,7 @@ private:
     bool _obtainedZoom;
 
     // Bitmap for double-buffering
-    CBitmap *_pbitmapDoubleBuf;
+    std::unique_ptr<CBitmap> _pbitmapDoubleBuf;
     bool _fDoubleBuf;
 
     ViewToolType _currentTool;
@@ -412,7 +440,7 @@ private:
                                     // updating our data from the view resource, since pen's are additive.
     CBitmap _penBitmap;
     uint8_t _bRandomNR;
-    std::unique_ptr<BYTE[]> _pBitsScratch1;
+    std::unique_ptr<uint8_t[]> _pBitsScratch1;
     size16 _sizeScratch1;
 
     // Sizers

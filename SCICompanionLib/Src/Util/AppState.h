@@ -167,6 +167,11 @@ public:
     BOOL _fSaveScriptsBeforeRun;
     BOOL _fTrackHeaderFiles;
     BOOL _fCompileDirtyScriptsBeforeRun;
+    DWORD _onionLeftTint;
+    DWORD _onionRightTint;
+    BOOL _onionLeftOnTop;
+    BOOL _onionRightOnTop;
+    BOOL _onionWrap;
 
     // This is a hack, but we're making this as a spot fix to allow
     // for per-game aspect ratio.

@@ -306,6 +306,7 @@
 #define IDI_CONVERT                     400
 #define IDD_PREVIEWMAP                  400
 #define IDR_ACCELERATORPALETTE          401
+#define IDD_ONIONSKINSETTINGS           401
 #define IDI_AUDIOMAP                    402
 #define IDI_UNDITHERPIC                 403
 #define IDC_CHOOSECOLORSTATIC           1001
@@ -695,6 +696,7 @@
 #define IDC_BUTTONCOLOR                 1300
 #define IDC_STATICSATURATION            1301
 #define IDC_EDITWIDTH                   1301
+#define IDC_BUTTONCOLORRIGHT            1301
 #define IDC_EDITSATURATION              1302
 #define IDC_BUTTONREFRESH               1302
 #define IDC_CHECKOVERLAY                1303
@@ -709,6 +711,7 @@
 #define IDC_SLIDERCYCLESPEED            1307
 #define IDC_EDITTINTSTRENGTH            1308
 #define IDC_BUTTONPENSTYLE              1308
+#define IDC_STATICTINTSTRENGTHRIGHT     1308
 #define IDC_EDITRANGES                  1309
 #define IDC_STATICARROW                 1310
 #define IDC_COMBOMATCH                  1311
@@ -801,6 +804,15 @@
 #define IDC_GROUPOPTIONS                1388
 #define IDC_GROUPDEBUG                  1389
 #define IDC_CHECKTEXTTUPLES             1390
+#define IDC_SLIDEROPACITYLEFT           1391
+#define IDC_EDITOPACITYLEFT             1392
+#define IDC_CHECKONTOPLEFT              1393
+#define IDC_SLIDEROPACITYRIGHT          1394
+#define IDC_EDITOPACITYRIGHT            1395
+#define IDC_CHECKONTOPRIGHT             1396
+#define IDC_BUTTONCOLORLEFT             1397
+#define IDC_STATICTINTSTRENGTHLEFT      1398
+#define IDC_CHECKWRAP                   1399
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1189,6 +1201,9 @@
 #define ID_SHIFTPIXELS_RIGHT            33328
 #define ID_SHIFTPIXELS_UP               33329
 #define ID_SHIFTPIXELS_DOWN             33330
+#define ID_VIEW_LEFTONIONSKIN           33335
+#define ID_VIEW_RIGHTONIONSKIN          33336
+#define ID_VIEW_ONIONSKINSETTINGS       33337
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1196,9 +1211,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        405
-#define _APS_NEXT_COMMAND_VALUE         33335
-#define _APS_NEXT_CONTROL_VALUE         1391
+#define _APS_NEXT_RESOURCE_VALUE        406
+#define _APS_NEXT_COMMAND_VALUE         33341
+#define _APS_NEXT_CONTROL_VALUE         1400
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

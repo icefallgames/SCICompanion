@@ -539,6 +539,11 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_fSaveScriptsBeforeRun = GetProfileInt(pszRegName, TEXT("SaveScriptsBeforeRun"), TRUE);
     appState->_fTrackHeaderFiles = GetProfileInt(pszRegName, TEXT("TrackHeaderFiles"), TRUE);
     appState->_fCompileDirtyScriptsBeforeRun = GetProfileInt(pszRegName, TEXT("CompileModifiedScriptsBeforeRun"), TRUE);
+    appState->_onionLeftTint = GetProfileInt(pszRegName, TEXT("OnionLeftTint"), 0x80FF8080);
+    appState->_onionRightTint = GetProfileInt(pszRegName, TEXT("OnionRightTint"), 0x808080FF);
+    appState->_onionLeftOnTop = GetProfileInt(pszRegName, TEXT("OnionLeftOnTop"), FALSE);
+    appState->_onionRightOnTop = GetProfileInt(pszRegName, TEXT("OnionRightOnTop"), FALSE);
+    appState->_onionWrap = GetProfileInt(pszRegName, TEXT("OnionWrap"), TRUE);
 }
 
 void SCICompanionApp::_SaveSettings()
@@ -580,6 +585,12 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("SaveScriptsBeforeRun"), appState->_fSaveScriptsBeforeRun);
     WriteProfileInt(m_pszAppName, TEXT("TrackHeaderFiles"), appState->_fTrackHeaderFiles);
     WriteProfileInt(m_pszAppName, TEXT("CompileModifiedScriptsBeforeRun"), appState->_fCompileDirtyScriptsBeforeRun);
+
+    WriteProfileInt(m_pszAppName, TEXT("OnionLeftTint"), appState->_onionLeftTint);
+    WriteProfileInt(m_pszAppName, TEXT("OnionRightTint"), appState->_onionRightTint);
+    WriteProfileInt(m_pszAppName, TEXT("OnionLeftOnTop"), appState->_onionLeftOnTop);
+    WriteProfileInt(m_pszAppName, TEXT("OnionRightOnTop"), appState->_onionRightOnTop);
+    WriteProfileInt(m_pszAppName, TEXT("OnionWrap"), appState->_onionWrap);
 }
 
 // CAboutDlg dialog used for App About

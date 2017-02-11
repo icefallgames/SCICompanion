@@ -798,6 +798,9 @@
     <ClCompile Include="Src\FrameComponents\SoundUIUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\OnionSkinSettingsDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1713,6 +1716,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\FrameComponents\SoundUIUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\OnionSkinSettingsDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\OnionSkinSettingsCallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

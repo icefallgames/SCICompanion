@@ -228,6 +228,7 @@
     <ClCompile Include="Src\Dialogs\ExtractLipSyncDialog.cpp" />
     <ClCompile Include="Src\Dialogs\GenerateDocsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\GradientDialog.cpp" />
+    <ClCompile Include="Src\Dialogs\OnionSkinSettingsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PhonemeDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PicDimensionsDialog.cpp" />
@@ -319,6 +320,8 @@
     <ClInclude Include="Src\Dialogs\ExtractLipSyncDialog.h" />
     <ClInclude Include="Src\Dialogs\GenerateDocsDialog.h" />
     <ClInclude Include="Src\Dialogs\GradientDialog.h" />
+    <ClInclude Include="Src\Dialogs\OnionSkinSettingsCallback.h" />
+    <ClInclude Include="Src\Dialogs\OnionSkinSettingsDialog.h" />
     <ClInclude Include="Src\Dialogs\PhonemeDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />

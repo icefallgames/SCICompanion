@@ -252,24 +252,18 @@ int CNewRasterResourceDocument::GetSelectedGroup(CelIndex *rgGroups, size_t ceGr
 //
 // Ensures the select loop/cel exist in the current resource.
 //
-void CNewRasterResourceDocument::_ValidateCelIndex()
+void CNewRasterResourceDocument::_ValidateCelIndex(bool wrap)
 {
     const RasterComponent &raster = GetComponent<RasterComponent>();
-    int cLoops = (int)raster.Loops.size();
-    _nLoop = min(_nLoop, cLoops - 1);
-    _nLoop = max(_nLoop, 0);
-
-    int cCels = (int)raster.Loops[_nLoop].Cels.size();
-    _nCel = min(_nCel, cCels - 1);
-    _nCel = max(_nCel, 0);
+    raster.ValidateCelIndex(_nLoop, _nCel, wrap);
 }
 
-void CNewRasterResourceDocument::SetSelectedLoop(int nLoop)
+void CNewRasterResourceDocument::SetSelectedLoop(int nLoop, bool wrap)
 {
     if (nLoop != _nLoop)
     {
         _nLoop = nLoop;
-        _ValidateCelIndex();
+        _ValidateCelIndex(wrap);
         _UpdateHelper(RasterChange(RasterChangeHint::LoopSelection));
     }
 }
@@ -279,13 +273,13 @@ void CNewRasterResourceDocument::_UpdateHelper(RasterChange change)
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapObject(change.hint, change.index));
 }
 
-void CNewRasterResourceDocument::SetSelectedCel(int nCel)
+void CNewRasterResourceDocument::SetSelectedCel(int nCel, bool wrap)
 {
     // It is essential to check this, otherwise we'll end up in an infinite loop!
     if (nCel != _nCel)
     {
         _nCel = nCel;
-        _ValidateCelIndex();
+        _ValidateCelIndex(wrap);
         _UpdateHelper(RasterChange(RasterChangeHint::CelSelection));
     }
 }
@@ -293,18 +287,18 @@ void CNewRasterResourceDocument::SetSelectedCel(int nCel)
 //
 // Allows the callers to move "selection"
 //
-void CNewRasterResourceDocument::MoveSelectedCel(CPoint point)
+void CNewRasterResourceDocument::MoveSelectedCel(CPoint point, bool wrap)
 {
     // if the y changed, that indicates a loop change.
     if (point.y != 0)
     {
         int nLoop = _nLoop + point.y;
-        SetSelectedLoop(nLoop);
+        SetSelectedLoop(nLoop, wrap);
     }
     if (point.x != 0)
     {
         int nCel = _nCel + point.x;
-        SetSelectedCel(nCel);
+        SetSelectedCel(nCel, wrap);
     }
 }
 
@@ -912,3 +906,5 @@ void CNewRasterResourceDocument::v_OnUpdatePaletteChoice()
 {
     _UpdateHelper(RasterChange(RasterChangeHint::PaletteChoice));
 }
+
+OnionSkinFrameOptions::OnionSkinFrameOptions() : Enabled(false) {}

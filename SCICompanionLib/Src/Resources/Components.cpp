@@ -65,6 +65,33 @@ const Cel& RasterComponent::GetCelFallback(CelIndex index) const
     return Loops[loopNumber].Cels[celNumber];
 }
 
+void RasterComponent::ValidateCelIndex(int &loop, int &cel, bool wrap) const
+{
+    int cLoops = (int)Loops.size();
+    if (wrap)
+    {
+        loop = loop % cLoops + cLoops; // Handle -ve
+        loop %= cLoops;
+    }
+    else
+    {
+        loop = min(loop, cLoops - 1);
+        loop = max(loop, 0);
+    }
+
+    int cCels = (int)Loops[loop].Cels.size();
+    if (wrap)
+    {
+        cel = cel % cCels + cCels; // Handle -ve
+        cel %= cCels;
+    }
+    else
+    {
+        cel = min(cel, cCels - 1);
+        cel = max(cel, 0);
+    }
+}
+
 int PaddedSize(size16 size)
 {
     return CX_ACTUAL(size.cx) * size.cy;

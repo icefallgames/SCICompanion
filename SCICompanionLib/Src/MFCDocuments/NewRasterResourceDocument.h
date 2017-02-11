@@ -23,6 +23,19 @@
 #include "DocumentWithPaletteChoices.h"
 #include "PicCommandsCommon.h"
 
+struct OnionSkinFrameOptions
+{
+    OnionSkinFrameOptions();
+
+    bool Enabled;
+};
+
+struct OnionSkinOptions
+{
+    OnionSkinFrameOptions Left;
+    OnionSkinFrameOptions Right;
+};
+
 // CNewRasterResourceDocument document
 
 // A sort of workaround
@@ -45,11 +58,11 @@ public:
     void SetPenStyle(PenStyle penStyle);
     void SetApplyToAllCels(BOOL fApply) { _fApplyToAllCels = !!fApply; UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(RasterChangeHint::ApplyToAll)); }
     BOOL GetApplyToAllCels() const { return _fApplyToAllCels; }
+    OnionSkinOptions &GetOnionSkin() { return _onionSkin; }
 
-    // THESE ARE TODO
     CelIndex GetSelectedIndex() { _ValidateCelIndex(); return CelIndex(_nLoop, _nCel); }
     int GetSelectedGroup(CelIndex *rgGroups, size_t ceGroup);
-    void MoveSelectedCel(CPoint point);
+    void MoveSelectedCel(CPoint point, bool wrap = false);
 
     uint8_t GetViewColor() { return _color; }
     uint8_t GetAlternateViewColor() { return _alternateColor; }
@@ -67,8 +80,8 @@ public:
 
     int GetSelectedCel() const { return _nCel; }
     int GetSelectedLoop() const { return _nLoop; }
-    void SetSelectedLoop(int nLoop);
-    void SetSelectedCel(int nCel);
+    void SetSelectedLoop(int nLoop, bool wrap = false);
+    void SetSelectedCel(int nCel, bool wrap = false);
     void GetLabelString(PTSTR  pszLabel, size_t cch, int nCel) const { StringCchPrintf(pszLabel, cch, TEXT("%d"), nCel); }
 
     void SetPreviewLetters(std::string &previewLetters)
@@ -115,10 +128,8 @@ private:
     }
 
     // Ensure the currently selected cel index is correct.
-    void _SetInitialPalette();
-    void _ValidateCelIndex();
+    void _ValidateCelIndex(bool wrap = false);
     void _UpdateHelper(RasterChange change);
-    void _TrimUndoStack();
     void _InsertFiles(const std::vector<std::string> &files, bool replaceEntireLoop);
     void _ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items, bool fixedPalette, int paletteSize, bool replaceEntireLoop);
     std::list<ResourceEntity*>::iterator _GetLastUndoFrame();
@@ -156,6 +167,8 @@ private:
 
     uint8_t _color;
     uint8_t _alternateColor;
+
+    OnionSkinOptions _onionSkin;
 
     // These should go away
     std::string _previewLetters = "!@#$%^&*()_+0123456789-=~`ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{}|[]\\:\";'<>?,./";

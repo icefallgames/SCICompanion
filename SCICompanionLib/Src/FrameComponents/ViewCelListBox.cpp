@@ -234,7 +234,7 @@ void ViewCelListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
         if ((point.x != 0) || (point.y != 0))
         {
-            _GetDoc()->MoveSelectedCel(point);
+            _GetDoc()->MoveSelectedCel(point, true);
         }
     }
 }
