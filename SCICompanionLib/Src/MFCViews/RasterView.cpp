@@ -142,6 +142,12 @@ uint8_t *CRasterView::SelectionManager::GetMainSelection(CSize &sizeOut)
     return pData;
 }
 
+const std::vector<std::unique_ptr<uint8_t[]>> &CRasterView::SelectionManager::GetSelectionBits(CSize &sizeOut)
+{
+    sizeOut = _sizeSelectionBits;
+    return _selectionBits;
+}
+
 //
 // Lifts the selection from each of the cels
 // If fClear is TRUE, it replaces the lifted selection with the transparent colour.
@@ -214,7 +220,7 @@ void _ConvertSelectionBitsToCelData(const uint8_t *pBits, CSize size, uint8_t *p
     }
 }
 
-CRect CRasterView::SelectionManager::PasteCel(const std::vector<Cel*> &celsPaste, int cCels, CSize sizeMain)
+CRect CRasterView::SelectionManager::PasteCel(const std::vector<const Cel*> &celsPaste, int cCels, CSize sizeMain)
 {
     assert(!celsPaste.empty());
     CRect rect;
@@ -2185,85 +2191,106 @@ void CRasterView::_OnDrawCommand(ViewToolType type)
 // Copies pBitsSelection to the clipboard.  The size is assumed to be the "non-actual"
 // size (not aligned to 32 bit boundaries)
 //
-void CRasterView::_OnCopyBitsToClipboard(const uint8_t *pBitsSelection, CSize size)
+void CRasterView::_OnCopySelectionBitsToClipboard()
 {
-    CWindowDC windowDC(this);
-    CDC dcMem;
-    if (dcMem.CreateCompatibleDC(&windowDC))
+    CSize size;
+    uint8_t *pBitsSelection = _selectionManager.GetMainSelection(size);
+    if (pBitsSelection)
     {
-        CBitmap bitmap;
-        // Make a temporary buffer, since our selection buffer is "upside down", plus it doesn't include
-        // the padding bits at the end (32-bit scanline alignment)
-        std::unique_ptr<uint8_t[]> pBitsTemp = std::make_unique<uint8_t[]>(CX_ACTUAL(size.cx) * size.cy);
-        // Copy it over, flipping it.
-        for (int y = 0; y < size.cy; y++)
+        CWindowDC windowDC(this);
+        CDC dcMem;
+        if (dcMem.CreateCompatibleDC(&windowDC))
         {
-            memcpy(pBitsTemp.get() + (size.cy - 1 - y) * CX_ACTUAL(size.cx), pBitsSelection + (y * size.cx), size.cx);
-        }
+            CBitmap bitmap;
+            // Make a temporary buffer, since our selection buffer is "upside down", plus it doesn't include
+            // the padding bits at the end (32-bit scanline alignment)
+            std::unique_ptr<uint8_t[]> pBitsTemp = std::make_unique<uint8_t[]>(CX_ACTUAL(size.cx) * size.cy);
+            // Copy it over, flipping it.
+            for (int y = 0; y < size.cy; y++)
+            {
+                memcpy(pBitsTemp.get() + (size.cy - 1 - y) * CX_ACTUAL(size.cx), pBitsSelection + (y * size.cx), size.cx);
+            }
 
-        // Create the bitmap we'll put in the clipboard, and select it into our DC.
-        // Useful NUGGET: the dc passed in here must be something like the actual screen DC, or the DC for our
-        // hwnd - NOT a memory DC that was created as being "compatible" with the screen DC.  Otherwise you get
-        // a monochrome bitmap!
-        if (bitmap.CreateCompatibleBitmap(&windowDC, size.cx, size.cy))
-        {
-            HGDIOBJ hOldBitmap = dcMem.SelectObject(&bitmap);
+            // Create the bitmap we'll put in the clipboard, and select it into our DC.
+            // Useful NUGGET: the dc passed in here must be something like the actual screen DC, or the DC for our
+            // hwnd - NOT a memory DC that was created as being "compatible" with the screen DC.  Otherwise you get
+            // a monochrome bitmap!
+            if (bitmap.CreateCompatibleBitmap(&windowDC, size.cx, size.cy))
+            {
+                HGDIOBJ hOldBitmap = dcMem.SelectObject(&bitmap);
 
-            // Now copy our DIB into it.
-            SCIBitmapInfo bmi(size.cx, size.cy, _palette, _paletteCount);
-            StretchDIBits((HDC)dcMem, 0, 0, size.cx, size.cy, 0, 0, size.cx, size.cy, pBitsTemp.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);
+                // Now copy our DIB into it.
+                SCIBitmapInfo bmi(size.cx, size.cy, _palette, _paletteCount);
+                StretchDIBits((HDC)dcMem, 0, 0, size.cx, size.cy, 0, 0, size.cx, size.cy, pBitsTemp.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);
 
-            // And now to the clipboard:
-            SetClipboardData(CF_BITMAP, (HBITMAP)bitmap.Detach());
-            dcMem.SelectObject(hOldBitmap);
+                // And now to the clipboard:
+                SetClipboardData(CF_BITMAP, (HBITMAP)bitmap.Detach());
+                dcMem.SelectObject(hOldBitmap);
+            }
         }
     }
 
-    // Also copy to our custom format. Selection bits are in a different format though.
-    Cel cel = {};
-    cel.size = size16((uint16_t)size.cx, (uint16_t)size.cy);
-    cel.Data.allocate(cel.GetDataSize());
-    _ConvertSelectionBitsToCelData(pBitsSelection, size, &cel.Data[0]);
-    _CopyCelDataToClipboard(&cel);
+    // Also copy to our custom format. We can copy all our selected cels (if there are multiple)
+    const auto &allBits = _selectionManager.GetSelectionBits(size);
+    std::vector<Cel> selectedCels;
+    for (const auto &bits : allBits)
+    {
+        Cel cel = {};
+        selectedCels.push_back(cel);
+        selectedCels.back().size = size16((uint16_t)size.cx, (uint16_t)size.cy);
+        selectedCels.back().Data.allocate(selectedCels.back().GetDataSize());
+        _ConvertSelectionBitsToCelData(bits.get(), size, &selectedCels.back().Data[0]);
+    }
+    _CopyCelDataToClipboard(selectedCels);
 }
 
 // Copy our custom format to the clipboard so we can nicely handle copying among cels/views with the same VGA palette
-void CRasterView::_CopyCelDataToClipboard(const Cel *cel)
+void CRasterView::_CopyCelDataToClipboard(const std::vector<Cel> &cels)
 {
-    if (cel)
+    // Size, data, palettecount, palette
+    sci::ostream serial;
+    serial << (uint32_t)cels.size();
+    for (const Cel &cel : cels)
     {
-        // Size, data, palettecount, palette
-        sci::ostream serial;
-        SerializeCelRuntime(serial, *cel);
-        serial << _paletteCount;
-        // Now calculate used entries.
-        bool used[256];
-        CountActualUsedColors(*cel, used);
-        for (int i = 0; i < _paletteCount; i++)
-        {
-            serial << used[i];
-        }
-        for (int i = 0; i < _paletteCount; i++)
-        {
-            serial << _palette[i];
-        }
-
-        SetClipboardDataFromStream(appState->CelDataClipboardFormat, serial);
+        SerializeCelRuntime(serial, cel);
     }
+    serial << _paletteCount;
+    // Now calculate used entries.
+    bool used[256];
+    vector<const Cel*> celPointersTemp;
+    transform(cels.begin(), cels.end(), back_inserter(celPointersTemp), [](const Cel &cel) { return &cel; });
+    CountActualUsedColors(celPointersTemp, used);
+    for (int i = 0; i < _paletteCount; i++)
+    {
+        serial << used[i];
+    }
+    for (int i = 0; i < _paletteCount; i++)
+    {
+        serial << _palette[i];
+    }
+
+    SetClipboardDataFromStream(appState->CelDataClipboardFormat, serial);
 }
 
-// If the clipboard data's palette matches our current one, then this returns a Cel describing the data.
+// If the clipboard data's palette matches our current one, then this returns a Cel (or collection of cels) describing the data.
 // We can then apply it to our current selection bits.
-std::unique_ptr<Cel> CRasterView::_GetClipboardDataIfPaletteMatches()
+unique_ptr<vector<unique_ptr<Cel>>> CRasterView::_GetClipboardDataIfPaletteMatches()
 {
-    std::unique_ptr<Cel> celReturn;
+    unique_ptr<vector<unique_ptr<Cel>>> celsReturn;
     ProcessClipboardDataIfAvailable(
         appState->CelDataClipboardFormat,
         this,
-        [&celReturn, this](sci::istream &byteStream)
+        [&celsReturn, this](sci::istream &byteStream)
     {
-        std::unique_ptr<Cel> cel = std::make_unique<Cel>();
-        DeserializeCelRuntime(byteStream, *cel);
+        unique_ptr<vector<unique_ptr<Cel>>> celsTemp = make_unique<vector<unique_ptr<Cel>>>();
+        uint32_t celCount;
+        byteStream >> celCount;
+        for (uint32_t i = 0; i < celCount; i++)
+        {
+            std::unique_ptr<Cel> cel = std::make_unique<Cel>();
+            DeserializeCelRuntime(byteStream, *cel);
+            celsTemp->push_back(move(cel));
+        }
         int paletteCount;
         byteStream >> paletteCount;
         std::unique_ptr<bool[]> usedEntries = std::make_unique<bool[]>(paletteCount);
@@ -2290,12 +2317,12 @@ std::unique_ptr<Cel> CRasterView::_GetClipboardDataIfPaletteMatches()
             }
             if (match)
             {
-                celReturn = move(cel);
+                celsReturn = move(celsTemp);
             }
         }
     }
     );
-    return celReturn;
+    return celsReturn;
 }
 
 void CRasterView::OnCopyPic()
@@ -2317,12 +2344,7 @@ void CRasterView::OnCopyPic()
                 }
                 if (_selectionManager.HasSelection())
                 {
-                    CSize sizeOut;
-                    uint8_t *pBitsSelection = _selectionManager.GetMainSelection(sizeOut);
-                    if (pBitsSelection)
-                    {
-                        _OnCopyBitsToClipboard(pBitsSelection, sizeOut);
-                    }
+                    _OnCopySelectionBitsToClipboard();
                     if (fLifted)
                     {
                         _selectionManager.ClearSelection();
@@ -2339,7 +2361,11 @@ void CRasterView::OnCopyPic()
                 _DestroyDoubleBuffer();
 
                 // Also do this
-                _CopyCelDataToClipboard(_GetSelectedCel());
+                const Cel *selectedCel = _GetSelectedCel();
+                if (selectedCel)
+                {
+                    _CopyCelDataToClipboard({ *selectedCel });
+                }
             }
         }
     }
@@ -2398,12 +2424,15 @@ void CRasterView::_EnsureCelsLargeEnoughForPaste(size16 requiredSize)
 void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
 {
     bool success = false;
-    std::unique_ptr<Cel> cel = _GetClipboardDataIfPaletteMatches();
-    if (cel && !provideOptions)
+    unique_ptr<vector<unique_ptr<Cel>>> cels = _GetClipboardDataIfPaletteMatches();
+    if (cels && !cels->empty() && !provideOptions)
     {
         success = true;
-        _EnsureCelsLargeEnoughForPaste(cel->size);
-        _rectSelection = _selectionManager.PasteCel(vector<Cel*> {cel.get()}, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+        // All size should be the same if this was generated by us, so just use the first size
+        _EnsureCelsLargeEnoughForPaste((*cels)[0]->size);
+        vector<const Cel*> celPointers;
+        std::transform(cels->begin(), cels->end(), back_inserter(celPointers), [](unique_ptr<Cel> &cel) { return cel.get(); });
+        _rectSelection = _selectionManager.PasteCel(celPointers, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
     }
     else if (IsClipboardFormatAvailable(CF_BITMAP))
     {
@@ -2483,7 +2512,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                             );
 
                             success = true;
-                            _rectSelection = _selectionManager.PasteCel(vector<Cel*> {finalCel.get()}, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                            _rectSelection = _selectionManager.PasteCel(vector<const Cel*> {finalCel.get()}, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
                         }
                     }
                     else
@@ -2554,7 +2583,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                         if (finalResult)
                         {
                             success = true;
-                            _rectSelection = _selectionManager.PasteCel(vector<Cel*> {finalResult.get()} , _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                            _rectSelection = _selectionManager.PasteCel(vector<const Cel*> {finalResult.get()} , _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
                         }
                     }
                 }
@@ -2630,7 +2659,7 @@ void CRasterView::_OnCutOrDeleteSelection(BOOL fCut)
         {
             if (EmptyClipboard())
             {
-                _OnCopyBitsToClipboard(pBitsMainSelection, sizeOut);
+                _OnCopySelectionBitsToClipboard();
             }
         }
     }

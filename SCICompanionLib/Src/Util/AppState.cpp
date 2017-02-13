@@ -175,7 +175,7 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(this, &_resourceRecency)
         g_continuousPriorityColors[i] = RGBQUADFromCOLORREF(RGB(0, i, 0));
     }
 
-    CelDataClipboardFormat = RegisterClipboardFormat("SCICompanionVGACelData");
+    CelDataClipboardFormat = RegisterClipboardFormat("SCICompanionVGACelData2");
     ViewAttributesClipboardFormat = RegisterClipboardFormat("SCICompanionViewAttributes");
     PaletteColorsClipboardFormat = RegisterClipboardFormat("SCICompanionPaletteColors");
     EGAPaletteColorsClipboardFormat = RegisterClipboardFormat("SCICompanionEGAPaletteColors");

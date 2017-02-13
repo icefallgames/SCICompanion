@@ -257,9 +257,11 @@ private:
 
         void LiftSelection(CRect rcMain, int iMain, int cCels, std::vector<CRasterView::CelData> &celData, BOOL fClear, BOOL fGrabBits);
         uint8_t *GetMainSelection(CSize &sizeOut);
+        const std::vector<std::unique_ptr<uint8_t[]>> &GetSelectionBits(CSize &sizeOut);
         void DrawSelection(CRect rectSelection, int iIndex, BOOL fTransparent, CelData &celData);
+
         void ClearSelection() { _GenerateSelectionBits(0, CSize(0, 0)); }
-        CRect PasteCel(const std::vector<Cel*> &celsPaste, int cCels, CSize sizeMain);
+        CRect PasteCel(const std::vector<const Cel*> &celsPaste, int cCels, CSize sizeMain);
 
     private:
         CRect _GetBottomOriginRect(CSize sizeCel, const RECT *prc);
@@ -356,7 +358,7 @@ private:
     void _CommitSelectionBits();
     void _GetRidOfSelection();
     void _OnCutOrDeleteSelection(BOOL fCut);
-    void _OnCopyBitsToClipboard(const uint8_t *pBitsSelection, CSize size);
+    void _OnCopySelectionBitsToClipboard();
     void _StartRubberBandTimer() { SetTimer(RubberBandTimer, RubberBandMs, NULL); }
     void _KillRubberBandTimer() { KillTimer(RubberBandTimer); }
     void _StartHotSpotTimer() { SetTimer(HotSpotTimer, HotSpotMs, NULL); }
@@ -388,8 +390,8 @@ private:
     
     CNewRasterResourceDocument *GetDoc() const;
     void _SyncColor(CNewRasterResourceDocument *pDoc);
-    void _CopyCelDataToClipboard(const Cel *cel);
-    std::unique_ptr<Cel> _GetClipboardDataIfPaletteMatches();
+    void _CopyCelDataToClipboard(const std::vector<Cel> &cels);
+    std::unique_ptr<std::vector<std::unique_ptr<Cel>>> _GetClipboardDataIfPaletteMatches();
     bool _EnsurePenBitmap();
     int  _GetPenWidth();
     OnionSkinFrameOptions & _LeftOnionOptions();
