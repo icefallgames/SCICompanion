@@ -34,6 +34,7 @@
 #include "ClipboardUtil.h"
 #include "CustomMessageBox.h"
 #include "OnionSkinSettingsDialog.h"
+#include "RotateArbitraryDialog.h"
 
 using namespace std;
 
@@ -435,6 +436,10 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_VIEW_LEFTONIONSKIN, ToggleLeftOnion)
     ON_COMMAND(ID_VIEW_RIGHTONIONSKIN, ToggleRightOnion)
     ON_COMMAND(ID_VIEW_ONIONSKINSETTINGS, OnOnionSkinSettings)
+    ON_COMMAND(ID_ROTATE_CW, OnRotate90CW)
+    ON_COMMAND(ID_ROTATE_CCW, OnRotate90CCW)
+    ON_COMMAND(ID_ROTATE_180, OnRotate180)
+    ON_COMMAND(ID_ROTATE_ARBITRARY, OnRotateArbitrary)
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -2777,6 +2782,44 @@ void CRasterView::OnOnionSkinSettings()
 {
     OnionSkinSettingsDialog dialog(*this);
     dialog.DoModal();
+}
+
+void CRasterView::OnRotate90CW()
+{
+    _OnRotate(90);
+}
+void CRasterView::OnRotate90CCW()
+{
+    _OnRotate(-90);
+}
+void CRasterView::OnRotate180()
+{
+    _OnRotate(180);
+}
+
+// Store the most recently used rotation for convenience.
+int static defaultRotation = 45;
+
+void CRasterView::OnRotateArbitrary()
+{
+    RotateArbitraryDialog dialog(defaultRotation);
+    if (IDOK == dialog.DoModal())
+    {
+        _OnRotate(dialog.GetDegrees());
+        defaultRotation = dialog.GetDegrees();
+    }
+}
+
+void CRasterView::_OnRotate(int degrees)
+{
+    GetDoc()->ApplyChanges<RasterComponent>(
+        [this, degrees](RasterComponent &raster)
+    {
+        return WrapRasterChange(
+            RotateGroup(raster, _cWorkingCels, _rgdwGroups, degrees)
+        );
+    }
+    );
 }
 
 void CRasterView::OnUpdateHasVGAPalette(CCmdUI *pCmdUI)

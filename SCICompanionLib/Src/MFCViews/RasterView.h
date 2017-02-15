@@ -315,8 +315,12 @@ private:
     afx_msg void ToggleLeftOnion();
     afx_msg void ToggleRightOnion();
     afx_msg void OnOnionSkinSettings();
+    afx_msg void OnRotate90CW();
+    afx_msg void OnRotate90CCW();
+    afx_msg void OnRotate180();
+    afx_msg void OnRotateArbitrary();
     
-
+    void _OnRotate(int degrees);
     void _OnShift(int x, int y);
     void _EnsureCelsLargeEnoughForPaste(size16 size);
     void _OnDrawCommand(ViewToolType type);

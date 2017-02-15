@@ -79,6 +79,7 @@ RasterChange SetTransparentColor(RasterComponent &raster, CelIndex celIndex, uin
 RasterChange SetGroupTransparentColor(RasterComponent &raster, int cCels, CelIndex *rgdwIndex, uint8_t color);
 RasterChange SetSize(RasterComponent &raster, CelIndex celIndex, size16 size, RasterResizeFlags resizeFlags);
 RasterChange SetGroupSize(RasterComponent &raster, int cCels, CelIndex *rgdwIndex, const size16 *rgSizes, RasterResizeFlags resizeFlags);
+RasterChange RotateGroup(RasterComponent &raster, int cCels, CelIndex *rgdwIndex, int degress);
 RasterChange FillEmpty(RasterComponent &raster, CelIndex celIndex, size16 size);
 bool ClampSize(const RasterComponent &raster, size16 &size);    // True if we clamped
 void CreateDegenerate(Cel &cel, uint8_t bColor);

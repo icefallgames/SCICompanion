@@ -308,6 +308,8 @@
 #define IDR_ACCELERATORPALETTE          401
 #define IDD_ONIONSKINSETTINGS           401
 #define IDI_AUDIOMAP                    402
+#define IDD_VIEWLOOP1                   402
+#define IDD_ROTATENUMBER                402
 #define IDI_UNDITHERPIC                 403
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
@@ -813,6 +815,7 @@
 #define IDC_BUTTONCOLORLEFT             1397
 #define IDC_STATICTINTSTRENGTHLEFT      1398
 #define IDC_CHECKWRAP                   1399
+#define IDC_EDITDEGREES                 1400
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1204,6 +1207,11 @@
 #define ID_VIEW_LEFTONIONSKIN           33335
 #define ID_VIEW_RIGHTONIONSKIN          33336
 #define ID_VIEW_ONIONSKINSETTINGS       33337
+#define ID_VIEW_ROTATE                  33341
+#define ID_ROTATE_CW                    33342
+#define ID_ROTATE_CCW                   33343
+#define ID_ROTATE_180                   33344
+#define ID_ROTATE_ARBITRARY             33345
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1211,9 +1219,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        406
-#define _APS_NEXT_COMMAND_VALUE         33341
-#define _APS_NEXT_CONTROL_VALUE         1400
+#define _APS_NEXT_RESOURCE_VALUE        407
+#define _APS_NEXT_COMMAND_VALUE         33350
+#define _APS_NEXT_CONTROL_VALUE         1401
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -698,6 +698,87 @@ RasterChange SetGroupSize(RasterComponent &raster, int cCels, CelIndex *rgdwInde
     return (cCels > 1) ? RasterChange(RasterChangeHint::Loop) : RasterChange(RasterChangeHint::Cel, rgdwIndex[0]);
 }
 
+#define TWOPI 6.283184
+
+void TransformRotate(double xOrigSource, double yOrigSource, double xOrigDest, double yOrigDest, double sinTheta, double cosTheta, int &x, int &y)
+{
+    double xOut = x - xOrigSource + 0.51; // I don't use 0.5 because that would be "unstable" when rounding at the end.
+    double yOut = y - yOrigSource + 0.51;
+    double xOut2 = xOut * cosTheta - yOut * sinTheta;
+    double yOut2 = xOut * sinTheta + yOut * cosTheta;
+    xOut2 += (double)xOrigDest - 0.51;
+    yOut2 += (double)yOrigDest - 0.51;
+    x = (int)round(xOut2);
+    y = (int)round(yOut2);
+}
+
+void TransformRotateMinMax(double xOrigSource, double yOrigSource, double xOrigDest, double yOrigDest, double sinTheta, double cosTheta, int x, int y, int &xMin, int &yMin, int &xMax, int &yMax)
+{
+    TransformRotate(0, 0, 0, 0, sinTheta, cosTheta, x, y);
+    xMin = min(xMin, x);
+    yMin = min(yMin, y);
+    xMax = max(xMax, x);
+    yMax = max(yMax, y);
+}
+
+RasterChange RotateGroup(RasterComponent &raster, int cCels, CelIndex *rgdwIndex, int degress)
+{
+    degress = -degress; // Since y is flipped.
+    for (int i = 0; i < cCels; i++)
+    {
+        double sinTheta = sin(degress * TWOPI / 360.0);
+        double cosTheta = cos(degress * TWOPI / 360.0);
+        // Figure out the new size needed by transforming the four corners.
+        Cel &cel = raster.GetCel(rgdwIndex[i]);
+        Cel celOld = cel; // We make a copy, since we replace
+        int xMin = INT_MAX;
+        int yMin = INT_MAX;
+        int xMax = INT_MIN;
+        int yMax = INT_MIN;
+        int x = 0;
+        int y = 0;
+        TransformRotateMinMax(0, 0, 0, 0, sinTheta, cosTheta, x, y, xMin, yMin, xMax, yMax);
+        x = celOld.size.cx;
+        y = 0;
+        TransformRotateMinMax(0, 0, 0, 0, sinTheta, cosTheta, x, y, xMin, yMin, xMax, yMax);
+        x = celOld.size.cx;
+        y = celOld.size.cy;
+        TransformRotateMinMax(0, 0, 0, 0, sinTheta, cosTheta, x, y, xMin, yMin, xMax, yMax);
+        x = 0;
+        y = celOld.size.cy;
+        TransformRotateMinMax(0, 0, 0, 0, sinTheta, cosTheta, x, y, xMin, yMin, xMax, yMax);
+        int cx = xMax - xMin;
+        int cy = yMax - yMin;
+        SetSize(raster, rgdwIndex[i], size16((uint16_t)cx, (uint16_t)cy), RasterResizeFlags::Normal);
+
+        // Now invert the transformation, and copy the bits over.
+        sinTheta = -sinTheta;
+        uint8_t *dataDest = &cel.Data[0];
+        const uint8_t *dataSource = &celOld.Data[0];
+        double xOrigSource = (double)celOld.size.cx * 0.5;
+        double yOrigSource = (double)celOld.size.cy * 0.5;
+        double xOrigDest = (double)cel.size.cx * 0.5;
+        double yOrigDest = (double)cel.size.cy * 0.5;
+        for (int yDest = 0; yDest < cy; yDest++)
+        {
+            for (int xDest = 0; xDest < cx; xDest++)
+            {
+                int xSource = xDest;
+                int ySource = yDest;
+                TransformRotate(xOrigDest, yOrigDest, xOrigSource, yOrigSource,sinTheta, cosTheta, xSource, ySource);
+                uint8_t color = celOld.TransparentColor;
+                if ((xSource >= 0) && (xSource < celOld.size.cx) && (ySource >= 0) && (ySource < celOld.size.cy))
+                {
+                    color = *(dataSource + ySource * celOld.GetStride() + xSource);
+                }
+                *(dataDest + yDest * cel.GetStride() + xDest) = color;
+            }
+        }
+        UpdateMirrors(raster, rgdwIndex[i]);
+    }
+    return (cCels > 1) ? RasterChange(RasterChangeHint::Loop) : RasterChange(RasterChangeHint::Cel, rgdwIndex[0]);
+}
+
 RasterChange FillEmpty(RasterComponent &raster, CelIndex celIndex, size16 newSize)
 {
     if (IsValidLoopCel(raster, celIndex))

@@ -233,6 +233,7 @@
     <ClCompile Include="Src\Dialogs\PhonemeDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PicDimensionsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
+    <ClCompile Include="Src\Dialogs\RotateArbitraryDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ToolTipDialog.cpp" />
     <ClCompile Include="Src\Docs\DocScript.cpp" />
     <ClCompile Include="Src\Docs\OutputRST.cpp" />
@@ -326,6 +327,7 @@
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
+    <ClInclude Include="Src\Dialogs\RotateArbitraryDialog.h" />
     <ClInclude Include="Src\Dialogs\ToolTipDialog.h" />
     <ClInclude Include="Src\Docs\DocScript.h" />
     <ClInclude Include="Src\Docs\OutputRST.h" />

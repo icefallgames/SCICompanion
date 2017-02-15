@@ -224,10 +224,12 @@ int CNewRasterResourceDocument::GetSelectedGroup(CelIndex *rgGroups, size_t ceGr
         size_t iCelCount = raster.Loops[_nLoop].Cels.size();
         if (iCelCount <= ceGroup)
         {
+            // The starting position for groups is relevant when paste multiple selections into a loop (when _fApplyToAllCels).
+            int startAt = GetSelectedIndex().cel;
             iRet = iCelCount;
             for (size_t i = 0; i < iCelCount; i++)
             {
-                rgGroups[i] = CelIndex(_nLoop, (int)i);
+                rgGroups[i] = CelIndex(_nLoop, (int)((i + startAt) % iCelCount));
             }
         }
     }
