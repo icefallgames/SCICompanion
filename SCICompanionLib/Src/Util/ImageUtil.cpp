@@ -319,31 +319,58 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
         for (int i = 0; i < fileType->ImageCount; i++)
         {
             SavedImage &savedImage = fileType->SavedImages[i];
+
+            bool initializeWithPrevious = false;
+
             cels.emplace_back();
             Cel &cel = cels.back();
-            cel.size = size16((uint16_t)savedImage.ImageDesc.Width, (uint16_t)savedImage.ImageDesc.Height);
-            cel.Data.allocate(CX_ACTUAL(cel.size.cx) * cel.size.cy);
+
+            GraphicsControlBlock gcb;
+            uint8_t transparentColor = fileType->SBackGroundColor;
+            if (GIF_ERROR != DGifSavedExtensionToGCB(fileType, i, &gcb))
+            {
+                // REVIEW: We may want to support DISPOSE_PREVIOUS too - which could be done by going further back.
+                initializeWithPrevious = (gcb.DisposalMode == DISPOSE_DO_NOT) && (i > 0);
+                transparentColor = gcb.TransparentColor;
+            }
+
+            if (initializeWithPrevious)
+            {
+                cel = cels[i - 1]; // That's easy
+            }
+            else
+            {
+                cel.size = size16((uint16_t)fileType->SWidth, (uint16_t)fileType->SHeight);
+                cel.Data.allocate(CX_ACTUAL(cel.size.cx) * cel.size.cy);
+                cel.Data.fill(transparentColor);
+            }
+            cel.TransparentColor = transparentColor;
+
+            int top = savedImage.ImageDesc.Top;
+            int left = savedImage.ImageDesc.Left;
             for (int y = 0; y < savedImage.ImageDesc.Height; y++)
             {
                 int yUpsideDown = savedImage.ImageDesc.Height - y - 1;
-                uint8_t *dest = &cel.Data[y * CX_ACTUAL(cel.size.cx)];
-                uint8_t *src = savedImage.RasterBits + yUpsideDown * savedImage.ImageDesc.Width;
-                memcpy(dest, src, savedImage.ImageDesc.Width);
+                int yDest = (y + cel.size.cy - top - savedImage.ImageDesc.Height);
+                if ((yDest >= 0) && (yDest < cel.size.cy))
+                {
+                    uint8_t *dest = &cel.Data[yDest * CX_ACTUAL(cel.size.cx) + left];
+                    uint8_t *src = savedImage.RasterBits + yUpsideDown * savedImage.ImageDesc.Width;
+                    for (int x = 0; x < savedImage.ImageDesc.Width; x++, dest++, src++)
+                    {
+                        uint8_t sourceValue = *src;
+                        if (sourceValue != transparentColor)
+                        {
+                            *dest = *src;
+                        }
+                    }
+                }
             }
 
             int centerCurrent = savedImage.ImageDesc.Left + savedImage.ImageDesc.Width / 2;
             cel.placement.x = (int16_t)(centerCurrent - center);
             cel.placement.y = (int16_t)(savedImage.ImageDesc.Top + savedImage.ImageDesc.Height - bottom);
 
-            GraphicsControlBlock gcb;
-            if (GIF_ERROR != DGifSavedExtensionToGCB(fileType, i, &gcb))
-            {
-                cel.TransparentColor = gcb.TransparentColor;
-            }
-            else
-            {
-                cel.TransparentColor = fileType->SBackGroundColor;
-            }
         }
     }
 
