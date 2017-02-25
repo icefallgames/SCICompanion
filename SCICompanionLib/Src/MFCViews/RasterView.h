@@ -261,7 +261,7 @@ private:
         void DrawSelection(CRect rectSelection, int iIndex, BOOL fTransparent, CelData &celData);
 
         void ClearSelection() { _GenerateSelectionBits(0, CSize(0, 0)); }
-        CRect PasteCel(const std::vector<const Cel*> &celsPaste, int cCels, CSize sizeMain);
+        CRect PasteCel(const std::vector<const Cel*> &celsPaste, int cCels, CSize sizeMain, CPoint origin);
 
     private:
         CRect _GetBottomOriginRect(CSize sizeCel, const RECT *prc);
@@ -347,6 +347,7 @@ private:
     void _OnPenClick(CPoint pt, bool fUseForeground);
     void _OnSetPlacementLClick(CPoint pt);
     void _OnCaptureToolButtonDown(CPoint pt, bool fAux);
+    void _CommitAndClearSelection();
     void _OnCaptureToolButtonUp();
     void _OnChangeTool(ViewToolType newTool);
     void _UpdateCursor();
@@ -395,7 +396,7 @@ private:
     CNewRasterResourceDocument *GetDoc() const;
     void _SyncColor(CNewRasterResourceDocument *pDoc);
     void _CopyCelDataToClipboard(const std::vector<Cel> &cels);
-    std::unique_ptr<std::vector<std::unique_ptr<Cel>>> _GetClipboardDataIfPaletteMatches();
+    std::unique_ptr<std::vector<std::unique_ptr<Cel>>> _GetClipboardDataIfPaletteMatches(CPoint &origin);
     bool _EnsurePenBitmap();
     int  _GetPenWidth();
     OnionSkinFrameOptions & _LeftOnionOptions();

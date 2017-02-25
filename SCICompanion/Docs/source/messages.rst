@@ -197,7 +197,7 @@ Of course, you may need to trigger messages as part of a series of game events i
         )
     )
 
-When using gTestMessager:say(noun verb condition sequence), if the sequence number is 0, then all messages with the noun/verb/condition tuple will be shown in sequence.
+When using gMessager:say(noun verb condition sequence), if the sequence number is 0, then all messages with the noun/verb/condition tuple will be shown in sequence.
 Otherwise, only the one with the specified sequence number will be shown.
 
 The noun/verb/condition/sequence tuple is used in many other places in the game too. So for instance, to show a button in a dialog, you can do::

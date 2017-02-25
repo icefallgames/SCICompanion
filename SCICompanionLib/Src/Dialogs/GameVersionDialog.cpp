@@ -230,108 +230,115 @@ void _PrintMapEntry(MemoryWriter &writer, uint32_t position, const std::vector<u
 template<typename _TResourceSource>
 void _OnViewResourceMap(const _TResourceSource &fileDescriptor, SCIVersion versionTest, const std::string &gameFolder)
 {
-    std::unique_ptr<sci::streamOwner> streamOwner = fileDescriptor.OpenMap();   // Keep in scope
-    sci::istream reader = streamOwner->getReader();
-
-    fmt::MemoryWriter writer;
-
-    // The game title
-    writer << "Resource map for ";
-    std::string strGameName = appState->GetGameName();
-    if (strGameName.empty())
+    try
     {
-        strGameName = PathFindFileName(gameFolder.c_str());
-    }
-    writer << strGameName;
-    writer << "\n";
-
-    std::unique_ptr<ResourceSource> resourceSource;
-    std::vector<RESOURCEMAPPREENTRY_SCI1> lookupPointers;
-    ResourceHeaderReadWrite dummy;
-
-    if (versionTest.MapFormat == ResourceMapFormat::SCI0)
-    {
-        resourceSource = std::make_unique<MapAndPackageSource<SCI0MapNavigator<RESOURCEMAPENTRY_SCI0>, _TResourceSource>>(versionTest, dummy, gameFolder);
-    }
-    else if (versionTest.MapFormat == ResourceMapFormat::SCI0_LayoutSCI1)
-    {
-        resourceSource = std::make_unique<MapAndPackageSource<SCI0MapNavigator<RESOURCEMAPENTRY_SCI0_SCI1LAYOUT>, _TResourceSource>>(versionTest, dummy, gameFolder);
-    }
-    else if (versionTest.MapFormat == ResourceMapFormat::SCI1)
-    {
-        auto temp = std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1>, _TResourceSource>>(versionTest, dummy, gameFolder);
-        lookupPointers = temp->GetLookupPointers(reader);
-        resourceSource = move(temp);
-    }
-    else if (versionTest.MapFormat == ResourceMapFormat::SCI11)
-    {
-        auto temp = std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1_1>, _TResourceSource>>(versionTest, dummy, gameFolder);
-        lookupPointers = temp->GetLookupPointers(reader);
-        resourceSource = move(temp);
-    }
-    else if (versionTest.MapFormat == ResourceMapFormat::SCI2)
-    {
-        auto temp = std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1>, _TResourceSource>>(versionTest, dummy, gameFolder);
-        lookupPointers = temp->GetLookupPointers(reader);
-        resourceSource = move(temp);
-    }
-
-    std::unordered_map<int, std::vector<uint32_t>> volumeToResourceOffsets;
-
-    // Print out the data
-    if (resourceSource)
-    {
-        // Lookup table (SCI1)
-        for (const RESOURCEMAPPREENTRY_SCI1 &preEntry : lookupPointers)
-        {
-            writer << "Type: " << pad(hex(preEntry.bType), 2, '0') << "\tOffset: " << pad(hex(preEntry.wOffset), 4, '0') << "\n";
-        }
-
-        // The main data
-        ResourceMapEntryAgnostic mapEntry;
-        std::vector<uint8_t> rawData;
-        uint32_t currentPosition = reader.tellg();
-        IteratorState state;
-        while (resourceSource->ReadNextEntry(ResourceTypeFlags::All, state, mapEntry, &rawData))
-        {
-            // more info
-            _PrintMapEntry(writer, currentPosition, rawData, mapEntry);
-            currentPosition = reader.tellg();
-
-            volumeToResourceOffsets[mapEntry.PackageNumber].push_back(mapEntry.Offset);
-        }
-        ShowTextFile(writer.c_str(), "resourcemap.txt");
-    }
-
-    // Let's print out the resource map volumes too. We'll want a map of vectors for each volume?
-    for (auto &volumeAndOffsets : volumeToResourceOffsets)
-    {
-        fmt::MemoryWriter writer;
-        writer << "Resource package " << volumeAndOffsets.first << " for " << strGameName << "\n";
-        
-        std::sort(volumeAndOffsets.second.begin(), volumeAndOffsets.second.end());
-
-        // I want the agnostic header, and then also the raw header data and the raw other data.
-        // For now we'll just show the raw data
-        std::unique_ptr<sci::streamOwner> streamOwner = fileDescriptor.OpenVolume(volumeAndOffsets.first);
+        std::unique_ptr<sci::streamOwner> streamOwner = fileDescriptor.OpenMap();   // Keep in scope
         sci::istream reader = streamOwner->getReader();
 
-        for (uint32_t offset : volumeAndOffsets.second)
-        {
-            reader.seekg(offset);
-            int countOfBytesToShow = min(16, reader.getBytesRemaining());
-            writer << pad(hex(offset), 6, '0') << ": ";
+        fmt::MemoryWriter writer;
 
-            for (int i = 0; i < countOfBytesToShow; i++)
-            {
-                uint8_t byte;
-                reader >> byte;
-                writer << pad(hexu(byte), 2, '0') << " ";
-            }
-            writer << "\n";
+        // The game title
+        writer << "Resource map for ";
+        std::string strGameName = appState->GetGameName();
+        if (strGameName.empty())
+        {
+            strGameName = PathFindFileName(gameFolder.c_str());
+        }
+        writer << strGameName;
+        writer << "\n";
+
+        std::unique_ptr<ResourceSource> resourceSource;
+        std::vector<RESOURCEMAPPREENTRY_SCI1> lookupPointers;
+        ResourceHeaderReadWrite dummy;
+
+        if (versionTest.MapFormat == ResourceMapFormat::SCI0)
+        {
+            resourceSource = std::make_unique<MapAndPackageSource<SCI0MapNavigator<RESOURCEMAPENTRY_SCI0>, _TResourceSource>>(versionTest, dummy, gameFolder);
+        }
+        else if (versionTest.MapFormat == ResourceMapFormat::SCI0_LayoutSCI1)
+        {
+            resourceSource = std::make_unique<MapAndPackageSource<SCI0MapNavigator<RESOURCEMAPENTRY_SCI0_SCI1LAYOUT>, _TResourceSource>>(versionTest, dummy, gameFolder);
+        }
+        else if (versionTest.MapFormat == ResourceMapFormat::SCI1)
+        {
+            auto temp = std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1>, _TResourceSource>>(versionTest, dummy, gameFolder);
+            lookupPointers = temp->GetLookupPointers(reader);
+            resourceSource = move(temp);
+        }
+        else if (versionTest.MapFormat == ResourceMapFormat::SCI11)
+        {
+            auto temp = std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1_1>, _TResourceSource>>(versionTest, dummy, gameFolder);
+            lookupPointers = temp->GetLookupPointers(reader);
+            resourceSource = move(temp);
+        }
+        else if (versionTest.MapFormat == ResourceMapFormat::SCI2)
+        {
+            auto temp = std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1>, _TResourceSource>>(versionTest, dummy, gameFolder);
+            lookupPointers = temp->GetLookupPointers(reader);
+            resourceSource = move(temp);
         }
 
-        ShowTextFile(writer.c_str(), format("package file {}.txt", volumeAndOffsets.first));
+        std::unordered_map<int, std::vector<uint32_t>> volumeToResourceOffsets;
+
+        // Print out the data
+        if (resourceSource)
+        {
+            // Lookup table (SCI1)
+            for (const RESOURCEMAPPREENTRY_SCI1 &preEntry : lookupPointers)
+            {
+                writer << "Type: " << pad(hex(preEntry.bType), 2, '0') << "\tOffset: " << pad(hex(preEntry.wOffset), 4, '0') << "\n";
+            }
+
+            // The main data
+            ResourceMapEntryAgnostic mapEntry;
+            std::vector<uint8_t> rawData;
+            uint32_t currentPosition = reader.tellg();
+            IteratorState state;
+            while (resourceSource->ReadNextEntry(ResourceTypeFlags::All, state, mapEntry, &rawData))
+            {
+                // more info
+                _PrintMapEntry(writer, currentPosition, rawData, mapEntry);
+                currentPosition = reader.tellg();
+
+                volumeToResourceOffsets[mapEntry.PackageNumber].push_back(mapEntry.Offset);
+            }
+            ShowTextFile(writer.c_str(), "resourcemap.txt");
+        }
+
+        // Let's print out the resource map volumes too. We'll want a map of vectors for each volume?
+        for (auto &volumeAndOffsets : volumeToResourceOffsets)
+        {
+            fmt::MemoryWriter writer;
+            writer << "Resource package " << volumeAndOffsets.first << " for " << strGameName << "\n";
+
+            std::sort(volumeAndOffsets.second.begin(), volumeAndOffsets.second.end());
+
+            // I want the agnostic header, and then also the raw header data and the raw other data.
+            // For now we'll just show the raw data
+            std::unique_ptr<sci::streamOwner> streamOwner = fileDescriptor.OpenVolume(volumeAndOffsets.first);
+            sci::istream reader = streamOwner->getReader();
+
+            for (uint32_t offset : volumeAndOffsets.second)
+            {
+                reader.seekg(offset);
+                int countOfBytesToShow = min(16, reader.getBytesRemaining());
+                writer << pad(hex(offset), 6, '0') << ": ";
+
+                for (int i = 0; i < countOfBytesToShow; i++)
+                {
+                    uint8_t byte;
+                    reader >> byte;
+                    writer << pad(hexu(byte), 2, '0') << " ";
+                }
+                writer << "\n";
+            }
+
+            ShowTextFile(writer.c_str(), format("package file {}.txt", volumeAndOffsets.first));
+        }
+    }
+    catch (std::exception &e)
+    {
+        AfxMessageBox(e.what(), MB_ICONWARNING | MB_OK);
     }
 }
 

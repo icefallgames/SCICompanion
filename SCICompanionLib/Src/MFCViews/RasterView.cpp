@@ -221,7 +221,7 @@ void _ConvertSelectionBitsToCelData(const uint8_t *pBits, CSize size, uint8_t *p
     }
 }
 
-CRect CRasterView::SelectionManager::PasteCel(const std::vector<const Cel*> &celsPaste, int cCels, CSize sizeMain)
+CRect CRasterView::SelectionManager::PasteCel(const std::vector<const Cel*> &celsPaste, int cCels, CSize sizeMain, CPoint origin)
 {
     assert(!celsPaste.empty());
     CRect rect;
@@ -229,7 +229,7 @@ CRect CRasterView::SelectionManager::PasteCel(const std::vector<const Cel*> &cel
     ClearSelection();
     _sizeSelectionBits = CSize(min(sizeMain.cx, celsPaste.front()->size.cx), min(sizeMain.cy, celsPaste.front()->size.cy));
     _GenerateSelectionBits(cCels, _sizeSelectionBits);
-    rect = CRect(0, 0, _sizeSelectionBits.cx, _sizeSelectionBits.cy);
+    rect = CRect(origin, _sizeSelectionBits);
     // Apply our new selection;
     for (int i = 0; i < cCels; i++)
     {
@@ -2086,6 +2086,15 @@ CNewRasterResourceDocument *CRasterView::GetDoc() const
     return static_cast<CNewRasterResourceDocument*>(GetDocument());
 }
 
+void CRasterView::_CommitAndClearSelection()
+{
+    if (!_rectSelection.IsRectEmpty())
+    {
+        _CommitSelectionBits();
+    }
+    _rectSelection.SetRectEmpty();
+}
+
 void CRasterView::_OnCaptureToolButtonDown(CPoint point, bool fAux)
 {
     if (!_fCapturing)
@@ -2103,11 +2112,7 @@ void CRasterView::_OnCaptureToolButtonDown(CPoint point, bool fAux)
             {
                 // Otherwise, the user is creating a new selection rect.  Reset the selection rect.
                 // But first, commit any old bits.
-                if (!_rectSelection.IsRectEmpty())
-                {
-                    _CommitSelectionBits();
-                }
-                _rectSelection.SetRectEmpty();
+                _CommitAndClearSelection();
             }
         }
 
@@ -2254,6 +2259,7 @@ void CRasterView::_CopyCelDataToClipboard(const std::vector<Cel> &cels)
 {
     // Size, data, palettecount, palette
     sci::ostream serial;
+    serial << _rectSelection.TopLeft(); // CPoint origin
     serial << (uint32_t)cels.size();
     for (const Cel &cel : cels)
     {
@@ -2279,14 +2285,17 @@ void CRasterView::_CopyCelDataToClipboard(const std::vector<Cel> &cels)
 
 // If the clipboard data's palette matches our current one, then this returns a Cel (or collection of cels) describing the data.
 // We can then apply it to our current selection bits.
-unique_ptr<vector<unique_ptr<Cel>>> CRasterView::_GetClipboardDataIfPaletteMatches()
+unique_ptr<vector<unique_ptr<Cel>>> CRasterView::_GetClipboardDataIfPaletteMatches(CPoint &origin)
 {
     unique_ptr<vector<unique_ptr<Cel>>> celsReturn;
     ProcessClipboardDataIfAvailable(
         appState->CelDataClipboardFormat,
         this,
-        [&celsReturn, this](sci::istream &byteStream)
+        [&celsReturn, this, &origin](sci::istream &byteStream)
     {
+
+        byteStream >> origin;
+
         unique_ptr<vector<unique_ptr<Cel>>> celsTemp = make_unique<vector<unique_ptr<Cel>>>();
         uint32_t celCount;
         byteStream >> celCount;
@@ -2429,7 +2438,8 @@ void CRasterView::_EnsureCelsLargeEnoughForPaste(size16 requiredSize)
 void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
 {
     bool success = false;
-    unique_ptr<vector<unique_ptr<Cel>>> cels = _GetClipboardDataIfPaletteMatches();
+    CPoint origin;
+    unique_ptr<vector<unique_ptr<Cel>>> cels = _GetClipboardDataIfPaletteMatches(origin);
     if (cels && !cels->empty() && !provideOptions)
     {
         success = true;
@@ -2437,7 +2447,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
         _EnsureCelsLargeEnoughForPaste((*cels)[0]->size);
         vector<const Cel*> celPointers;
         std::transform(cels->begin(), cels->end(), back_inserter(celPointers), [](unique_ptr<Cel> &cel) { return cel.get(); });
-        _rectSelection = _selectionManager.PasteCel(celPointers, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+        _rectSelection = _selectionManager.PasteCel(celPointers, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()), origin);
     }
     else if (IsClipboardFormatAvailable(CF_BITMAP))
     {
@@ -2517,7 +2527,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                             );
 
                             success = true;
-                            _rectSelection = _selectionManager.PasteCel(vector<const Cel*> {finalCel.get()}, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                            _rectSelection = _selectionManager.PasteCel(vector<const Cel*> {finalCel.get()}, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()), CPoint());
                         }
                     }
                     else
@@ -2588,7 +2598,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                         if (finalResult)
                         {
                             success = true;
-                            _rectSelection = _selectionManager.PasteCel(vector<const Cel*> {finalResult.get()} , _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                            _rectSelection = _selectionManager.PasteCel(vector<const Cel*> {finalResult.get()} , _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()), CPoint());
                         }
                     }
                 }
@@ -3159,7 +3169,12 @@ void CRasterView::OnLButtonDown(UINT nFlags, CPoint point)
             _sizeOrig = _sizeNew;
 
             // Get rid of any selection that currently exists.
-            _GetRidOfSelection();
+            _CommitAndClearSelection();
+        }
+        else if (_currentTool == Select)
+        {
+            // Clear selection when they click outside the view?
+            _CommitAndClearSelection();
         }
     }
     else
