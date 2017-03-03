@@ -25,6 +25,7 @@
 #include "FakeEgo.h"
 
 class PicDrawManager;
+class PicClipsDialog;
 
 const int PriorityBarWidth = 30;
 
@@ -126,6 +127,8 @@ protected:
     void _OnHistoryRClick(CPoint point);
     void _OnPatternLClick(CPoint point);
     void _OnPatternRClick();
+    void _OnPicClipsLClick(CPoint point);
+    void _OnPicClipsRClick();
     void _OnLineLClick(CPoint point);
     void _OnLineRClick(CPoint point);
     void _OnFillLClick(CPoint point);
@@ -163,6 +166,7 @@ protected:
     void _DrawPriorityLines(CDC *pDC);
     int _HitTestCurrentPolyPoint(CPoint point);
     int _HitTestCurrentPolyEdge(CPoint point);
+    void _InitPicClipsCommandAdjust(PICCOMMAND_ADJUST &adjust, CPoint point);
     void _DrawPolygons(CDC *pDC);
     void _DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive);
     void _DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags);
@@ -171,17 +175,16 @@ protected:
     void _DrawLineDraw(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawCircleDraw(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawPenPreview(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
-    void _BeginTransformPoint(ptrdiff_t bestIndex);
+    void _DrawClipPreview(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _TransformPoint(bool commit, CPoint pt);
     void _DrawGuideLines(CDC &dcMem);
     void _InitCommandAdjust(PICCOMMAND_ADJUST *pAdjust);
     void _DrawPasteCommands(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawEgoCoordinates(CDC *pDC);
     void _MakeRandomNR();
-    void _InsertPaletteCommands(EGACOLOR *pPaletteOrig, EGACOLOR *pPaletteNew, BOOL fWriteEntire);
     void _MakeNewMasterTraceImage(PCTSTR pszFileName, BITMAPINFO *pbmi, void *pBits);
     void _InsertPastedCommands();
-    void _OnPasteCommands(HGLOBAL hMem);
+    void _OnPasteCommands();
     void _GetPasteRect(CRect &rect);
     void _CleanUpPaste();
     void _OnMouseWheel(UINT nFlags, BOOL fForward, CPoint pt, short nNotches);
@@ -210,6 +213,7 @@ protected:
     afx_msg void OnLineCommand();
     afx_msg void OnFillCommand();
     afx_msg void OnCircleCommand();
+    afx_msg void OnPicClipsCommand();
     afx_msg void OnDrawOff();
     afx_msg void OnZoomTool();
     afx_msg void OnZoomIn() { _OnZoomLClick(&_ptCurrentHover); }
@@ -251,6 +255,7 @@ protected:
     afx_msg void OnCutLine();
     afx_msg void RemoveSetVisual();
     afx_msg void EditCelData();
+    afx_msg void OnPicClips();
     afx_msg void OnUpdateAllPicCommands(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowTraceImage(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateUnditherPic(CCmdUI *pCmdUI);
@@ -308,6 +313,7 @@ private:
     BOOL _fDrawingCircle;
     BOOL _fPreviewPen;
     BOOL _fMouseWithin;
+    BOOL _fPreviewClips;
     bool _fGridLines;
 
     bool _fPriLineHover;
@@ -435,3 +441,5 @@ private:
 };
 
 extern CExtAlphaSlider *g_pPicAlphaSlider;
+
+extern std::unique_ptr<PicClipsDialog> g_PicClipsDialog;

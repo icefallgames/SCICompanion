@@ -28,7 +28,9 @@ HBITMAP GetPicBitmap(PicScreen screen, const PicComponent &pic, const PaletteCom
 ptrdiff_t InsertCommands(PicComponent &pic, ptrdiff_t iStart, size_t cCount, PicCommand *pCommands);
 void RemoveCommand(PicComponent &pic, ptrdiff_t iCommandIndex);
 void RemoveCommandRange(PicComponent &pic, ptrdiff_t iStart, ptrdiff_t iEnd);
-HRESULT CopyRangeToClipboard(const PicComponent &pic, ptrdiff_t iStart, ptrdiff_t iEnd);
+bool CopyRangeToClipboard(const std::vector<PicCommand> &commands, ptrdiff_t iStart, ptrdiff_t iEnd);
+bool CopyRangeFromClipboard(HWND hwnd, const PicComponent *picOptional, std::vector<PicCommand> &commands);
+void GetCommandsFromRaw(const uint8_t *bits, size_t cb, const PicComponent *picOptional, std::vector<PicCommand> &commands);
 
 //void ResetResourceAndFileNumbers() { _iFileNumber = -1; _iResourceNumber = -1; }
 size_t GetCommandCount(const PicComponent &pic);

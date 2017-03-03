@@ -284,6 +284,8 @@ IDI_WAVEFORM            ICON                    "res\\waveform.ico"
 
 IDI_CONVERT             ICON                    "res\\convert.ico"
 
+IDI_STAMP               ICON                    "res\\Stamp.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -422,9 +424,11 @@ BEGIN
     BUTTON      ID_LINE
     BUTTON      ID_FILL
     BUTTON      ID_CIRCLE
+    BUTTON      ID_PICCLIPS
     SEPARATOR
     BUTTON      ID_POLYPATH
     BUTTON      ID_TOGGLEPRIORITYLINES
+    SEPARATOR
     BUTTON      ID_LIGHTUPCOORDS
     BUTTON      ID_TOGGLEEGO
     BUTTON      ID_DEFINEPALETTES
@@ -648,6 +652,7 @@ BEGIN
         MENUITEM "Change &height",              ID_PIC_CHANGEDIMENSIONS
         MENUITEM "Remove set &visual",          ID_PIC_REMOVESETVISUAL
         MENUITEM "Edit cel data",               ID_PIC_EDITCELDATA
+        MENUITEM "Pic clips",                   ID_PIC_PICCLIPS
     END
     POPUP "Fo&nt"
     BEGIN
@@ -1026,6 +1031,14 @@ IDR_ACCELERATORPALETTE ACCELERATORS
 BEGIN
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+END
+
+IDR_ACCELERATORPICCLIPS ACCELERATORS
+BEGIN
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      ID_EDIT_DELETE,         VIRTKEY, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
 END
 
 
@@ -2327,6 +2340,17 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,72,26,52,14
 END
 
+IDD_PICCLIPS DIALOGEX 0, 0, 117, 162
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU
+CAPTION "Pic Clips"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Save",ID_SAVE,82,7,28,14
+    COMBOBOX        IDC_COMBOFILES,7,7,72,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_LISTCLIPS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOLABELWRAP | LVS_EDITLABELS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,7,25,103,101
+    LTEXT           "Paste pic commands into the above listbox to create a ""pic clip"".",IDC_STATIC,7,130,103,25
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3053,6 +3077,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 40
     END
+
+    IDD_PICCLIPS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 110
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 155
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -3296,6 +3328,11 @@ BEGIN
 END
 
 IDD_ROTATENUMBER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PICCLIPS AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -3674,6 +3711,11 @@ STRINGTABLE
 BEGIN
     ID_MAIN_RELOADSYNTAXCOLORS "Reload colors from syntaxcolor.ini"
     ID_MAIN_TOGGLEBLOCKCOMMENT "Comment or uncomment a block of code"
+END
+
+STRINGTABLE
+BEGIN
+    ID_PICCLIPS             "Stamp pic clips\nStamp pic clips"
 END
 
 #endif    // English (United States) resources

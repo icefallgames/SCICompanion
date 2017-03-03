@@ -259,7 +259,8 @@ public:
         SetPriorityBars =0x0000000b,
         DrawBitmap =     0x0000000c,
         Circle =         0x0000000d,
-        CommandTypeMax = 0x0000000d,
+        PicClips =       0x0000000e,
+        CommandTypeMax = 0x0000000e,
         None =           0xff, // Just for convenience
     };
 

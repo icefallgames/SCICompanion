@@ -276,10 +276,78 @@ void RemoveCommandRange(PicComponent &pic, ptrdiff_t iStart, ptrdiff_t iEnd)
     }
 }
 
-HRESULT CopyRangeToClipboard(const PicComponent &pic, ptrdiff_t iStart, ptrdiff_t iEnd)
+
+bool _AllowCommand(bool supportsPen, bool isVGA, bool canChangePriLines, const PicCommand &command)
 {
-    HRESULT hr = E_FAIL;
-    if ((iStart >= 0) && (iEnd < (ptrdiff_t)pic.commands.size()))
+    if (!supportsPen && (command.type == PicCommand::CommandType::Pattern))
+    {
+        return false;
+    }
+    if (isVGA && ((command.type == PicCommand::CommandType::SetPalette) || (command.type == PicCommand::CommandType::SetPaletteEntry)))
+    {
+        return false;
+    }
+    if (canChangePriLines && (command.type == PicCommand::CommandType::SetPriorityBars))
+    {
+        return false;
+    }
+    return true;
+}
+
+void GetCommandsFromRaw(const uint8_t *bits, size_t cb, const PicComponent *picOptional, std::vector<PicCommand> &commands)
+{
+    bool supportsPen = !picOptional || (picOptional->Traits->SupportsPenCommands);
+    bool isVGA = picOptional && (picOptional->Traits->IsVGA);
+    bool canChangePriLines = !picOptional || (picOptional->Traits->CanChangePriorityLines);
+
+    // Create a byte stream with this data.
+    sci::ostream stream;
+    stream.WriteBytes(bits, (int)cb);
+    sci::istream reader = istream_from_ostream(stream);
+    bool fOk = true;
+    while (fOk)
+    {
+        PicCommand command;
+        fOk = command.Initialize(reader);
+        if (fOk && _AllowCommand(supportsPen, isVGA, canChangePriLines, command))
+        {
+            commands.push_back(command);
+        }
+    }
+}
+
+// If pic is provided, only pastes commands supported by that pic.
+bool CopyRangeFromClipboard(HWND hwnd, const PicComponent *picOptional, std::vector<PicCommand> &commands)
+{
+    bool success = false;
+    UINT uFormat = appState->GetCommandClipboardFormat();
+    if (IsClipboardFormatAvailable(uFormat))
+    {
+        OpenClipboardGuard openClipboard(hwnd);
+        if (openClipboard.IsOpen())
+        {
+            HGLOBAL hMem = GetClipboardData(uFormat);
+            // We don't need to GlobalFree this.
+            if (hMem)
+            {
+                size_t cb = GlobalSize(hMem);
+                GlobalLockGuard<BYTE*> globalLock(hMem);
+                BYTE *pBits = globalLock.Object;
+                if (pBits)
+                {
+                    GetCommandsFromRaw(pBits, cb, picOptional, commands);
+                    success = true;
+                }
+            }
+        }
+    }
+    return success;
+}
+
+bool CopyRangeToClipboard(const std::vector<PicCommand> &commands, ptrdiff_t iStart, ptrdiff_t iEnd)
+{
+    bool success = false;
+    if ((iStart >= 0) && (iEnd < (ptrdiff_t)commands.size()))
     {
         UINT uFormat = appState->GetCommandClipboardFormat();
         if (uFormat)
@@ -288,7 +356,7 @@ HRESULT CopyRangeToClipboard(const PicComponent &pic, ptrdiff_t iStart, ptrdiff_
             if (clipBoard.IsOpen())
             {
                 HANDLE hClip = NULL;
-                GlobalAllocGuard allocGuard(CopiedCommands_AllocAndFillMemory(&pic.commands[0] + iStart, iEnd - iStart + 1));
+                GlobalAllocGuard allocGuard(CopiedCommands_AllocAndFillMemory(&commands[0] + iStart, iEnd - iStart + 1));
                 if (allocGuard.Global)
                 {
                     // Empty the clipboard - otherwise, it could have both commands and a bitmap on it,
@@ -305,7 +373,7 @@ HRESULT CopyRangeToClipboard(const PicComponent &pic, ptrdiff_t iStart, ptrdiff_
             }
         }
     }
-    return hr;
+    return success;
 }
 
 const PicCommand &GetCommandAt(const PicComponent &pic, ptrdiff_t iIndex)

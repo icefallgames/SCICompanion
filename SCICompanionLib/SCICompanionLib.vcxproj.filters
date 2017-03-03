@@ -804,6 +804,9 @@
     <ClCompile Include="Src\Dialogs\RotateArbitraryDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\PicClipsDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1730,6 +1733,9 @@
     <ClInclude Include="Src\Dialogs\RotateArbitraryDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Dialogs\PicClipsDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SCICompanionLib.def">
@@ -2302,6 +2308,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\unditherpic.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Stamp.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

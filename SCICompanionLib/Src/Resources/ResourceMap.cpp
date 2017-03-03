@@ -1324,7 +1324,7 @@ std::unique_ptr<ResourceEntity> CreateResourceHelper(const ResourceBlob &data, T
     { 
         pResourceReturn->InitFromResource(&data); 
     } 
-    catch (std::exception &theException)
+    catch (std::exception)
     {
         if (!fallbackOnException)
         {

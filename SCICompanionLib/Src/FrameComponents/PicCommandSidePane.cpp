@@ -495,7 +495,7 @@ void PicCommandSidePane::_OnDelete(bool fCut, bool fCopy)
 
                     if (fCopy)
                     {
-                        CopyRangeToClipboard(*pepic, iItemStart - 1, iItemEnd - 1);
+                        CopyRangeToClipboard(pepic->commands, iItemStart - 1, iItemEnd - 1);
                     }
 
                     if (fCut)

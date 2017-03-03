@@ -92,6 +92,8 @@
 
 #include "AudioProcessingSettings.h"
 
+#include "PicClipsDialog.h"
+
 // REVIEW temp
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -174,6 +176,16 @@ SCICompanionApp::~SCICompanionApp()
 }
 
 
+void _DestroyPicClipsDialog()
+{
+    if (g_PicClipsDialog)
+    {
+        g_PicClipsDialog->DestroyWindow();
+        g_PicClipsDialog = nullptr;
+    }
+}
+
+
 //
 // LoadGame - this is where we load a new game.
 //
@@ -198,6 +210,7 @@ CDocument* SCICompanionApp::OpenDocumentFile(PCTSTR lpszFileName)
         {
             // Then close them all.
             CloseAllDocuments(FALSE);
+            _DestroyPicClipsDialog();
 
             appState->_pResourceDoc = static_cast<CResourceListDoc*>(__super::OpenDocumentFile(szBuffer));
             if (appState->_pResourceDoc)
@@ -746,7 +759,7 @@ void SCICompanionApp::OnCloseGame()
     {
         // Then close them all.
         CloseAllDocuments(FALSE);
-
+        _DestroyPicClipsDialog();
         appState->_resourceRecency.ClearAllResourceTypes();
     }
 }

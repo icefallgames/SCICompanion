@@ -103,6 +103,7 @@ c_toolbarIDToLabel[] =
     { ID_LINE,      TEXT("Line") },
     { ID_FILL,      TEXT("Fill") },
     { ID_CIRCLE,    TEXT("Circle") },
+    { ID_PICCLIPS,  TEXT("PicClips") },
     { ID_DRAWOFF,   TEXT("Off") },
 };
 

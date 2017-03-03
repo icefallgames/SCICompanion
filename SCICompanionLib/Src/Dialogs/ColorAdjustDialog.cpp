@@ -96,6 +96,9 @@ void ColorAdjustDialog::_PushToEdit()
     m_wndEditTintStrength.SetWindowText(fmt::format("{0}", m_wndSliderTintStrength.GetPos()).c_str());
 }
 
+// REVIEW/BUG: This processing will sometimes change colors if nothing was changes. For instance, blue/yellow has the same
+// value as grey/white. So with no adjustments, blue/yellow may turn into grey/white, thus changing the way the pic is
+// drawn (since fills leak through white)
 void ColorAdjustDialog::_SyncPalette()
 {
     double hue = (double)_hue / 180.0;

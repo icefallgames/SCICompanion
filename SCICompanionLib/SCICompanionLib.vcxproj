@@ -231,6 +231,7 @@
     <ClCompile Include="Src\Dialogs\OnionSkinSettingsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PhonemeDialog.cpp" />
+    <ClCompile Include="Src\Dialogs\PicClipsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PicDimensionsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
     <ClCompile Include="Src\Dialogs\RotateArbitraryDialog.cpp" />
@@ -326,6 +327,7 @@
     <ClInclude Include="Src\Dialogs\PhonemeDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
+    <ClInclude Include="Src\Dialogs\PicClipsDialog.h" />
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
     <ClInclude Include="Src\Dialogs\RotateArbitraryDialog.h" />
     <ClInclude Include="Src\Dialogs\ToolTipDialog.h" />
@@ -951,6 +953,7 @@
     <Image Include="res\script_insert_object.ico" />
     <Image Include="res\showtrace.ico" />
     <Image Include="res\sound.ico" />
+    <Image Include="res\Stamp.ico" />
     <Image Include="res\stop.ico" />
     <Image Include="res\stopdebug.ico" />
     <Image Include="res\TabPic.bmp" />

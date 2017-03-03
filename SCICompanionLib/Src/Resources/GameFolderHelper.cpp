@@ -203,6 +203,11 @@ std::string GameFolderHelper::GetMsgFolder(const std::string *prefix) const
     return _GetSubfolder("msg", prefix);
 }
 
+std::string GameFolderHelper::GetPicClipsFolder() const
+{
+    return _GetSubfolder("picClips");
+}
+
 std::string GameFolderHelper::GetPolyFolder(const std::string *prefix) const
 {
     return _GetSubfolder("poly", prefix);

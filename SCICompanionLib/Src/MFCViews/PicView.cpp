@@ -40,9 +40,12 @@
 #include "PicCommands.h"
 #include "EditCelDataDialog.h"
 #include "ClipboardUtil.h"
+#include "PicClipsDialog.h"
 
 const int PicGutter = 5;
 using namespace Gdiplus;
+
+std::unique_ptr<PicClipsDialog> g_PicClipsDialog;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -54,6 +57,7 @@ const key_value_pair<CPicView::ToolType, UINT> CPicView::c_toolToID [] =
     { Command, ID_FILL },
     { Command, ID_CIRCLE },
     { Command, ID_LINE },
+    { Command, ID_PICCLIPS },
     { History, ID_HISTORY },
     { Zoom, ID_ZOOM },
     { Polygons, ID_POLYPATH },
@@ -321,6 +325,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_LINE, CPicView::OnLineCommand)
     ON_COMMAND(ID_FILL, CPicView::OnFillCommand)
     ON_COMMAND(ID_CIRCLE, CPicView::OnCircleCommand)
+    ON_COMMAND(ID_PICCLIPS, CPicView::OnPicClipsCommand)
     ON_COMMAND(ID_DRAWOFF, CPicView::OnDrawOff)
     ON_COMMAND(ID_TRACEBITMAP, CPicView::OnTraceBitmap)
     ON_COMMAND(ID_SHOWTRACEIMAGE, CPicView::OnShowTraceImage)
@@ -360,10 +365,12 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND_RANGE(ID_DEFAULTPRIORITY, ID_MAIN_PRI15, CPicView::OnSetEgoPriority)
     ON_COMMAND_RANGE(ID_FAKEEGO0, ID_FAKEEGO12, CPicView::OnEnableFakeEgo)
     ON_COMMAND(ID_FAKEEGONUMBER, CPicView::OnEnableFakeEgoCustom)
+    ON_COMMAND(ID_PIC_PICCLIPS, OnPicClips)
     ON_UPDATE_COMMAND_UI(ID_PENTOOL, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_LINE, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_FILL, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_CIRCLE, CPicView::OnUpdateAllPicCommands)
+    ON_UPDATE_COMMAND_UI(ID_PICCLIPS, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_DRAWOFF, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_ZOOM, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_HISTORY, CPicView::OnUpdateAllPicCommands)
@@ -463,6 +470,7 @@ CPicView::CPicView()
     _fDrawingLine = FALSE;
     _fDrawingCircle = FALSE;
     _fPreviewPen = FALSE;
+    _fPreviewClips = FALSE;
     _fMouseWithin = FALSE;
     _xOld = -1;
     _yOld = -1;
@@ -574,6 +582,15 @@ void CPicView::OnCircleCommand()
     // When this is pressed, choose it.
     _currentTool = Command;
     _currentCommand = PicCommand::Circle;
+    _UpdateCursor();
+    _OnCommandChanged();
+}
+
+void CPicView::OnPicClipsCommand()
+{
+    // When this is pressed, choose it.
+    _currentTool = Command;
+    _currentCommand = PicCommand::PicClips;
     _UpdateCursor();
     _OnCommandChanged();
 }
@@ -1126,23 +1143,6 @@ void CPicView::_GetPasteRect(CRect &rect)
     rect.bottom = min(_GetPicSize().cy, rect.bottom);
 }
 
-bool _AllowCommand(bool supportsPen, bool isVGA, bool canChangePriLines, const PicCommand &command)
-{
-    if (!supportsPen && (command.type == PicCommand::CommandType::Pattern))
-    {
-        return false;
-    }
-    if (isVGA && ((command.type == PicCommand::CommandType::SetPalette) || (command.type == PicCommand::CommandType::SetPaletteEntry)))
-    {
-        return false;
-    }
-    if (canChangePriLines && (command.type == PicCommand::CommandType::SetPriorityBars))
-    {
-        return false;
-    }
-    return true;
-}
-
 // This is some very basic SCI2 support for moving pic layers around.
 void CPicView::OnUpdateEditCelData(CCmdUI *pCmdUI)
 {
@@ -1158,6 +1158,17 @@ void CPicView::OnUpdateEditCelData(CCmdUI *pCmdUI)
         }
     }
     pCmdUI->Enable(enable);
+}
+
+void CPicView::OnPicClips()
+{
+    if (!g_PicClipsDialog)
+    {
+        g_PicClipsDialog = std::make_unique<PicClipsDialog>();
+        g_PicClipsDialog->Create(IDD_PICCLIPS);
+    }
+    g_PicClipsDialog->SetNumber(GetDocument()->GetResource()->ResourceNumber);
+    g_PicClipsDialog->ShowWindow(SW_SHOW);
 }
 
 // This is some very basic SCI2 support for moving pic layers around.
@@ -1247,37 +1258,15 @@ void CPicView::RemoveSetVisual()
     }
 }
 
-void CPicView::_OnPasteCommands(HGLOBAL hMem)
+void CPicView::_OnPasteCommands()
 {
     if (_currentTool != Pasting) // If we're already "pasting", we can't do it again.
     {
         // Remove any old ones
         _pastedCommands.clear();
 
-        size_t cb = GlobalSize(hMem);
-        GlobalLockGuard<BYTE*> globalLock(hMem);
-        BYTE *pBits = globalLock.Object;
-        if (pBits)
+        if (CopyRangeFromClipboard(*this, _GetEditPic(), _pastedCommands))
         {
-            bool supportsPen = (_GetEditPic()->Traits->SupportsPenCommands);
-            bool isVGA = (_GetEditPic()->Traits->IsVGA);
-            bool canChangePriLines = (_GetEditPic()->Traits->CanChangePriorityLines);
-
-            // Create a byte stream with this data.
-            sci::ostream stream;
-            stream.WriteBytes(pBits, (int)cb);
-            sci::istream reader = istream_from_ostream(stream);
-            bool fOk = true;
-            while (fOk)
-            {
-                PicCommand command;
-                fOk = command.Initialize(reader);
-                if (fOk && _AllowCommand(supportsPen, isVGA, canChangePriLines, command))
-                {
-                    _pastedCommands.push_back(command);
-                }
-            }
-
             sRECT rcPasted;
             PastedCommands_GetBounds(_GetPicSize(), &_pastedCommands[0], _pastedCommands.size(), &rcPasted);
             _cxPasted = rcPasted.right - rcPasted.left;
@@ -1430,43 +1419,37 @@ void CPicView::OnPaste()
     UINT uFormat;
     if (_HaveCompatibleClipboardFormat(this, &uFormat))
     {
-        OpenClipboardGuard openClipboard(this);
-        if (openClipboard.IsOpen())
+        if (uFormat == CF_DIB)
         {
-            HGLOBAL hMem = GetClipboardData(uFormat);
-            // We don't need to GlobalFree this.
-            if (hMem)
+            OpenClipboardGuard openClipboard(this);
+            if (openClipboard.IsOpen())
             {
-                switch (uFormat)
+                HGLOBAL hMem = GetClipboardData(uFormat);
+                // We don't need to GlobalFree this.
+                if (hMem)
                 {
-                case CF_DIB:
+                    GlobalLockGuard<BITMAPINFO*> globalLock(hMem);
+                    BITMAPINFO *pbmi = globalLock.Object;
+                    if (pbmi)
                     {
-                        GlobalLockGuard<BITMAPINFO*> globalLock(hMem);
-                        BITMAPINFO *pbmi = globalLock.Object;
-                        if (pbmi)
+                        void *pDIBBits32 = nullptr;;
+                        CBitmap bitmap;
+                        bitmap.Attach(BitmapToRGB32Bitmap(pbmi, 320, 190, &pDIBBits32));
+                        globalLock.Unlock();    // Unlock and close ASAP, before we do the expensive quantization
+                        openClipboard.Close();
+
+                        void *pDIBBits = _GetBitsPtrFromBITMAPINFO(pbmi);
+                        if (pDIBBits)
                         {
-                            void *pDIBBits32 = nullptr;;
-                            CBitmap bitmap;
-                            bitmap.Attach(BitmapToRGB32Bitmap(pbmi, 320, 190, &pDIBBits32));
-                            globalLock.Unlock();    // Unlock and close ASAP, before we do the expensive quantization
-                            openClipboard.Close();
-
-                            void *pDIBBits = _GetBitsPtrFromBITMAPINFO(pbmi);
-                            if (pDIBBits)
-                            {
-                                _MakeNewMasterTraceImage(NULL, pbmi, pDIBBits);
-                            }
+                            _MakeNewMasterTraceImage(NULL, pbmi, pDIBBits);
                         }
-                    }
-                    break;
-
-                default:
-                    {
-                        _OnPasteCommands(hMem);
-                        break;
                     }
                 }
             }
+        }
+        else
+        {
+            _OnPasteCommands();
         }
     }
 }
@@ -1504,7 +1487,7 @@ void CPicView::InvalidateOurselvesImmediately()
 LRESULT CPicView::OnMouseLeave(WPARAM wParam, LPARAM lParam)
 {
     _fMouseWithin = FALSE;
-    if (_fPreviewPen || _fDrawingLine || _fDrawingCircle)
+    if (_fPreviewPen || _fDrawingLine || _fDrawingCircle || _fPreviewClips)
     {
         InvalidateOurselves();
     }
@@ -1745,6 +1728,7 @@ const key_value_pair<PicCommand::CommandType, UINT> c_commandToID[] =
     { PicCommand::Line, ID_LINE },
     { PicCommand::Fill, ID_FILL },
     { PicCommand::Circle, ID_CIRCLE },
+    { PicCommand::PicClips, ID_PICCLIPS},
     // Add more here...
 };
 PicCommand::CommandType _IDToCommand(UINT nID)
@@ -1766,6 +1750,7 @@ const key_value_pair<UINT, int> c_IDToCursor [] =
     { ID_HISTORY, IDC_CURSORHISTORY },
     { ID_FILL, IDC_CURSORFILL },
     { ID_CIRCLE, IDC_CURSORCIRCLE },
+    { ID_PICCLIPS, IDC_CURSORPOLYGON },
     { ID_LINE, IDC_CURSORLINE },
     { ID_ZOOM, IDC_CURSORZOOM },
     { ID_POLYPATH, IDC_CURSORPOLYGON },
@@ -1839,12 +1824,12 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
 
     bool needsImmediateUpdate = false;
 
-    if (_fDrawingLine || _fPreviewPen || _fDrawingCircle)
+    if (_fDrawingLine || _fPreviewPen || _fDrawingCircle || _fPreviewClips)
     {
         _GetDrawManager().InvalidatePlugins();
     }
 
-    if (_fDrawingLine || _fPreviewPen || _transformingCoords || _fDrawingCircle)
+    if (_fDrawingLine || _fPreviewPen || _transformingCoords || _fDrawingCircle || _fPreviewClips)
     {
         // FEATURE: we could be more selective with this too
         // Just invalidate the region that covers our from-to
@@ -2032,6 +2017,7 @@ void CPicView::OnUpdateAllPicCommands(CCmdUI *pCmdUI)
             case ID_LINE:
             case ID_FILL:
             case ID_CIRCLE:
+            case ID_PICCLIPS:
                 enabled = false;
                 break;
         }
@@ -2909,6 +2895,44 @@ void CPicView::_DrawCircleDraw(const ViewPort &viewPort, PicData data, PicScreen
     }
 }
 
+void CPicView::_InitPicClipsCommandAdjust(PICCOMMAND_ADJUST &adjust, CPoint point)
+{
+    CRect bounds;
+    auto &commands = g_PicClipsDialog->GetCurrentClip(bounds);
+    int width = (bounds.right - bounds.left);
+    int height = (bounds.bottom - bounds.top);
+    adjust.rcBounds.left = bounds.left;
+    adjust.rcBounds.right = bounds.right;
+    adjust.rcBounds.top = bounds.top;
+    adjust.rcBounds.bottom = bounds.bottom;
+    adjust.rcNew.left = point.x - width / 2;
+    adjust.rcNew.top = point.y - height / 2;
+    adjust.rcNew.right = adjust.rcNew.left + width;
+    adjust.rcNew.bottom = adjust.rcNew.top + height;
+    adjust.fHFlip = false;
+    adjust.fVFlip = false;
+    adjust.iAngle = 0;
+}
+
+void CPicView::_DrawClipPreview(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags)
+{
+    // The user is using the pen tool.
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc && g_PicClipsDialog)
+    {
+        CRect bounds;
+        auto &commands = g_PicClipsDialog->GetCurrentClip(bounds);
+        PICCOMMAND_ADJUST adjust;
+        _InitPicClipsCommandAdjust(adjust, _ptCurrentHover);
+        for (auto &command : commands)
+        {
+            // REVIEW: const_cast: We do this with pastedcommands and it doesn't seem to matter. OR DOES IT?
+            Command_DrawWithOffset(&command, &data, const_cast<ViewPort*>(&viewPort), &adjust);
+        }
+    }
+}
+
+
 void CPicView::_DrawPenPreview(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags)
 {
     // We're drawing with a pen.  Preview it.
@@ -3005,7 +3029,7 @@ bool CPicView::WillDrawOnPic()
     }
     if (_fMouseWithin && !_transformingCoords)
     {
-        if (_fPreviewPen || (_fGridLines && (_currentTool == Command)))
+        if (_fPreviewPen || _fPreviewClips || (_fGridLines && (_currentTool == Command)))
         {
             return true;
         }
@@ -3032,6 +3056,11 @@ void CPicView::DrawOnPic(ViewPort &viewPort, PicData &picData, PicScreenFlags fl
     if (_fPreviewPen && _fMouseWithin && !_transformingCoords)
     {
         _DrawPenPreview(viewPort, picData, flags);
+    }
+
+    if (_fPreviewClips && _fMouseWithin && !_transformingCoords)
+    {
+        _DrawClipPreview(viewPort, picData, flags);
     }
 
     // If we're currently pasting, draw those commands now.
@@ -3301,6 +3330,38 @@ void CPicView::_OnPatternRClick()
     _GetDrawManager().InvalidatePlugins();
     GetDocument()->ExplicitNotify(PicChangeHint::EditPicInvalid);
     InvalidateOurselvesImmediately();
+}
+
+
+
+void CPicView::_OnPicClipsLClick(CPoint point)
+{
+    CPicDoc* pDoc = GetDocument();
+    ASSERT_VALID(pDoc);
+    if (pDoc && g_PicClipsDialog)
+    {
+        CRect bounds;
+        std::vector<PicCommand> commandsCopy = g_PicClipsDialog->GetCurrentClip(bounds);
+        if (!commandsCopy.empty())
+        {
+            PICCOMMAND_ADJUST adjust;
+            _InitPicClipsCommandAdjust(adjust, point);
+            PastedCommands_Adjust(_GetPicSize(), commandsCopy, &adjust);
+            pDoc->InsertCommands(commandsCopy.size(), &commandsCopy[0]);
+        }
+    }
+}
+
+void CPicView::_OnPicClipsRClick()
+{
+    if (g_PicClipsDialog)
+    {
+        g_PicClipsDialog->MoveSelection(1);
+
+        _GetDrawManager().InvalidatePlugins();
+        GetDocument()->ExplicitNotify(PicChangeHint::EditPicInvalid);
+        InvalidateOurselvesImmediately();
+    }
 }
 
 void CPicView::_OnCircleLClick(CPoint point)
@@ -3923,6 +3984,17 @@ void CPicView::_OnCommandChanged()
         InvalidateOurselves();
     }
 
+    BOOL previewClips = (_currentTool == Command) && (_currentCommand == PicCommand::PicClips);
+    if (previewClips != _fPreviewClips)
+    {
+        _fPreviewClips = previewClips;
+        InvalidateOurselves();
+    }
+    if (previewClips)
+    {
+        OnPicClips(); // Make sure it's showing.
+    }
+
     if ((_currentTool != Pasting) && (!_pastedCommands.empty()))
     {
         _CleanUpPaste();
@@ -4049,6 +4121,11 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
                         case PicCommand::Line:
                         {
                             _OnLineLClick(ptPic);
+                            break;
+                        }
+                        case PicCommand::PicClips:
+                        {
+                            _OnPicClipsLClick(ptPic);
                             break;
                         }
                         case PicCommand::Fill:
@@ -4272,6 +4349,11 @@ void CPicView::OnLButtonDblClk(UINT nFlags, CPoint point)
                     _OnLineLClick(ptPic);
                     break;
                 }
+            case PicCommand::PicClips:
+                {
+                    _OnPicClipsLClick(ptPic);
+                    break;
+                }
             }
             break;
         }
@@ -4374,6 +4456,11 @@ void CPicView::OnRButtonDown(UINT nFlags, CPoint point)
                         _OnPatternRClick();
                         break;
                     }
+                    case PicCommand::PicClips:
+                    {
+                        _OnPicClipsRClick();
+                        break;
+                    }
                     case PicCommand::Circle:
                     {
                         _OnCircleRClick(ptPic);
@@ -4469,6 +4556,12 @@ void CPicView::OnRButtonDblClk(UINT nFlags, CPoint point)
                     _OnPatternRClick();
                 }
                 break;
+            case PicCommand::PicClips:
+            {
+                // Do the same as R-click
+                _OnPicClipsRClick();
+            }
+            break;
             }
             break;
         }
