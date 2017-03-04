@@ -150,7 +150,9 @@ void CPaletteDefinitionDialog::ApplyPreview()
     if (g_fPreview)
     {
         ApplyChanges();
-        if (_changed)
+        // Do this all the time. This "changed" refers to the original pic.
+        // So if it were changed back to the original, the preview wouldn't update.
+        //if (_changed)
         {
             _callback.SetPosition(-1);
         }
