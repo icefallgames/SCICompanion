@@ -146,7 +146,6 @@ protected:
     void _UpdateCursor();
     void _OnCommandChanged();
     void _OnShowPalette(BYTE b);
-    static void CALLBACK s_CloseCoordCallback(void *pv, CDC *pDC, int x1, int y1, int x2, int y2);
     void _DrawCoord(CDC *pDC, int x, int y, int additionalSize = 0);
     bool _IsCoordCloseEnough(int x, int y);
     int _GetTransformHitTestDistance(int x, int y);

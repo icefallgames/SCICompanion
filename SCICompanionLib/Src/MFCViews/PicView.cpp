@@ -189,11 +189,19 @@ void CommandModifier::Delete(PicComponent &pic)
         // This joins the two lines, which is not what we usually want.
         if (original.type != PicCommand::CommandType::None)
         {
-            uint16_t x = pic.commands[index].drawLine.xTo;
-            uint16_t y = pic.commands[index].drawLine.yTo;
-            pic.commands.erase(pic.commands.begin() + index);
-            pic.commands[index - 1].drawLine.xTo = x;
-            pic.commands[index - 1].drawLine.yTo = y;
+            if ((pic.commands[index].drawLine.xFrom == pic.commands[index - 1].drawLine.xTo) &&
+                (pic.commands[index].drawLine.yFrom == pic.commands[index - 1].drawLine.yTo))
+            {
+                uint16_t x = pic.commands[index].drawLine.xTo;
+                uint16_t y = pic.commands[index].drawLine.yTo;
+                pic.commands.erase(pic.commands.begin() + index);
+                pic.commands[index - 1].drawLine.xTo = x;
+                pic.commands[index - 1].drawLine.yTo = y;
+            }
+            else
+            {
+                pic.commands.erase(pic.commands.begin() + index);
+            }
         }
         else
         {
@@ -2522,19 +2530,49 @@ void CPicView::_EnsurateCoordinates(PicCommand::CommandType commandType, _Functi
 {
     if (_currentTool == Command)
     {
-        const PicComponent *pic = _GetEditPic();
-        ptrdiff_t pos = GetDocument()->GetDrawManager().GetPos();
-        if (pos == -1)
+        PicScreenFlags screensToCheckAgainst = PicScreenToFlags(_mainViewScreen);
+        ViewPort trackVPCViewport;
+        // None of the stuff in here matters, except that the priority command checks
+        // isContinuousPri.
+        PicData dataDummy =
         {
-            pos = pic->commands.size() - 1;
+            PicScreenFlags::None,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            false,
+            false,
+            size16(),
+            false
+        };
+
+        const PicComponent *pic = _GetEditPic();
+        ptrdiff_t end = GetDocument()->GetDrawManager().GetPos();
+        if (end == -1)
+        {
+            end = pic->commands.size() - 1;
         }
         if (pic)
         {
-            pos = min(pos, (ptrdiff_t)(pic->commands.size() - 1));
-            while (pos > 0)
+            end = min(end, (ptrdiff_t)(pic->commands.size() - 1));
+            ptrdiff_t pos = 0;
+            while (pos <= end)
             {
                 const PicCommand &command = pic->commands[pos];
-                if (command.type == commandType)
+                switch (command.type)
+                {
+                case PicCommand::CommandType::DisableControl:
+                case PicCommand::CommandType::DisableVisual:
+                case PicCommand::CommandType::DisablePriority:
+                case PicCommand::CommandType::SetControl:
+                case PicCommand::CommandType::SetVisual:
+                case PicCommand::CommandType::SetPriority:
+                    command.Draw(&dataDummy, trackVPCViewport);
+                }
+
+                // If the current tool isn't using the current active screen, don't consider it.
+                if (((screensToCheckAgainst & trackVPCViewport.dwDrawEnable) != PicScreenFlags::None) && (command.type == commandType))
                 {
                     bool goOn = false;
                     if (command.type == PicCommand::CommandType::Line)
@@ -2558,7 +2596,7 @@ void CPicView::_EnsurateCoordinates(PicCommand::CommandType commandType, _Functi
                         break;
                     }
                 }
-                pos--;
+                pos++;
             }
         }
     }
@@ -3130,33 +3168,6 @@ void CPicView::_OnDraw(CDC* pDC, PicScreen screen)
             pDC->SetBkColor(colorOld);
         }
     }
-}
-
-//
-// Draws lines that highlight the lines previously drawn in the editor.
-//
-void CPicView::s_CloseCoordCallback(void *pv, CDC *pDC, int x1, int y1, int x2, int y2)
-{
-    CPicView *ppev = static_cast<CPicView*>(pv);
-    CPoint zoomOffset = ppev->GetZoomOffset();
-
-    CPoint ptClient1 = ppev->_MapPicPointToClient(CPoint(x1, y1));
-    ptClient1.Offset(zoomOffset);
-    pDC->MoveTo(ptClient1.x - 3, ptClient1.y - 3);
-    pDC->LineTo(ptClient1.x + 4, ptClient1.y - 3);
-    pDC->LineTo(ptClient1.x + 4, ptClient1.y + 4);
-    pDC->LineTo(ptClient1.x - 3, ptClient1.y + 4);
-    pDC->LineTo(ptClient1.x - 3, ptClient1.y - 3);
-
-    CPoint ptClient2 = ppev->_MapPicPointToClient(CPoint(x2, y2));
-    ptClient2.Offset(zoomOffset);
-    pDC->MoveTo(ptClient2.x - 3, ptClient2.y - 3);
-    pDC->LineTo(ptClient2.x + 4, ptClient2.y + 4);
-    pDC->MoveTo(ptClient2.x + 3, ptClient2.y - 3);
-    pDC->LineTo(ptClient2.x - 4, ptClient2.y + 4);
-
-    pDC->MoveTo(ptClient2.x, ptClient2.y);
-    pDC->LineTo(ptClient1.x, ptClient1.y);
 }
 
 void CPicView::_DrawCoord(CDC *pDC, int x, int y, int additionalSize)
