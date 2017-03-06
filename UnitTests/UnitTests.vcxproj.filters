@@ -53,6 +53,9 @@
     <ClCompile Include="TestResourceDelete.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestPolygonLoad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="UnitTests.licenseheader" />

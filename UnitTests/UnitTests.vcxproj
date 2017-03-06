@@ -142,6 +142,7 @@
     <ClCompile Include="TestClassBrowser.cpp" />
     <ClCompile Include="TestCompile.cpp" />
     <ClCompile Include="TestPicDraw.cpp" />
+    <ClCompile Include="TestPolygonLoad.cpp" />
     <ClCompile Include="TestResource.cpp" />
     <ClCompile Include="TestResourceDelete.cpp" />
     <ClCompile Include="TestResourceLoad.cpp" />

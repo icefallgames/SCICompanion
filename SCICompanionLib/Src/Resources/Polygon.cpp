@@ -74,12 +74,22 @@ unique_ptr<ProcedureCall> GetSetUpPolyProcedureCall(int picResource)
     return procCall;
 }
 
+const PropertyValueBase *_GetPropertyValue(const SyntaxNode *node)
+{
+    // Takes one of two forms, depending on the compiled language.
+    if (node->GetNodeType() == NodeType::NodeTypeComplexValue)
+    {
+        return SafeSyntaxNode<ComplexPropertyValue>(node);
+    }
+    return SafeSyntaxNode<PropertyValue>(node);
+}
+
 void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySource, const SyntaxNodeVector &statements)
 {
     auto it = statements.begin();
     if (it != statements.end())
     {
-        const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>((*it).get());
+        const PropertyValueBase *pValue = _GetPropertyValue((*it).get());
         int polyCount = 0;
         if (pValue->GetType() == ValueType::Number)
         {
@@ -88,7 +98,7 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
         }
         for (int i = 0; (it != statements.end()) && (i < polyCount); i++)
         {
-            pValue = SafeSyntaxNode<PropertyValue>((*it).get());
+            pValue = _GetPropertyValue((*it).get());
             ++it;
             if (pValue)
             {
@@ -99,7 +109,7 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
                     polygon.Name = name;
                     polygon.Type = (PolygonType)(itType - begin(AccessType));
 
-                    pValue = SafeSyntaxNode<PropertyValue>((*it).get());
+                    pValue = _GetPropertyValue((*it).get());
                     ++it;
                     if (pValue)
                     {
@@ -108,14 +118,14 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
                         // Now the points
                         while (pointCount && (it != statements.end()))
                         {
-                            pValue = SafeSyntaxNode<PropertyValue>((*it).get());
+                            pValue = _GetPropertyValue((*it).get());
                             ++it;
                             if (pValue)
                             {
                                 int16_t x = (int16_t)pValue->GetNumberValue();
                                 if (it != statements.end())
                                 {
-                                    pValue = SafeSyntaxNode<PropertyValue>((*it).get());
+                                    pValue = _GetPropertyValue((*it).get());
                                     ++it;
                                     if (pValue)
                                     {
