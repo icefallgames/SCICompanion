@@ -227,7 +227,10 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
             {
                 count++;
                 auto subResourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, blob->GetNumber());
-                keepGoing = progress->SetProgress(fmt::format("Files for audio map {0}", blob->GetNumber()).c_str(), count, totalCount);
+                if (progress)
+                {
+                    keepGoing = progress->SetProgress(fmt::format("Files for audio map {0}", blob->GetNumber()).c_str(), count, totalCount);
+                }
                 if (keepGoing)
                 {
                     for (auto &blobSubs : *subResourceContainer)

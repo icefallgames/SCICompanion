@@ -474,8 +474,13 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
                     case ValueType::Said:
                     case ValueType::String:
                     case ValueType::ResourceString:
-                    case ValueType::Token: // pointer?
                         context.WroteSink(context.GetTempToken(pValue->GetType(), pValue->GetStringValue()), (uint16_t)output.size());
+                        break;
+                    case ValueType::Number:
+                        // We're good.
+                        break;
+                    default: // Token, etc...
+                        context.ReportError(pValue, "%s is not a valid token for an array initializer.", pValue->GetStringValue().c_str());
                         break;
                 }
                 push_word(output, pValue->GetNumberValue());
