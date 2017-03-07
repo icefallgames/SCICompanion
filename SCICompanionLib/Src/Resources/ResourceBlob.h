@@ -394,7 +394,6 @@ private:
         _hasNumber = (iResourceNumber != -1);
     }
     void _DecompressFromBits(sci::istream &byteStream, bool delay);
-    HRESULT _ReadBits(HANDLE hFile);
     void _SetName(PCTSTR pszName);
     void _EnsureDecompressed();
 

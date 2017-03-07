@@ -1722,6 +1722,10 @@ void CMainFrame::OnFileAddResource()
             {
                 data.SetName(srd.GetName().c_str());
             }
+            else
+            {
+                data.SetName(nullptr);
+            }
             if (SUCCEEDED(hr))
             {
                 appState->GetResourceMap().AppendResource(data);
