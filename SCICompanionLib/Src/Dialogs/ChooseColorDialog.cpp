@@ -19,6 +19,8 @@
 #include "ChooseColorDialog.h"
 
 
+BOOL g_ShowIndices = FALSE;
+
 // CChooseColorDialog dialog
 
 CChooseColorDialog::CChooseColorDialog(CWnd* pParent /*=NULL*/)
@@ -43,6 +45,8 @@ void CChooseColorDialog::DoDataExchange(CDataExchange* pDX)
 	CBaseColorDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_CHOOSECOLORSTATIC, m_wndStatic);
     m_wndStatic.SetCallback(this);
+    DDX_Control(pDX, IDC_CHECKINDICES, m_wndShowIndices);
+    m_wndShowIndices.SetCheck(g_ShowIndices);
 
     // Visuals
     DDX_Control(pDX, IDC_DIALOGDESCRIPTION, m_wndDescription);
@@ -53,13 +57,22 @@ void CChooseColorDialog::Init(const EGACOLOR *pPalette)
 {
     _pPalette = pPalette;
     m_wndStatic.SetPalette(5, 8, _pPalette, ARRAYSIZE(g_egaColors), g_egaColors);
+    m_wndStatic.ShowIndices(g_ShowIndices);
 }
 
 BEGIN_MESSAGE_MAP(CChooseColorDialog, CBaseColorDialog)
     ON_WM_KEYDOWN()
     ON_WM_KILLFOCUS()
     ON_WM_ACTIVATE()
+    ON_BN_CLICKED(IDC_CHECKINDICES, OnClickShowIndices)
 END_MESSAGE_MAP()
+
+void CChooseColorDialog::OnClickShowIndices()
+{
+    g_ShowIndices = m_wndShowIndices.GetCheck() == BST_CHECKED;
+    m_wndStatic.ShowIndices(g_ShowIndices);
+    m_wndStatic.Invalidate(FALSE);
+}
 
 
 void CChooseColorDialog::OnColorClick(BYTE bIndex, int nID, BOOL fLeftClick)

@@ -38,6 +38,8 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
+    void OnClickShowIndices();
+
 	DECLARE_MESSAGE_MAP()
 
     CChooseColorStatic m_wndStatic;
@@ -45,6 +47,7 @@ protected:
     // Visuals
     CExtLabel m_wndDescription;
     CExtButton m_wndCancel;
+    CExtCheckBox m_wndShowIndices;
 
     const EGACOLOR *_pPalette;
     BYTE _bChoice;

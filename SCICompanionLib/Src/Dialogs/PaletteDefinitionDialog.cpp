@@ -269,8 +269,7 @@ bool _GetPaletteFilename(bool open, const std::string &dialogTitle, std::string 
 void CPaletteDefinitionDialog::OnBnClickedButtonadjust()
 {
     // Keep a copy of the palette
-    EGACOLOR paletteBackup[4 * 40];
-    std::copy(std::begin(_palette), std::end(_palette), paletteBackup);
+    std::copy(std::begin(_palette), std::end(_palette), _paletteBackup);
 
     // Pretend we're a VGA palette
     bool multipleSelection[256] = {};
@@ -298,7 +297,7 @@ void CPaletteDefinitionDialog::OnBnClickedButtonadjust()
     else
     {
         // Restore original
-        std::copy(std::begin(paletteBackup), std::end(paletteBackup), _palette);
+        std::copy(std::begin(_paletteBackup), std::end(_paletteBackup), _palette);
     }
 }
 
@@ -313,8 +312,19 @@ void CPaletteDefinitionDialog::OnVGAPaletteChanged()
     for (int i = 0; i < 40; i++)
     {
         COLORREF color = _ColorRefFromRGBQuad(paletteComponentEGA->Colors[_iCurPalette * 40 + i]);
-        // 1: general matching, true: gamma-correct, 1: all 136 colors. 3 would be only smooth ones.
-        _palette[_iCurPalette * 40 + i] = GetClosestEGAColor(1, true, 1, color);
+        EGACOLOR closestEGA = GetClosestEGAColor(1, true, 1, color);
+        COLORREF colorClosestEGA = _ColorRefFromRGBQuad(EgaColorToRGBQuad(closestEGA));
+        COLORREF colorExistingEGA = _ColorRefFromRGBQuad(EgaColorToRGBQuad(_paletteBackup[_iCurPalette * 40 + i]));
+        if (colorClosestEGA != colorExistingEGA)
+        {
+            // 1: general matching, true: gamma-correct, 1: all 136 colors. 3 would be only smooth ones.
+            _palette[_iCurPalette * 40 + i] = GetClosestEGAColor(1, true, 1, color);
+        }
+        else
+        {
+            // If the resulting EGA color from the adjuster has the same COLORREF as the existing EGA color, keep the original
+            _palette[_iCurPalette * 40 + i] = _paletteBackup[_iCurPalette * 40 + i];
+        }
     }
 
     m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);

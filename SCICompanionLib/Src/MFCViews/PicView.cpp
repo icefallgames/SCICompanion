@@ -1612,7 +1612,8 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
             }
             else
             {
-                StringCchPrintf(szText, ARRAYSIZE(szText), "Color: %3d", bColor);
+                // Can we show the index? That would be difficult.
+                StringCchPrintf(szText, ARRAYSIZE(szText), "Color: %3d (%d + %d)", bColor, bColor & 0xf, (bColor >> 4));
             }
         }
     }

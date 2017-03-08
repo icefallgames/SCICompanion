@@ -822,6 +822,7 @@
 #define ID_SAVE                         1401
 #define IDC_LISTCLIPS                   1402
 #define IDC_COMBOFILES                  1403
+#define IDC_CHECKINDICES                1404
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1227,9 +1228,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        408
+#define _APS_NEXT_RESOURCE_VALUE        409
 #define _APS_NEXT_COMMAND_VALUE         33353
-#define _APS_NEXT_CONTROL_VALUE         1404
+#define _APS_NEXT_CONTROL_VALUE         1405
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

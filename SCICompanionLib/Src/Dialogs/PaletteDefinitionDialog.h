@@ -82,6 +82,8 @@ protected:
 
     bool _multiSelection[40];
 
+    EGACOLOR _paletteBackup[4 * 40];
+
     int _iCurPalette; // from 0 to 3
     BOOL _bSelection;
 
