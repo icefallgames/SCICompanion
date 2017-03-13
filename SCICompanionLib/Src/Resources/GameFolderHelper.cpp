@@ -328,14 +328,14 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             // Audiomaps can come from the cache files folder too... but we can re-use PatchFilesResourceSource for this
             if (IsFlagSet(types, ResourceTypeFlags::AudioMap))
             {
-                mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder + pszAudioCacheFolder, ResourceSourceFlags::AudioMapCache)));
+                mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(ResourceTypeFlags::AudioMap, Version, GameFolder + pszAudioCacheFolder, ResourceSourceFlags::AudioMapCache)));
             }
         }
 
         // First, any stray files...
         if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePatchFiles) && (mapContext == -1))
         {
-            mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder, ResourceSourceFlags::PatchFile)));
+            mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(types, Version, GameFolder, ResourceSourceFlags::PatchFile)));
         }
 
         // Add readers for message map files, if requested
@@ -354,7 +354,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             }
             if (fd && fd->DoesMapExist())
             {
-                mapAndVolumes->push_back(move(CreateResourceSource(*this, fd->SourceFlags)));
+                mapAndVolumes->push_back(move(CreateResourceSource(ResourceTypeFlags::Message, *this, fd->SourceFlags)));
             }
         }
         
@@ -366,7 +366,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
         // Now the standard resource maps
         if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePackagedFiles) && (mapContext == -1))
         {
-            mapAndVolumes->push_back(move(CreateResourceSource(*this, ResourceSourceFlags::ResourceMap)));
+            mapAndVolumes->push_back(move(CreateResourceSource(types, *this, ResourceSourceFlags::ResourceMap)));
         }
     }
 

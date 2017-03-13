@@ -18,5 +18,6 @@ class CResourceMap;
 class ResourceBlob;
 class ResourceSource;
 enum class ResourceSourceAccessFlags;
+enum class ResourceTypeFlags;
 void DeleteResource(CResourceMap &resourceMap, const ResourceBlob &data);
-std::unique_ptr<ResourceSource> CreateResourceSource(const GameFolderHelper &helper, ResourceSourceFlags source, ResourceSourceAccessFlags access = ResourceSourceAccessFlags::Read, int mapContext = -1);
+std::unique_ptr<ResourceSource> CreateResourceSource(ResourceTypeFlags flagsHint, const GameFolderHelper &helper, ResourceSourceFlags source, ResourceSourceAccessFlags access = ResourceSourceAccessFlags::Read, int mapContext = -1);

@@ -15,19 +15,13 @@
 
 #include "ResourceSources.h"
 class ResourceBlob;
+enum class ResourceTypeFlags;
 
 // ResourceSource for isolated patch files
 class PatchFilesResourceSource : public ResourceSource
 {
 public:
-    PatchFilesResourceSource(SCIVersion version, const std::string &gameFolder, ResourceSourceFlags sourceFlags) :
-        _gameFolder(gameFolder),
-        _gameFolderSpec(gameFolder + "\\*.*"),
-        _hFind(INVALID_HANDLE_VALUE),
-        _version(version),
-        _stillMore(true),
-        _sourceFlags(sourceFlags)
-    {}
+    PatchFilesResourceSource(ResourceTypeFlags types, SCIVersion version, const std::string &gameFolder, ResourceSourceFlags sourceFlags);
     ~PatchFilesResourceSource();
 
     bool ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData = nullptr) override;
@@ -43,6 +37,7 @@ private:
     bool _stillMore;
     std::string _gameFolder;
     std::string _gameFolderSpec;
+    std::string _fileSpec;
     WIN32_FIND_DATA _findData;
     SCIVersion _version;
     ResourceSourceFlags _sourceFlags;

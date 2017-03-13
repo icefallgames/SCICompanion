@@ -57,7 +57,7 @@ std::unique_ptr<ResourceSource> _CreateResourceSource(const std::string &gameFol
     return std::unique_ptr<ResourceSource>(nullptr);
 }
 
-std::unique_ptr<ResourceSource> CreateResourceSource(const GameFolderHelper &helper, ResourceSourceFlags source, ResourceSourceAccessFlags access, int mapContext)
+std::unique_ptr<ResourceSource> CreateResourceSource(ResourceTypeFlags flagsHint, const GameFolderHelper &helper, ResourceSourceFlags source, ResourceSourceAccessFlags access, int mapContext)
 {
     if (source == ResourceSourceFlags::ResourceMap)
     {
@@ -73,7 +73,7 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const GameFolderHelper &hel
     }
     else if (source == ResourceSourceFlags::PatchFile)
     {
-        return std::make_unique<PatchFilesResourceSource>(helper.Version, helper.GameFolder, ResourceSourceFlags::PatchFile);
+        return std::make_unique<PatchFilesResourceSource>(flagsHint, helper.Version, helper.GameFolder, ResourceSourceFlags::PatchFile);
     }
     else if ((source == ResourceSourceFlags::Aud) || (source == ResourceSourceFlags::Sfx))
     {
@@ -86,7 +86,7 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const GameFolderHelper &hel
     }
     else if (source == ResourceSourceFlags::AudioMapCache)
     {
-        return std::make_unique<PatchFilesResourceSource>(helper.Version, helper.GameFolder + pszAudioCacheFolder, ResourceSourceFlags::AudioMapCache);
+        return std::make_unique<PatchFilesResourceSource>(ResourceTypeFlags::AudioMap, helper.Version, helper.GameFolder + pszAudioCacheFolder, ResourceSourceFlags::AudioMapCache);
     }
     return std::unique_ptr<ResourceSource>(nullptr);
 }
@@ -114,7 +114,7 @@ void DeleteResource(CResourceMap &resourceMap, const ResourceBlob &data)
     }
 
     // This is the thing that changes based on version and messagemap or blah.
-    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(resourceMap.Helper(), sourcFlags, ResourceSourceAccessFlags::ReadWrite);
+    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(ResourceTypeToFlag(data.GetType()), resourceMap.Helper(), sourcFlags, ResourceSourceAccessFlags::ReadWrite);
     if (resourceSource)
     {
         ResourceMapEntryAgnostic mapEntry;

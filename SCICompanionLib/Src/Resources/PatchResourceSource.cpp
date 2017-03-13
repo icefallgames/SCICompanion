@@ -15,6 +15,36 @@
 #include "PatchResourceSource.h"
 #include "ResourceBlob.h"
 
+PatchFilesResourceSource::PatchFilesResourceSource(ResourceTypeFlags types, SCIVersion version, const std::string &gameFolder, ResourceSourceFlags sourceFlags) :
+    _gameFolder(gameFolder),
+    _gameFolderSpec(gameFolder + "\\*.*"),
+    _hFind(INVALID_HANDLE_VALUE),
+    _version(version),
+    _stillMore(true),
+    _sourceFlags(sourceFlags)
+{
+    // Prepare a filter against which to 
+    uint32_t flags = (uint32_t)types;
+    uint32_t resourceType = 0;
+    while (flags)
+    {
+        if (flags & 0x1)
+        {
+            if (resourceType < ARRAYSIZE(g_szResourceSpecByType))
+            {
+                if (!_fileSpec.empty())
+                {
+                    _fileSpec += ";";
+                }
+                _fileSpec += g_szResourceSpecByType[resourceType];
+            }
+        }
+        flags >>= 1;
+        resourceType++;
+    }
+}
+
+
 bool PatchFilesResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData)
 {
     if (_stillMore && (_hFind == INVALID_HANDLE_VALUE))
@@ -26,7 +56,7 @@ bool PatchFilesResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, Iterat
     bool foundOne = false;
     while (_stillMore && !foundOne)
     {
-        if (PathMatchSpec(_findData.cFileName, g_szResourceSpec))
+        if (PathMatchSpec(_findData.cFileName, _fileSpec.c_str()))
         {
             int number = ResourceNumberFromFileName(_findData.cFileName);
             if (number != -1)

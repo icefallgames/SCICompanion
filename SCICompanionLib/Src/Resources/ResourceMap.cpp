@@ -170,18 +170,18 @@ HRESULT RebuildResources(const GameFolderHelper &helper, SCIVersion version, BOO
         // (and RebuildResource should clean out the old ones)
         if (version.AudioVolumeName != AudioVolumeName::None)
         {
-            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(helper, ResourceSourceFlags::AudioCache);
+            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(ResourceTypeFlags::All, helper, ResourceSourceFlags::AudioCache);
             resourceSource->RebuildResources(true, *resourceSource, stats);
         }
 
         // Enumerate resources and write the ones we have not already encountered.
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(helper, ResourceSourceFlags::ResourceMap);
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(ResourceTypeFlags::All, helper, ResourceSourceFlags::ResourceMap);
         ResourceSource *theActualSource = resourceSource.get();
         std::unique_ptr<ResourceSource> patchFileSource;
         if (saveLocation == ResourceSaveLocation::Patch)
         {
             // If this project saves to patch files by default, then we should use patch files as the source for rebuilding the resource package.
-            patchFileSource = CreateResourceSource(helper, ResourceSourceFlags::PatchFile);
+            patchFileSource = CreateResourceSource(ResourceTypeFlags::All, helper, ResourceSourceFlags::PatchFile);
             theActualSource = patchFileSource.get();
         }
         resourceSource->RebuildResources(true, *theActualSource, stats);
@@ -189,7 +189,7 @@ HRESULT RebuildResources(const GameFolderHelper &helper, SCIVersion version, BOO
         if (version.MessageMapSource != MessageMapSource::Included)
         {
             ResourceSourceFlags sourceFlags = (version.MessageMapSource == MessageMapSource::MessageMap) ? ResourceSourceFlags::MessageMap : ResourceSourceFlags::AltMap;
-            std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(helper, ResourceSourceFlags::MessageMap);
+            std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(ResourceTypeFlags::All, helper, ResourceSourceFlags::MessageMap);
             messageSource->RebuildResources(true, *messageSource, stats);
         }
     }
@@ -302,7 +302,7 @@ HRESULT CResourceMap::EndDeferAppend()
 
                     int mapContext = (blobsForThisSource[0]->GetBase36() == NoBase36) ? -1 : blobsForThisSource[0]->GetNumber();
                     // Enumerate resources and write the ones we have not already encountered.
-                    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper, sourceFlags, ResourceSourceAccessFlags::ReadWrite, mapContext);
+                    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(ResourceTypeFlags::All, _gameFolderHelper, sourceFlags, ResourceSourceAccessFlags::ReadWrite, mapContext);
 
                     try
                     {
@@ -404,7 +404,7 @@ void CResourceMap::RepackageAudio(bool force)
     if (GetSCIVersion().AudioVolumeName != AudioVolumeName::None)
     {
         std::map<ResourceType, RebuildStats> stats;
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(Helper(), ResourceSourceFlags::AudioCache);
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(ResourceTypeFlags::All, Helper(), ResourceSourceFlags::AudioCache);
         resourceSource->RebuildResources(force, *resourceSource, stats);
     }
 }
@@ -496,7 +496,7 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
 
         // Enumerate resources and write the ones we have not already encountered.
         int mapContext = (resource.GetBase36() == NoBase36) ? -1 : resource.GetNumber();
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper, resource.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite, mapContext);
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(ResourceTypeFlags::All, _gameFolderHelper, resource.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite, mapContext);
         std::vector<const ResourceBlob*> blobs;
         blobs.push_back(&resource);
 

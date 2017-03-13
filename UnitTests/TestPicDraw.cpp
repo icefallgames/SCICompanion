@@ -118,7 +118,7 @@ void VerifyFileWorker(ResourceEntity &resource, const std::string &filenameRaw)
 void VerifyFilesInFolder(bool saveAndReload, SCIVersion version, const std::string &folder)
 {
     std::unique_ptr<ResourceSourceArray> mapAndVolumes = std::make_unique<ResourceSourceArray>();
-    mapAndVolumes->push_back(std::make_unique<PatchFilesResourceSource>(version, folder, ResourceSourceFlags::PatchFile));
+    mapAndVolumes->push_back(std::make_unique<PatchFilesResourceSource>(ResourceTypeFlags::Pic, version, folder, ResourceSourceFlags::PatchFile));
     std::unique_ptr<ResourceContainer> resourceContainer(
         new ResourceContainer(
         folder,
