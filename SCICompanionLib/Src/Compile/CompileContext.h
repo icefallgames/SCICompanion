@@ -121,7 +121,7 @@ struct CompileStats
 class CompileContext : public ICompileLog, public ILookupDefine, public ITrackCodeSink, public ILookupSaids
 {
 public:
-    CompileContext(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results);
+    CompileContext(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results, bool generateDebugInfo);
     CompileContext(const CompileContext &src) = delete;
     CompileContext operator=(const CompileContext &src) = delete;
     ~CompileContext() = default;
@@ -158,6 +158,8 @@ public:
 
     std::map<std::string, uint16_t> ScriptArraySizes;
     const sci::FunctionBase *FunctionBaseForPrescan;
+
+    bool GenerateDebugInfo;
 
 private:
     std::map<std::string, uint16_t> *_GetTempTokenMap(sci::ValueType type);
@@ -492,8 +494,9 @@ class CompileResults
 {
 public:
     CompileResults(ICompileLog &log);
-    std::vector<BYTE> &GetScriptResource() { return _outputScr; }
-    std::vector<BYTE> &GetHeapResource() { return _outputHep; }
+    std::vector<uint8_t> &GetScriptResource() { return _outputScr; }
+    std::vector<uint8_t> &GetHeapResource() { return _outputHep; }
+    std::vector<uint8_t> &GetDebugInfo() { return _outputDebug; }
     CSCOFile &GetSCO() { return _sco; }
     WORD GetScriptNumber() const { return _wScriptNumber; }
     void SetScriptNumber(WORD wNum) { _wScriptNumber = wNum; }
@@ -504,8 +507,9 @@ public:
     CompileStats Stats;
 
 private:
-    std::vector<BYTE> _outputScr;
-    std::vector<BYTE> _outputHep;
+    std::vector<uint8_t> _outputScr;
+    std::vector<uint8_t> _outputHep;
+    std::vector<uint8_t> _outputDebug;
     WORD _wScriptNumber;
     CSCOFile _sco;
     ICompileLog &_log;
@@ -538,7 +542,7 @@ private:
 // The be-all end-all function for compiling a script.
 // Returns true if there were no errors.
 //
-bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results);
+bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo);
 void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const std::string &text, const std::string &identifier, bool checkUse = true);
 bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script);
 std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM = false);

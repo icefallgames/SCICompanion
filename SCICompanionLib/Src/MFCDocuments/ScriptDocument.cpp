@@ -241,7 +241,7 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
 
             // Compile and save script resource.
             // Compile our own script!
-            if (GenerateScriptResource(appState->GetVersion(), *pScript, headers, tables, results))
+            if (GenerateScriptResource(appState->GetVersion(), *pScript, headers, tables, results, appState->GetResourceMap().Helper().GetGenerateDebugInfo()))
             {
                 WORD wNum = results.GetScriptNumber();
 
@@ -283,7 +283,17 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
                 // Save the corresponding sco file.
                 CSCOFile &sco = results.GetSCO();
                 {
-                    SaveSCOFile(appState->GetResourceMap().Helper(), sco, script);
+                    SaveSCOFile(helper, sco, script);
+                }
+
+                if (!results.GetDebugInfo().empty())
+                {
+                    // Save debug information.
+                    std::string scdFileName = helper.GetScriptDebugFileName(script.GetResourceNumber());
+                    ofstream scdFile(scdFileName.c_str(), ios::out | ios::binary);
+                    // REVIEW: yucky
+                    scdFile.write((const char *)&results.GetDebugInfo()[0], (std::streamsize)results.GetDebugInfo().size());
+                    scdFile.close();
                 }
                 fRet = true;
             }

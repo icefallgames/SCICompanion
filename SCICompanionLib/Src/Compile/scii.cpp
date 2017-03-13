@@ -16,6 +16,7 @@
 #include "PMachine.h"
 
 #include <numeric>
+#include <format.h>
 
 // Instructions that pop from the stack, and how many frames they pop
 int scii::is_stackpop_op()
@@ -542,13 +543,28 @@ uint16_t scicode::offset_of(code_pos target)
 }
 
 
-void scicode::write_code(ITrackCodeSink &trackCodeSink, std::vector<BYTE> &output)
+void scicode::write_code(ITrackCodeSink &trackCodeSink, std::vector<uint8_t> &output, std::vector<uint8_t> *debugInfoOpt)
 {
-    for(scii &instruction : _code)
+    if (debugInfoOpt)
     {
-        instruction.output_code(trackCodeSink, output);
+        push_word(*debugInfoOpt, (uint16_t)_code.size());
+        for (scii &instruction : _code)
+        {
+            // Line number for every instruction
+            push_word(*debugInfoOpt, (uint16_t)output.size());
+            push_word(*debugInfoOpt, (uint16_t)instruction.LineNumber);
+            instruction.output_code(trackCodeSink, output);
+        }
+    }
+    else
+    {
+        for (scii &instruction : _code)
+        {
+            instruction.output_code(trackCodeSink, output);
+        }
     }
 }
+
 
 void scicode::enter_branch_block(BranchBlockIndex index)
 {
@@ -592,7 +608,7 @@ void scicode::_insertInstruction(const scii &inst)
     // Insert the instruction.
     // PERF: linked list allocations show up as about 1% in total compile times.
     // Not much, but we could perhaps improve by using the boost fast_pool_allocator?
-    _code.insert(insertHere, inst);
+    code_pos insertSpot = _code.insert(insertHere, inst);
 
     if (fReFixup)
     {
@@ -723,13 +739,13 @@ bool scicode::has_dangling_branches(bool &fAllBranchesPrecededByReturns)
 }
 
 
-scii::scii(const SCIVersion &version, Opcode bOpcode) : scii(version, bOpcode, (uint16_t)0xffff) {}
+scii::scii(const SCIVersion &version, Opcode bOpcode, int lineNumber) : scii(version, bOpcode, (uint16_t)0xffff, lineNumber) {}
 
-scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1) : scii(version, bOpcode, w1, (uint16_t)0xffff) {}
+scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, int lineNumber) : scii(version, bOpcode, w1, (uint16_t)0xffff, lineNumber) {}
 
-scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2) : scii(version, bOpcode, w1, w2, (uint16_t)0xffff) {}
+scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, int lineNumber) : scii(version, bOpcode, w1, w2, (uint16_t)0xffff, lineNumber) {}
 
-scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3) : _version(&version)
+scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3, int lineNumber) : _version(&version), LineNumber(lineNumber)
 {
     _opSize = Undefined;
     _wSize = 0;
@@ -747,7 +763,7 @@ scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, 
 #endif
 }
 
-scii::scii(const SCIVersion &version, Opcode bOpcode, _code_pos branch, bool fUndetermined) : _version(&version)
+scii::scii(const SCIVersion &version, Opcode bOpcode, _code_pos branch, bool fUndetermined, int lineNumber) : _version(&version), LineNumber(lineNumber)
 {
     _opSize = Undefined;
     _wSize = 0;

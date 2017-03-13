@@ -48,16 +48,16 @@ private:
 public:
     // WORK ITEM: need to assert if we specify a bad opcode (e.g. acLOFSS) with an inappropriate constructor
     // WORK ITEM: put in operand # verification
-    scii(const SCIVersion &version, Opcode bOpcode);
-    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1);
-    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2);
-    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3);
-    scii(const SCIVersion &version, Opcode bOpcode, _code_pos branch, bool fUndetermined);
+    scii(const SCIVersion &version, Opcode bOpcode, int lineNumber);
+    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, int lineNumber);
+    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, int lineNumber);
+    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3, int lineNumber);
+    scii(const SCIVersion &version, Opcode bOpcode, _code_pos branch, bool fUndetermined, int lineNumber);
 
     uint16_t size();
+    void reset_size();
     uint16_t calc_size(_code_pos self, int *pfNeedToRedo);
     void set_final_branch_operands(_code_pos self);
-    void reset_size();
     void set_branch_target(_code_pos offset, bool fForward);
     bool is_forward_branch();
     _code_pos get_branch_target();
@@ -101,6 +101,8 @@ public:
 
     static uint16_t GetInstructionSize(const SCIVersion &version, uint8_t rawOpcode);
     static uint16_t GetInstructionArgumentSize(const SCIVersion &version, uint8_t rawOpcode);
+
+    int LineNumber;
 
 private:
     bool _is_label_instruction();
@@ -159,34 +161,34 @@ public:
     scicode(const SCIVersion &version) : _version(version) {}
     ~scicode()
     {
-        ASSERT(_insertionPoints.empty());
+        assert(_insertionPoints.empty());
     }
 
     // Write instructions to the stream
-	void inst(Opcode bOpcode)
+	void inst(int lineNumber, Opcode bOpcode)
     {
-        _insertInstruction(scii(_version, bOpcode));
+        _insertInstruction(scii(_version, bOpcode, lineNumber));
         _checkBranchResolution();
     }
-	void inst(Opcode bOpcode, uint16_t w1)
+	void inst(int lineNumber, Opcode bOpcode, uint16_t w1)
     {
-        _insertInstruction(scii(_version, bOpcode, w1));
+        _insertInstruction(scii(_version, bOpcode, w1, lineNumber));
         _checkBranchResolution();
     }
-	void inst(Opcode bOpcode, uint16_t w1, uint16_t w2)
+	void inst(int lineNumber, Opcode bOpcode, uint16_t w1, uint16_t w2)
     {
-        _insertInstruction(scii(_version, bOpcode, w1, w2));
+        _insertInstruction(scii(_version, bOpcode, w1, w2, lineNumber));
         _checkBranchResolution();
     }
-	void inst(Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3)
+	void inst(int lineNumber, Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3)
     {
-        _insertInstruction(scii(_version, bOpcode, w1, w2, w3));
+        _insertInstruction(scii(_version, bOpcode, w1, w2, w3, lineNumber));
         _checkBranchResolution();
     }
-	bool inst(Opcode bOpcode, code_pos branch, BranchBlockIndex index = BranchBlockIndex::Default, uint16_t levels = 1)
+	bool inst(int lineNumber, Opcode bOpcode, code_pos branch, BranchBlockIndex index = BranchBlockIndex::Default, uint16_t levels = 1)
     {
         bool fUndetermined = (branch == get_undetermined());
-        _insertInstruction(scii(_version, bOpcode, branch, fUndetermined));
+        _insertInstruction(scii(_version, bOpcode, branch, fUndetermined, lineNumber));
         // Check branch resolution now, before we possibly add ourselves to the resolution list.
         // Otherwise, *we'll* be counted!
         _checkBranchResolution();
@@ -259,7 +261,7 @@ public:
 
     uint16_t calc_size();
     uint16_t offset_of(code_pos target);
-    void write_code(ITrackCodeSink &trackCodeSink, std::vector<BYTE> &output);
+    void write_code(ITrackCodeSink &trackCodeSink, std::vector<uint8_t> &output, std::vector<uint8_t> *debugInfoOpt);
     bool has_dangling_branches(bool &fAllBranchesAreReturns);
     bool empty() { return _code.empty(); }
     

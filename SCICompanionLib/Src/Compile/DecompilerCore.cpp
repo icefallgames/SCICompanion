@@ -201,7 +201,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
             }
             else
             {
-                code.push_back(scii(sciVersion, bOpcode, undetermined, true));
+                code.push_back(scii(sciVersion, bOpcode, undetermined, true, -1));
                 bool fForward = (wTarget > wReferencePosition);
                 Fixup fixup = { get_cur_pos(code), wTarget, fForward };
                 branchTargetsToFixup.push_back(fixup);
@@ -1126,7 +1126,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     {
         success = false;
         // Insert a no-op at the beginning of code (so we can get an iterator to point to a spot before code)
-        code.insert(code.begin(), scii(lookups.GetVersion(), Opcode::INDETERMINATE));
+        code.insert(code.begin(), scii(lookups.GetVersion(), Opcode::INDETERMINATE, -1));
 
         // Do some early things
         _DetermineIfFunctionReturnsValue(code, lookups);

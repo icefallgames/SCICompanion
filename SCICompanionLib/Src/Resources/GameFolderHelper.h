@@ -48,6 +48,7 @@ public:
     std::string GetScriptFileName(uint16_t wScript) const;
     std::string GetScriptObjectFileName(const std::string &title) const;
     std::string GetScriptObjectFileName(uint16_t wScript) const;
+    std::string GetScriptDebugFileName(uint16_t wScript) const;
     std::string GameFolderHelper::GetSrcFolder(const std::string *prefix = nullptr) const;
     std::string GameFolderHelper::GetMsgFolder(const std::string *prefix = nullptr) const;
     std::string GameFolderHelper::GetPicClipsFolder() const;
@@ -71,6 +72,8 @@ public:
     void SetUseSierraAspectRatio(bool useSierra) const;
 	bool GetUndither() const;
 	void SetUndither(bool undither) const;
+
+    bool GetGenerateDebugInfo() const;
 
     ResourceSaveLocation GetResourceSaveLocation(ResourceSaveLocation location) const;
     void SetResourceSaveLocation(ResourceSaveLocation location) const;

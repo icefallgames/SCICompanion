@@ -34,6 +34,7 @@ const std::string UnditherKey = "UnditherEGA";
 const std::string PatchFileKey = "SaveToPatchFiles";
 const std::string TrueValue = "true";
 const std::string FalseValue = "false";
+const std::string GenerateDebugInfoKey = "GenerateDebugInfo";
 
 // Returns "n004" for input of 4
 std::string default_reskey(int iNumber, uint32_t base36Number)
@@ -89,6 +90,13 @@ std::string GameFolderHelper::GetScriptObjectFileName(const std::string &title) 
         filename += ".sco";
     }
     return filename;
+}
+
+std::string GameFolderHelper::GetScriptDebugFileName(uint16_t wScript) const
+{
+    std::string debugFolder = _GetSubfolder("debug");
+    EnsureFolderExists(debugFolder, false);
+    return fmt::format("{0}\\{1:03d}.scd", debugFolder, wScript);
 }
 
 std::string GameFolderHelper::GetScriptObjectFileName(WORD wScript) const
@@ -240,6 +248,13 @@ bool GameFolderHelper::GetUndither() const
 void GameFolderHelper::SetUndither(bool undither) const
 {
 	SetIniString(GameSection, UnditherKey, undither ? TrueValue : FalseValue);
+}
+
+bool GameFolderHelper::GetGenerateDebugInfo() const
+{
+    std::string value = GetIniString(GameSection, GenerateDebugInfoKey, FalseValue.c_str());
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+    return (value == TrueValue);
 }
 
 ResourceSaveLocation GameFolderHelper::GetResourceSaveLocation(ResourceSaveLocation location) const

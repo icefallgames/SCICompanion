@@ -549,7 +549,12 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
     }
 
     wStartOfCode = (uint16_t)output.size(); // Store where the code begins
-    context.code().write_code(context, output);
+
+    if (context.GenerateDebugInfo)
+    {
+        push_string(results.GetDebugInfo(), script.GetScriptId().GetFileName());
+    }
+    context.code().write_code(context, output, context.GenerateDebugInfo ? &results.GetDebugInfo() : nullptr);
     zero_pad(output, fRoundUp);
 
     uint16_t after = (uint16_t)output.size();
@@ -1194,12 +1199,12 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
     }
 }
 
-bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
+bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)
 {
     vector<BYTE> &output = results.GetScriptResource();
 
     // Create our "CompileContext", which holds state during the compilation.
-    CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog());
+    CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog(), generateDebugInfo);
 
     _Section3_Synonyms(script, context, output, results);
 
@@ -1360,7 +1365,7 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uin
     }
 }
 
-bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
+bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)
 {
     vector<BYTE> &outputScr = results.GetScriptResource();
     vector<BYTE> &outputHeap = results.GetHeapResource();
@@ -1381,7 +1386,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     vector<uint16_t> trackMethodCodePointerOffsets;
 
     // Create our "CompileContext", which holds state during the compilation.
-    CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog());
+    CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog(), generateDebugInfo);
 
     CommonScriptPrep(script, context, results);
     // Errors above could mean crashes below. Bail out now.
@@ -1522,14 +1527,14 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     return !context.HasErrors();
 }
 
-bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
+bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)
 {
     if (version.SeparateHeapResources)
     {
-        return GenerateScriptResource_SCI11(script, headers, tables, results);
+        return GenerateScriptResource_SCI11(script, headers, tables, results, generateDebugInfo);
     }
     else
     {
-        return GenerateScriptResource_SCI0(script, headers, tables, results);
+        return GenerateScriptResource_SCI0(script, headers, tables, results, generateDebugInfo);
     }
 }

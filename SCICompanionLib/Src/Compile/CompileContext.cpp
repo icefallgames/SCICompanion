@@ -157,7 +157,7 @@ void CompileContext::_LoadSCOIfNone(WORD wScript)
 
 const uint16_t TempTokenBase = 2345;
 
-CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results) :
+CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results, bool generateDebugInfo) :
         _browser(appState->GetClassBrowser()),
         _resourceMap(appState->GetResourceMap()),
         _results(results),
@@ -168,7 +168,8 @@ CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHe
         _code(_version),
         _nextTempToken(TempTokenBase),
         _autoTextNumber(InvalidResourceNumber),
-        FunctionBaseForPrescan(nullptr)
+        FunctionBaseForPrescan(nullptr),
+        GenerateDebugInfo(generateDebugInfo)
 {
     _pErrorScript = &_script;
     _modifier = VM_None;

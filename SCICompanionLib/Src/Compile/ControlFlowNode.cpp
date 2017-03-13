@@ -19,7 +19,7 @@
 
 using namespace std;
 
-scii ControlFlowNode::getLastInstruction() { assert(false); return scii(sciVersion0, Opcode::INDETERMINATE); }
+scii ControlFlowNode::getLastInstruction() { assert(false); return scii(sciVersion0, Opcode::INDETERMINATE, -1); }
 
 // Safe to call on anything. If it doesn't apply, it returns null.
 ControlFlowNode *GetOtherBranch(ControlFlowNode *branchNode, ControlFlowNode *branch1)

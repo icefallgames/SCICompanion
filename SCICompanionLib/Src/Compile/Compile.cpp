@@ -151,21 +151,21 @@ BinaryOperator GetBinaryOperatorForInstruction(Opcode opcode)
     return BinaryOperator::None;
 }
 
-void WriteSimple(CompileContext &context, Opcode bOpcode)
+void WriteSimple(CompileContext &context, Opcode bOpcode, int lineNumber)
 {
-    context.code().inst(bOpcode);
+    context.code().inst(lineNumber, bOpcode);
 }
 
 //
 // The value is in the accumulator. If our output context is the stack, then
 // insert a push instruction.
 //
-WORD PushToStackIfAppropriate(CompileContext &context)
+WORD PushToStackIfAppropriate(CompileContext &context, int lineNumber)
 {
     WORD wBytes = 0;
     if (context.GetOutputContext() == OC_Stack)
     {
-        WriteSimple(context, Opcode::PUSH);
+        WriteSimple(context, Opcode::PUSH, lineNumber);
         wBytes = 2;
     }
     return wBytes;
@@ -490,56 +490,56 @@ private:
 //
 // Use the most efficient instruction.
 //
-void PushImmediate(CompileContext &context, WORD wValue)
+void PushImmediate(CompileContext &context, WORD wValue, int lineNumber)
 {
     switch (wValue)
     {
     case 0:
-        context.code().inst(Opcode::PUSH0);
+        context.code().inst(lineNumber, Opcode::PUSH0);
         break;
     case 1:
-        context.code().inst(Opcode::PUSH1);
+        context.code().inst(lineNumber, Opcode::PUSH1);
         break;
     case 2:
-        context.code().inst(Opcode::PUSH2);
+        context.code().inst(lineNumber, Opcode::PUSH2);
         break;
     default:
-        context.code().inst(Opcode::PUSHI, wValue);
+        context.code().inst(lineNumber, Opcode::PUSHI, wValue);
         break;
     }
 }
 
-void WriteImmediate(CompileContext &context, WORD wValue)
+void WriteImmediate(CompileContext &context, WORD wValue, int lineNumber)
 {
     if (context.GetOutputContext() == OC_Stack)
     {
-        PushImmediate(context, wValue);
+        PushImmediate(context, wValue, lineNumber);
     }
     else
     {
         // acc
-        context.code().inst(Opcode::LDI, wValue);
+        context.code().inst(lineNumber, Opcode::LDI, wValue);
     }
 }
 
 //
 // Like the above, but *replace* the instruction at code_pos with the push.
 //
-void PushImmediateAt(CompileContext &context, WORD wValue, code_pos pos)
+void PushImmediateAt(CompileContext &context, WORD wValue, code_pos pos, int lineNumber)
 {
     switch (wValue)
     {
     case 0:
-        (*pos) = scii(context.GetVersion(), Opcode::PUSH0);
+        (*pos) = scii(context.GetVersion(), Opcode::PUSH0, lineNumber);
         break;
     case 1:
-        (*pos) = scii(context.GetVersion(), Opcode::PUSH1);
+        (*pos) = scii(context.GetVersion(), Opcode::PUSH1, lineNumber);
         break;
     case 2:
-        (*pos) = scii(context.GetVersion(), Opcode::PUSH2);
+        (*pos) = scii(context.GetVersion(), Opcode::PUSH2, lineNumber);
         break;
     default:
-        (*pos) = scii(context.GetVersion(), Opcode::PUSHI, wValue);
+        (*pos) = scii(context.GetVersion(), Opcode::PUSHI, wValue, lineNumber);
         break;
     }
 }
@@ -616,7 +616,7 @@ BYTE GetVarOpcodeModifier(VariableModifier modifier)
     return 0;
 }
 
-void VariableOperand(CompileContext &context, WORD wIndex, BYTE bOpcode, const SyntaxNode *pIndexer = nullptr)
+void VariableOperand(CompileContext &context, WORD wIndex, BYTE bOpcode, int lineNumber, const SyntaxNode *pIndexer = nullptr)
 {
     if (pIndexer)
     {
@@ -638,10 +638,10 @@ void VariableOperand(CompileContext &context, WORD wIndex, BYTE bOpcode, const S
     // silently corrupt.
     bOpcode |= 0x40; // bit6 is always 1  (bit 7 in the final result)
     bOpcode <<= 1; // Since we're calling RawToOpcode, need to turn it back to Raw.
-    context.code().inst(RawToOpcode(context.GetVersion(), bOpcode), wIndex);
+    context.code().inst(lineNumber, RawToOpcode(context.GetVersion(), bOpcode), wIndex);
 }
 
-void LoadEffectiveAddress(CompileContext &context, WORD wIndex, BYTE bVarType, const SyntaxNode *pIndexer)
+void LoadEffectiveAddress(CompileContext &context, WORD wIndex, BYTE bVarType, const SyntaxNode *pIndexer, int lineNumber)
 {
     if (pIndexer)
     {
@@ -656,7 +656,7 @@ void LoadEffectiveAddress(CompileContext &context, WORD wIndex, BYTE bVarType, c
             bVarType |= LEA_ACC_AS_INDEX_MOD;
         }
     }
-    context.code().inst(Opcode::LEA, bVarType << 1, wIndex);
+    context.code().inst(lineNumber, Opcode::LEA, bVarType << 1, wIndex);
 }
 
 //
@@ -675,19 +675,19 @@ void LookupTokenAndPlacePtrInAccumulator(const std::string &objectName, CompileC
     {
     case ResolvedToken::GlobalVariable:
         // e.g. gEgo
-        LoadEffectiveAddress(context, wIndex, LEA_GLOBAL, pIndexer);
+        LoadEffectiveAddress(context, wIndex, LEA_GLOBAL, pIndexer, pNode->GetLineNumber());
         break;
     case ResolvedToken::ScriptVariable:
         // e.g. the foo in (local foo = 0)
-        LoadEffectiveAddress(context, wIndex, LEA_LOCAL, pIndexer);
+        LoadEffectiveAddress(context, wIndex, LEA_LOCAL, pIndexer, pNode->GetLineNumber());
         break;
     case ResolvedToken::Parameter:
         // e.g. the pEvent in (method (handleEvent pEvent)
-        LoadEffectiveAddress(context, wIndex, LEA_PARAM, pIndexer);
+        LoadEffectiveAddress(context, wIndex, LEA_PARAM, pIndexer, pNode->GetLineNumber());
         break;
     case ResolvedToken::TempVariable:
         // e.g. the foo in (var foo)
-        LoadEffectiveAddress(context, wIndex, LEA_TEMP, pIndexer);
+        LoadEffectiveAddress(context, wIndex, LEA_TEMP, pIndexer, pNode->GetLineNumber());
         break;
     default:
         context.ReportError(pNode, "Expected something to which we could get a pointer: %s", objectName.c_str());
@@ -698,7 +698,7 @@ void LookupTokenAndPlacePtrInAccumulator(const std::string &objectName, CompileC
 //
 // Load property to stack or acc
 //
-void LoadProperty(CompileContext &context, WORD wIndex, bool bStack)
+void LoadProperty(CompileContext &context, WORD wIndex, bool bStack, int lineNumber)
 {
     Opcode bOpcode;
     switch (context.GetVariableModifier())
@@ -713,29 +713,29 @@ void LoadProperty(CompileContext &context, WORD wIndex, bool bStack)
         bOpcode = bStack ? Opcode::PTOS : Opcode::PTOA;
         break;
     }
-    context.code().inst(bOpcode, wIndex);
+    context.code().inst(lineNumber, bOpcode, wIndex);
 }
 
 //
 // Store stack or acc in property.
 //
-void StoreProperty(CompileContext &context, WORD wIndex, bool bStack)
+void StoreProperty(CompileContext &context, WORD wIndex, bool bStack, int lineNumber)
 {
-    context.code().inst(bStack ? Opcode::STOP : Opcode::ATOP, wIndex);
+    context.code().inst(lineNumber, bStack ? Opcode::STOP : Opcode::ATOP, wIndex);
 }
 
-void WriteInstanceOrClass(CompileContext &context, ResolvedToken tokenType, WORD wNumber, const string &name)
+void WriteInstanceOrClass(CompileContext &context, ResolvedToken tokenType, WORD wNumber, const string &name, int lineNumber)
 {
     OutputContext oc = context.GetOutputContext();
     switch (tokenType)
     {
     case ResolvedToken::Instance:
-        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, wNumber);
+        context.code().inst(lineNumber, (oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, wNumber);
         break;
     case ResolvedToken::Class:
         // Load the class address into the accumulator
-        context.code().inst(Opcode::CLASS, wNumber);
-        PushToStackIfAppropriate(context);
+        context.code().inst(lineNumber, Opcode::CLASS, wNumber);
+        PushToStackIfAppropriate(context, lineNumber);
         break;
     default:
         assert(FALSE);
@@ -839,7 +839,7 @@ CodeResult _OutputCodeForIfStatement(CompileContext &context, const SyntaxNode &
         // There is an else clause.  Before writing it, we need to write in a jump instruction here so the if clause
         // jumps to after the else.
         branch_block blockPostElse(context, BranchBlockIndex::PostElse); // -> this is where we'll jump to
-        context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::PostElse);
+        context.code().inst(condition.GetLineNumber(), Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::PostElse);
         // Leave the 'false' block, so the false will jump right here...
         blockFalse.leave();
         pFailure->OutputByteCode(context);
@@ -1038,7 +1038,7 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         {
             // That was easy.
             // e.g. 7, or $2000
-            WriteImmediate(context, _numberValue);
+            WriteImmediate(context, _numberValue, GetLineNumber());
             if (_fHex)
             {
                 wType = DataTypeUInt;
@@ -1059,8 +1059,8 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
             // Add ourselves as a resource tuple, and get the number.
             wNumber = context.AddStringResourceTuple(_stringValue);
             // We have two number to put - script number and index
-            PushImmediate(context, autoTextResourceNumber);
-            PushImmediate(context, wNumber);
+            PushImmediate(context, autoTextResourceNumber, GetLineNumber());
+            PushImmediate(context, wNumber, GetLineNumber());
             wNumSendParams++; // One more than normal.
             wType = DataTypeResourceString;
             break;
@@ -1073,12 +1073,12 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         }
 
     case ValueType::String:
-        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::String, _stringValue));
+        context.code().inst(GetLineNumber(), (oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::String, _stringValue));
         wType = DataTypeString;
         break;
 
     case ValueType::Said:
-        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::Said, _stringValue));
+        context.code().inst(GetLineNumber(), (oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::Said, _stringValue));
         wType = DataTypeSaidString;
         break;
 
@@ -1086,7 +1086,7 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         // Look up the selector in the global selector table, and use that.
         if (context.LookupSelector(_stringValue, wNumber))
         {
-            WriteImmediate(context, wNumber);
+            WriteImmediate(context, wNumber, GetLineNumber());
         }
         else
         {
@@ -1099,7 +1099,7 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         {
             // We can only apply the pointer operator to variables.
             LookupTokenAndPlacePtrInAccumulator(_stringValue, context, GetIndexer(), this, wType);
-            PushToStackIfAppropriate(context);
+            PushToStackIfAppropriate(context, GetLineNumber());
             // ...and only of certain types.
             if (IsPointerType(wType))
             {
@@ -1139,12 +1139,12 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                         // This properly handles codes like this:
                         // (-- [global5 temp0]) ; decrement "global5 indexed by temp0"
                         context.SetVariableModifier(VM_None);
-                        VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | bOpcodeMod, GetIndexer());
+                        VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | bOpcodeMod, GetLineNumber(), GetIndexer());
                     }
                     break;
                 case ResolvedToken::ScriptString:
                     {
-                        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::String, context.GetScriptStringFromToken(_stringValue)));
+                        context.code().inst(GetLineNumber(), (oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::String, context.GetScriptStringFromToken(_stringValue)));
                         WORD wImmediateIndex = 0;
                         if (GetIndexer())
                         {
@@ -1159,7 +1159,7 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                     fVarModifierError = false;
                     fArrayError = (GetIndexer() != nullptr);
                     // e.g. a property on the current object
-                    LoadProperty(context, wNumber, (oc == OC_Stack));
+                    LoadProperty(context, wNumber, (oc == OC_Stack), GetLineNumber());
                     if (context.GetClassName().empty())
                     {
                         context.ReportError(this, "'%s' can only be used within an object method.", _stringValue.c_str());
@@ -1168,7 +1168,7 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                 case ResolvedToken::Class:
                 case ResolvedToken::Instance:
                     fArrayError = (GetIndexer() != nullptr);
-                    WriteInstanceOrClass(context, tokenType, wNumber, _stringValue);
+                    WriteInstanceOrClass(context, tokenType, wNumber, _stringValue, GetLineNumber());
                     break;
                 case ResolvedToken::ExportInstance:
                     fArrayError = (GetIndexer() != nullptr);
@@ -1178,11 +1178,11 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                     fArrayError = (GetIndexer() != nullptr);
                     if (oc == OC_Stack)
                     {
-                        WriteSimple(context, Opcode::PUSHSELF);
+                        WriteSimple(context, Opcode::PUSHSELF, GetLineNumber());
                     }
                     else
                     {
-                        WriteSimple(context, Opcode::SELFID);
+                        WriteSimple(context, Opcode::SELFID, GetLineNumber());
                     }
                     break;
                 case ResolvedToken::Unknown:
@@ -1329,7 +1329,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                 case ResolvedToken::Class:
                     {
                         COutputContext accContext(context, OC_Accumulator);
-                        WriteInstanceOrClass(context, tokenType, wNumber, GetTargetName());
+                        WriteInstanceOrClass(context, tokenType, wNumber, GetTargetName(), GetLineNumber());
                     }
                     break;
                 case ResolvedToken::ExportInstance:
@@ -1346,11 +1346,11 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                         case ResolvedToken::ScriptVariable:
                         case ResolvedToken::Parameter:
                         case ResolvedToken::TempVariable:
-                            VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | bOpcodeMod, nullptr);
+                            VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | bOpcodeMod, GetLineNumber(), nullptr);
                             break;
                         case ResolvedToken::ClassProperty:
                             // Load the property into the accumulator
-                            LoadProperty(context, wNumber, false);
+                            LoadProperty(context, wNumber, false, GetLineNumber());
                             break;
                         default:
                             wObjectSpecies = DataTypeAny; // Just so we can continue
@@ -1383,11 +1383,11 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                 case ResolvedToken::ScriptVariable:
                 case ResolvedToken::Parameter:
                 case ResolvedToken::TempVariable:
-                    VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | bOpcodeMod, pIndexer);
+                    VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | bOpcodeMod, GetLineNumber(), pIndexer);
                     break;
                 case ResolvedToken::ClassProperty:
                     // Load the property into the accumulator
-                    LoadProperty(context, wNumber, false);
+                    LoadProperty(context, wNumber, false, GetLineNumber());
                     if (pIndexer)
                     {
                         context.ReportError(this, "Properties cannot be indexed: %s.", _object3->GetName().c_str());
@@ -1418,7 +1418,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
             SpeciesIndex wClassIndex;
             if (context.LookupSpeciesIndex(context.GetSuperClassName(), wClassIndex))
             {
-                context.code().inst(Opcode::SUPER, wClassIndex.Type(), NumberOfSendPushesSentinel);
+                context.code().inst(GetLineNumber(), Opcode::SUPER, wClassIndex.Type(), NumberOfSendPushesSentinel);
                 sendPushInstruction = context.code().get_cur_pos();
                 updateOperand = _UpdateSecondOperand;
             }
@@ -1430,7 +1430,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         else
         {
             assert((bOpSend == Opcode::SELF) || (bOpSend == Opcode::SEND));
-            context.code().inst(bOpSend, NumberOfSendPushesSentinel);
+            context.code().inst(GetLineNumber(), bOpSend, NumberOfSendPushesSentinel);
             sendPushInstruction = context.code().get_cur_pos();
             updateOperand = _UpdateFirstOperand;
         }
@@ -1494,7 +1494,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         (*updateOperand)(sendPushInstruction, wSendPushes);
     }
 
-    return CodeResult(PushToStackIfAppropriate(context), returnType);
+    return CodeResult(PushToStackIfAppropriate(context, GetLineNumber()), returnType);
 }
 
 CodeResult Cast::OutputByteCode(CompileContext &context) const
@@ -1536,7 +1536,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
     if (context.LookupSelector(GetSelectorName(), wSelector))
     {
         // The selector
-        PushImmediate(context, wSelector);
+        PushImmediate(context, wSelector, GetLineNumber());
         fApplyTypeChecking = true;
     }
     else
@@ -1572,7 +1572,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
 
     // The number of parameters - put in a fake opcode to start with, since we don't yet know
     // how many parameters.
-    context.code().inst(Opcode::INDETERMINATE);
+    context.code().inst(GetLineNumber(), Opcode::INDETERMINATE);
     code_pos pushNumberOfParams = context.code().get_cur_pos();
 
     // Indicate how many bytes were pushed to the stack so far.
@@ -1586,7 +1586,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
    
     // Go back to our fake instruction and fill in how many parameters were passed.
     // The number of params is the number of bytes divided by 2.
-    PushImmediateAt(context, wBytesOfParams / 2, pushNumberOfParams);
+    PushImmediateAt(context, wBytesOfParams / 2, pushNumberOfParams, GetLineNumber());
 
     if (!context.HasMeaning())
     {
@@ -1699,7 +1699,7 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
 
     // Put in a fake opcode for the time being - we'll add our push later (we need to know
     // how many parameters we're pushing, before we know which instruction to use).
-    context.code().inst(Opcode::INDETERMINATE);
+    context.code().inst(GetLineNumber(), Opcode::INDETERMINATE);
     code_pos parameterCountInstruction = context.code().get_cur_pos();
 
     // Create a send frame and stack context, and party on.
@@ -1714,7 +1714,7 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
     }
 
     // Now go back and put in our parameter count (note: we don't include the parameter count in the number of parameters used)
-    PushImmediateAt(context, wCallBytes / 2, parameterCountInstruction);
+    PushImmediateAt(context, wCallBytes / 2, parameterCountInstruction, GetLineNumber());
 
     WORD wScript, wIndex;
     string classOwner;
@@ -1723,11 +1723,11 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
     {
     case ProcedureMain:
         // We're calling something in the main script. "callb"
-        context.code().inst(Opcode::CALLB, wIndex, wCallBytes);
+        context.code().inst(GetLineNumber(), Opcode::CALLB, wIndex, wCallBytes);
         break;
 
     case ProcedureExternal:
-        context.code().inst(Opcode::CALLE, wScript, wIndex, wCallBytes);
+        context.code().inst(GetLineNumber(), Opcode::CALLE, wScript, wIndex, wCallBytes);
         break;
 
     case ProcedureLocal:
@@ -1736,13 +1736,13 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
         {
             context.ReportError(this, "'%s' can only be called from class '%s'.", _innerName.c_str(), classOwner.c_str());
         }
-        context.code().inst(Opcode::CALL, wIndex, wCallBytes); // wIndex is temporary
+        context.code().inst(GetLineNumber(), Opcode::CALL, wIndex, wCallBytes); // wIndex is temporary
         DEBUG_BRANCH(context.code(), DEBUG_LOCAL_PROC_CALL);
         context.TrackLocalProcCall(_innerName);
         break;
     case ProcedureKernel:
         // A kernel function
-        context.code().inst(Opcode::CALLK, wIndex, wCallBytes);
+        context.code().inst(GetLineNumber(), Opcode::CALLK, wIndex, wCallBytes);
         break;
 
     case ProcedureUnknown:
@@ -1766,7 +1766,7 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
         }
     }
 
-    return CodeResult(PushToStackIfAppropriate(context), DataTypeAny);
+    return CodeResult(PushToStackIfAppropriate(context, GetLineNumber()), DataTypeAny);
 }
 
 //
@@ -1803,7 +1803,7 @@ CodeResult ConditionalExpression::OutputByteCode(CompileContext &context) const
         {
             branch_block_base orBlock(context, BranchBlockIndex::Or);
             result = (*it)->OutputByteCode(context);
-            context.code().inst(Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
+            context.code().inst(GetLineNumber(), Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
             assert(!orBlock.active());
         }
 
@@ -1842,7 +1842,7 @@ CodeResult ReturnStatement::OutputByteCode(CompileContext &context) const
     }
 
     // Then return
-    WriteSimple(context, Opcode::RET);
+    WriteSimple(context, Opcode::RET, GetLineNumber());
     return 0; // void
 }
 
@@ -1943,21 +1943,21 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
                 // Let's evaluate the indexer, and put it on the accumulator
                 OutputByteCodeToAccumulator(context, *pIndexer);
                 // Put a copy on the stack too, since we'll need it later.
-                WriteSimple(context, Opcode::PUSH);
+                WriteSimple(context, Opcode::PUSH, GetLineNumber());
                 // Now don't pass an indexer to VariableOperand, because we've already taken care of that.
                 // We'll load the variable onto the stack, and say to use the acc as an index:
-                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_LOAD | VO_ACC_AS_INDEX_MOD);
+                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_LOAD | VO_ACC_AS_INDEX_MOD, GetLineNumber());
                 // And put the value into the accumulator
                 OutputByteCodeToAccumulator(context, *_statement1);
                 // Perform the operation (adding the value to the thing on the stack)
-                WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator));
+                WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator), GetLineNumber());
                 // The result is now in the accumulator.  We actually want it in the stack, since
                 // we want to use the variable index (currently on the stack) in the accumulator
                 // Do a little trick:
-                WriteSimple(context, Opcode::EQ);        // -> eq?... the value in the accumulator will now be on the prev register
-                WriteSimple(context, Opcode::TOSS);      // Now the saved index will be in the accumulator
-                WriteSimple(context, Opcode::PPREV);     // And now... the value will be on the stack!
-                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_STORE | VO_ACC_AS_INDEX_MOD);
+                WriteSimple(context, Opcode::EQ, GetLineNumber());        // -> eq?... the value in the accumulator will now be on the prev register
+                WriteSimple(context, Opcode::TOSS, GetLineNumber());      // Now the saved index will be in the accumulator
+                WriteSimple(context, Opcode::PPREV, GetLineNumber());     // And now... the value will be on the stack!
+                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_STORE | VO_ACC_AS_INDEX_MOD, GetLineNumber());
 
                 // REVIEW: the value was on the stack, but now it's gone!  Technically, we'll need a system where
                 // we can know if the caller *really* needs the result of this assignment.  But that's probably rare,
@@ -1966,25 +1966,25 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
             else
             {
                 // Easy!  Load the variable onto the stack.
-                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_LOAD);
+                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_LOAD, GetLineNumber());
                 // And the value into the accumulator
                 OutputByteCodeToAccumulator(context, *_statement1);
                 // Perform the operation
-                WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator));
+                WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator), GetLineNumber());
                 // And now it goes back in the variable
-                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_ACC | VO_STORE);
+                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_ACC | VO_STORE, GetLineNumber());
                 ocWhereWePutValue = OC_Accumulator; // It's sitting in the accumulator
             }
             break;
         case ResolvedToken::ClassProperty:
             // Load the property onto the stack
-            LoadProperty(context, wIndex, true);
+            LoadProperty(context, wIndex, true, GetLineNumber());
             // And the value into the accumulator
             OutputByteCodeToAccumulator(context, *_statement1);
             // Perform the operation
-            WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator));
+            WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator), GetLineNumber());
             // And put the value (now in the accumulator) back into the property
-            StoreProperty(context, wIndex, false);
+            StoreProperty(context, wIndex, false, GetLineNumber());
             ocWhereWePutValue = OC_Accumulator; // It's sitting in the accumulator
             break;
         }
@@ -2025,12 +2025,12 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
             // put on the stack in the increment case, even if VO_ACC is used. The difference is that in the indexed
             // case, we want the value put on the accumulator after the accumulator is used for indexing. The
             // stack versions of the store opcodes don't do that.
-            VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STORE | VO_ACC, pIndexer);
+            VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STORE | VO_ACC, GetLineNumber(), pIndexer);
         }
             break;
         case ResolvedToken::ClassProperty:
             assert(pIndexer == nullptr || context.HasErrors());
-            StoreProperty(context, wIndex, false);  // false -> accumulator
+            StoreProperty(context, wIndex, false, GetLineNumber());  // false -> accumulator
             break;
         }
 
@@ -2047,7 +2047,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         if (ocWhereWePutValue == OC_Accumulator)
         {
             // It's in the accumulator, but needs to be on the stack.
-            WriteSimple(context, Opcode::PUSH);
+            WriteSimple(context, Opcode::PUSH, GetLineNumber());
         }
         else
         {
@@ -2095,7 +2095,7 @@ CodeResult BinaryOp::_OutputByteCodeAnd(CompileContext &context) const
         _statement1->OutputByteCode(context).GetType();
     }
 
-    context.code().inst(Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
+    context.code().inst(GetLineNumber(), Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
 
     blockSuccess.leave(); // Successes in the left operand, branch to here.
 
@@ -2119,7 +2119,7 @@ CodeResult BinaryOp::_OutputByteCodeOr(CompileContext &context) const
         _statement1->OutputByteCode(context);
     }
 
-    context.code().inst(Opcode::BT, context.code().get_undetermined(), BranchBlockIndex::Success);
+    context.code().inst(GetLineNumber(), Opcode::BT, context.code().get_undetermined(), BranchBlockIndex::Success);
 
     blockFailure.leave(); // failure in the left operand, branch to here.
 
@@ -2165,7 +2165,7 @@ CodeResult _WriteFakeIfStatement(CompileContext &context, const BinaryOp &binary
         // has no effect on code.  It actually does, because we're playing tricks.
         _OutputCodeForIfStatement(context, expression, success, nullptr, true);
     }
-    return CodeResult(PushToStackIfAppropriate(context), DataTypeBool);
+    return CodeResult(PushToStackIfAppropriate(context, binary.GetLineNumber()), DataTypeBool);
 }
 
 // An n-ary operation is any operator that takes n operands.
@@ -2197,9 +2197,9 @@ CodeResult NaryOp::OutputByteCode(CompileContext &context) const
         else
         {
             // Add a branch based on the previous 2 operands. This branches to the future failure path
-            context.code().inst(Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
+            context.code().inst(GetLineNumber(), Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
             // Subsequent ones use the pprev (the value of the accumulator prior to the previous comparison opcode)
-            context.code().inst(Opcode::PPREV);
+            context.code().inst(GetLineNumber(), Opcode::PPREV);
         }
         
         // Second operand
@@ -2209,13 +2209,13 @@ CodeResult NaryOp::OutputByteCode(CompileContext &context) const
         }
 
         // The operator
-        context.code().inst(GetInstructionForBinaryOperator(Operator));
+        context.code().inst(GetLineNumber(), GetInstructionForBinaryOperator(Operator));
     }
 
     // Leave before the possible push
     blockSuccess.leave(); 
 
-    WORD wBytesUsed = PushToStackIfAppropriate(context);
+    WORD wBytesUsed = PushToStackIfAppropriate(context, GetLineNumber());
     // TODO: We have ignored data type completely
     return CodeResult(wBytesUsed, DataTypeAny);
 }
@@ -2257,7 +2257,7 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
             
             // Then spit out the correct instruction
             // The result will go into the accumulator, and we may need to push it to the stack.
-            WriteSimple(context, GetInstructionForBinaryOperator(Operator));
+            WriteSimple(context, GetInstructionForBinaryOperator(Operator), GetLineNumber());
 
             // Type checking
             SpeciesIndex wType = wTypeLeft;
@@ -2279,7 +2279,7 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
 #endif
             }
 
-            WORD wBytesUsed = PushToStackIfAppropriate(context);
+            WORD wBytesUsed = PushToStackIfAppropriate(context, GetLineNumber());
             return CodeResult(wBytesUsed, wType);
         }
     }
@@ -2353,10 +2353,10 @@ CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
         {
             COutputContext accContext(context, OC_Accumulator);
             result = _statement1->OutputByteCode(context);
-            WriteSimple(context, GetInstructionForUnaryOperator(Operator));
+            WriteSimple(context, GetInstructionForUnaryOperator(Operator), GetLineNumber());
         }
         // Push the acc onto the stack if necessary.
-        result = CodeResult(PushToStackIfAppropriate(context), result.GetType()); // Repackage the result with the # of bytes written to the stack
+        result = CodeResult(PushToStackIfAppropriate(context, GetLineNumber()), result.GetType()); // Repackage the result with the # of bytes written to the stack
     }
     return result;
 }
@@ -2398,7 +2398,7 @@ CodeResult ForLoop::OutputByteCode(CompileContext &context) const
     _looper->OutputByteCode(context);
 
     // Now jump back to the test
-    context.code().inst(Opcode::JMP, forStart);
+    context.code().inst(GetLineNumber(), Opcode::JMP, forStart);
     DEBUG_BRANCH(context.code(), DEBUG_FOR_LOOP_LOOP);
 
     // condition failure (or break) leads to here.
@@ -2442,7 +2442,7 @@ CodeResult WhileLoop::OutputByteCode(CompileContext &context) const
     SingleStatementVectorOutputHelper(_segments, context);
 
     // Finally, jmp back to the beginning of the while.
-    context.code().inst(Opcode::JMP, whileStart);
+    context.code().inst(GetLineNumber(), Opcode::JMP, whileStart);
     // Failures and breaks jump to here...
     return 0; // void
 }
@@ -2493,7 +2493,7 @@ CodeResult DoLoop::OutputByteCode(CompileContext &context) const
 
     //context.code().inst(Opcode::BT, doStart);
     // Make this more consistent with how the SCI compiler did it:
-    context.code().inst(Opcode::JMP, doStart);
+    context.code().inst(GetLineNumber(), Opcode::JMP, doStart);
 
     DEBUG_BRANCH(context.code(), DEBUG_DO_LOOP);
     // And failures and breaks will jump here.
@@ -2518,7 +2518,7 @@ CodeResult IfStatement::OutputByteCode(CompileContext &context) const
         COutputContext accContext(context, OC_Accumulator);
         result = _OutputCodeForIfStatement(context, *_innerCondition.get(), *_statement1, _statement2.get(), true);
     }
-    WORD wBytes = PushToStackIfAppropriate(context);
+    WORD wBytes = PushToStackIfAppropriate(context, GetLineNumber());
     return CodeResult(wBytes, result.GetType());
 }
 
@@ -2610,7 +2610,7 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
                     if (!fCaseIsEmpty)
                     {
                         // For each case statement, dupe the switch value so it can be used in the Opcode::EQ
-                        context.code().inst(Opcode::DUP);
+                        context.code().inst(pCase->GetLineNumber(), Opcode::DUP);
 
                         if (bntToNextCase != undefined)
                         {
@@ -2628,11 +2628,11 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
                         }
 
                         // Now compare it to our switch on the stack... is it equal?
-                        context.code().inst(Opcode::EQ);
+                        context.code().inst(pCase->GetLineNumber(), Opcode::EQ);
 
                         // If not, then branch to just after the case statement.  We don't know where that is
                         // yet, so use the fake pos.
-                        context.code().inst(Opcode::BNT, fakeCodePos);
+                        context.code().inst(pCase->GetLineNumber(), Opcode::BNT, fakeCodePos);
                         DEBUG_BRANCH(context.code(), DEBUG_SWITCH_NEXT);
                         bntToNextCase = context.code().get_cur_pos(); // Remember the location we need to change
 
@@ -2647,7 +2647,7 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
                         {
                             // Jmp to the "far end" (e.g. out of the switch).
                             // This will be resolved when we leave our "branch block"
-                            context.code().inst(Opcode::JMP, context.code().get_undetermined());
+                            context.code().inst(GetLineNumber(), Opcode::JMP, context.code().get_undetermined());
                             DEBUG_BRANCH(context.code(), DEBUG_SWITCH_END);
                         }
                     }
@@ -2676,7 +2676,7 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
         // Now that we've exited our "branch block", write the TOFSS instruction that signals
         // the end of the cases (and also pops our switch off the stack).
         // This should fix up the "far end" jmps in each case
-        context.code().inst(Opcode::TOSS);
+        context.code().inst(GetLineNumber(), Opcode::TOSS);
 
         // Also, the last case has a branch that needs to point here.
         if (bntToNextCase != undefined)
@@ -2685,7 +2685,7 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
             (*bntToNextCase).set_branch_target(context.code().get_cur_pos(), true);
         }
     }
-    WORD wBytes = PushToStackIfAppropriate(context);
+    WORD wBytes = PushToStackIfAppropriate(context, GetLineNumber());
     return CodeResult(wBytes, DataTypeNone);
 }
 
@@ -2736,7 +2736,7 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
     }
     if (wWords > 0)
     {
-        context.code().inst(Opcode::LINK, wWords);
+        context.code().inst(function.GetLineNumber(), Opcode::LINK, wWords);
     }
 
     // Now for any variables that aren't zero, we need to initialize them
@@ -2757,7 +2757,7 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
                 // Note: originally, I thought all vars were zero-inited, so we could optimize out
                 // zero inits, but this is not the case.
                 OutputByteCodeToAccumulator(context, *initializer);
-                VariableOperand(context, wIndexWithinThisVar, VO_STORE | VO_ACC | VO_TEMP); // Store acc in temp var
+                VariableOperand(context, wIndexWithinThisVar, VO_STORE | VO_ACC | VO_TEMP, function.GetLineNumber()); // Store acc in temp var
                 wIndexWithinThisVar++;
             }
             wIndex += varDecl->GetSize();
@@ -2777,7 +2777,7 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
         )
     {
         // Stick in a ret statement.
-        WriteSimple(context, Opcode::RET);
+        WriteSimple(context, Opcode::RET, function.GetLineNumber());
     }
 
     // Ensure no one is waiting for a branch (should have been handled by the ret instruction
@@ -2929,7 +2929,7 @@ CodeResult BreakStatement::OutputByteCode(CompileContext &context) const
     // Report an error if there is none.
     if (context.code().in_branch_block(BranchBlockIndex::Break, Levels))
     {
-        context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Break, Levels);
+        context.code().inst(GetLineNumber(), Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Break, Levels);
         DEBUG_BRANCH(context.code(), DEBUG_BREAK);
     }
     else
@@ -2951,7 +2951,7 @@ CodeResult ContinueStatement::OutputByteCode(CompileContext &context) const
             // should be a branch block for us.
             if (context.code().in_branch_block(BranchBlockIndex::Continue, Levels))
             {
-                context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Continue);
+                context.code().inst(GetLineNumber(), Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Continue);
                 DEBUG_BRANCH(context.code(), DEBUG_CONTINUE);
             }
             else
@@ -2962,7 +2962,7 @@ CodeResult ContinueStatement::OutputByteCode(CompileContext &context) const
         else
         {
             // Easy... jump to the backwards target:
-            context.code().inst(Opcode::JMP, continueTarget, BranchBlockIndex::Continue, Levels);
+            context.code().inst(GetLineNumber(), Opcode::JMP, continueTarget, BranchBlockIndex::Continue, Levels);
         }
     }
     else
@@ -3028,7 +3028,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                     }
                     if (!label.empty())
                     {
-                        context.code().inst(opcode, context.code().get_undetermined());
+                        context.code().inst(GetLineNumber(), opcode, context.code().get_undetermined());
                         context.TrackAsmLabelReference(pValue->GetStringValue());
                     }
                     else
@@ -3063,20 +3063,20 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                             ProcedureType procType = context.LookupProc(pValue->GetStringValue(), wScript, wIndex, classOwner);
                             if ((procType == ProcedureKernel) && (opcode == Opcode::CALLK))
                             {
-                                context.code().inst(opcode, wIndex, pNumParams->GetNumberValue());
+                                context.code().inst(GetLineNumber(), opcode, wIndex, pNumParams->GetNumberValue());
                             }
                             else if ((procType == ProcedureMain) && (opcode == Opcode::CALLB))
                             {
-                                context.code().inst(opcode, wIndex, pNumParams->GetNumberValue());
+                                context.code().inst(GetLineNumber(), opcode, wIndex, pNumParams->GetNumberValue());
                             }
                             else if ((procType == ProcedureLocal) && (opcode == Opcode::CALL))
                             {
-                                context.code().inst(opcode, wIndex, pNumParams->GetNumberValue());
+                                context.code().inst(GetLineNumber(), opcode, wIndex, pNumParams->GetNumberValue());
                                 context.TrackLocalProcCall(pValue->GetStringValue());
                             }
                             else if ((procType == ProcedureExternal) && (opcode == Opcode::CALLE))
                             {
-                                context.code().inst(opcode, wScript, wIndex, pNumParams->GetNumberValue());
+                                context.code().inst(GetLineNumber(), opcode, wScript, wIndex, pNumParams->GetNumberValue());
                             }
                             else
                             {
@@ -3291,7 +3291,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                         }
                     }
                 }
-                context.code().inst(opcode, args[0], args[1], args[2]);
+                context.code().inst(GetLineNumber(), opcode, args[0], args[1], args[2]);
             }
         }
     }
@@ -3320,7 +3320,7 @@ CodeResult RestStatement::OutputByteCode(CompileContext &context) const
         ResolvedToken tokenType = context.LookupToken(this, lookupName, wNumber, wType);
         if (tokenType == ResolvedToken::Parameter)
         {
-            context.code().inst(Opcode::REST, wNumber);
+            context.code().inst(GetLineNumber(), Opcode::REST, wNumber);
         }
         else
         {
