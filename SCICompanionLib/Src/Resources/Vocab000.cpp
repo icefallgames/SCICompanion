@@ -274,7 +274,7 @@ Vocab000::WordGroup Vocab000::GroupFromString(PCTSTR pszString) const
         int cMaxLettersMatched = 0;
         size_t iBest = (size_t)-1;
         int cCurrentMatched = 0;
-        while (iLowerBound <= cWords)
+        while (iLowerBound < cWords)
         {
             size_t iPrev = iCurrent;
             iCurrent = (cWords + iLowerBound) / 2;
