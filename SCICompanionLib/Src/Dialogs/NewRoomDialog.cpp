@@ -147,7 +147,7 @@ void CNewRoomDialog::_AttachControls(CDataExchange* pDX)
     }
 
     // Enable polygons for VGA
-    if (appState->GetVersion().PicFormat == PicFormat::EGA)
+    if (!appState->GetVersion().UsesPolygons)
     {
         m_wndCheckPolys.ShowWindow(SW_HIDE);
     }
@@ -275,7 +275,7 @@ void CNewRoomDialog::_PrepareBuffer()
     NewRoomProfile profile = GetProfile(appState->GetVersion());
     std::string roomName = (profile == NewRoomProfile::SCI11) ? "Room" : "Rm";
     sci::Script script(_scriptId);
-    bool includePolys = (appState->GetVersion().PicFormat != PicFormat::EGA) && (m_wndCheckPolys.GetCheck() == BST_CHECKED);
+    bool includePolys = (appState->GetVersion().UsesPolygons) && (m_wndCheckPolys.GetCheck() == BST_CHECKED);
 
     script.AddInclude("sci.sh");
     script.AddInclude("game.sh");
@@ -526,7 +526,7 @@ void CNewRoomDialog::OnOK()
             _CreateMessageFile(_scriptId.GetResourceNumber());
         }
         // Make poly header?
-        if ((appState->GetVersion().PicFormat != PicFormat::EGA) && (m_wndCheckPolys.GetCheck() == BST_CHECKED))
+        if (appState->GetVersion().UsesPolygons && (m_wndCheckPolys.GetCheck() == BST_CHECKED))
         {
             unique_ptr<PolygonComponent> polyComponent = CreatePolygonComponent(appState->GetResourceMap().Helper().GetPolyFolder(), _nPicScript);
             if (polyComponent->Polygons().empty())

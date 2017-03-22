@@ -50,6 +50,7 @@ private:
     int _fSupportsMessageAudio;
     int _fAudioIsWavFormat;
     int _fWideExports;
+    int _fPicPolygons;
 
     int _viewFormat;
     int _picFormat;
@@ -123,4 +124,5 @@ private:
     CExtCheckBox m_wndSupportsMessageAudio;
     CExtCheckBox m_wndAudioIsWavFormat;
     CExtCheckBox m_wndWideExports;
+    CExtCheckBox m_wndPicPolygons;
 };

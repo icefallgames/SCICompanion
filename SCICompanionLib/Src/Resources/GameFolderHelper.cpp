@@ -157,6 +157,12 @@ std::string GameFolderHelper::GetIniString(const std::string &sectionName, const
     }
     return strRet;
 }
+
+bool GameFolderHelper::GetIniBool(const std::string &sectionName, const std::string &keyName, bool value) const
+{
+    return GetIniString(sectionName, keyName, value ? TrueValue.c_str() : FalseValue.c_str()) == TrueValue;
+}
+
 bool GameFolderHelper::DoesSectionExistWithEntries(const std::string &sectionName)
 {
     char sz[200];

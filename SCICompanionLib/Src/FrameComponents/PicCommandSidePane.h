@@ -39,7 +39,7 @@ protected:
 class PicCommandSidePane : public CExtDialogFwdCmd, public INonViewClient
 {
 public:
-    PicCommandSidePane(bool showPalette, CWnd* pParent = NULL);   // standard constructor
+    PicCommandSidePane(bool showPalette, bool usePoly, CWnd* pParent = NULL);   // standard constructor
 	virtual ~PicCommandSidePane();
 
 // Dialog Data
@@ -47,6 +47,7 @@ public:
     {
         IDD = IDD_PICCOMMANDS,
         IDD_VGA = IDD_PICCOMMANDS_VGA1,
+        IDD_EGAPOLY = IDD_PICCOMMANDS_EGAPOLY,
     };
 
     void OnDeleteCommands();
@@ -109,6 +110,7 @@ private:
     PicCommandListBox m_wndListCommands;
     CExtNoFlickerStatic m_wndPalette;
     bool _showPalette;
+    bool _showPolygons;
 
     PolygonListBox m_wndListPolygons;
     CExtLabel m_wndStaticPolyType;

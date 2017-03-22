@@ -256,7 +256,7 @@ void CPicDoc::SetEditPic(DependencyTracker &tracker, std::unique_ptr<ResourceEnt
     _dependencyTracker = &tracker;
     _checksum = id;
 
-    if (pEditPic && pEditPic->GetComponent<PicComponent>().Traits->IsVGA)
+    if (pEditPic && appState->GetVersion().UsesPolygons)
     {
         // Add a polygon component
         pEditPic->AddComponent<PolygonComponent>(CreatePolygonComponent(appState->GetResourceMap().Helper().GetPolyFolder(), pEditPic->ResourceNumber));

@@ -142,6 +142,7 @@ private:  // control bar embedded members
     RasterSidePane m_dlgForPanelDialogCursor;
     PicCommandSidePane m_dlgForPanelDialogPic;
     PicCommandSidePane m_dlgForPanelDialogPicVGA;
+    PicCommandSidePane m_dlgForPanelDialogPicEGAPoly;
     SoundToolboxSidePane m_dlgForPanelDialogSound;
     QuickScriptsSidePane m_dlgForPanelDialogScript;
     CSamplesDialogBar m_dlgForPanelDialogGame;

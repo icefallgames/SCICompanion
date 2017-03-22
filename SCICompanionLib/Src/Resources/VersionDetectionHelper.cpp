@@ -918,5 +918,8 @@ void SniffSCIVersion(GameFolderHelper &helper)
         _DetectSoundType(helper);
     }
 
+    helper.Version.UsesPolygons = (helper.Version.PicFormat != PicFormat::EGA);
+    helper.Version.UsesPolygons = helper.GetIniBool("Version", "UsesPolygons", helper.Version.UsesPolygons);
+
     helper.Version.Kernels = _DetectKernelSet(helper);
 }

@@ -314,6 +314,7 @@
 #define IDI_UNDITHERPIC                 403
 #define IDD_PICCLIPS                    403
 #define IDI_STAMP                       404
+#define IDD_PICCOMMANDS_EGAPOLY         404
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -823,6 +824,7 @@
 #define IDC_LISTCLIPS                   1402
 #define IDC_COMBOFILES                  1403
 #define IDC_CHECKINDICES                1404
+#define IDC_CHECKPOLYGONS               1405
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1228,9 +1230,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        409
+#define _APS_NEXT_RESOURCE_VALUE        411
 #define _APS_NEXT_COMMAND_VALUE         33353
-#define _APS_NEXT_CONTROL_VALUE         1405
+#define _APS_NEXT_CONTROL_VALUE         1406
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

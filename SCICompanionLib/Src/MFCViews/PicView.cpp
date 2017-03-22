@@ -2013,9 +2013,9 @@ void CPicView::OnUpdateAllPicCommands(CCmdUI *pCmdUI)
     {
         enabled = _GetEditPic()->Traits->SupportsPenCommands;
     }
-    if (pCmdUI->m_nID == ID_POLYPATH && _GetEditPic())
+    if (pCmdUI->m_nID == ID_POLYPATH)
     {
-        enabled = _GetEditPic()->Traits->IsVGA;
+        enabled = appState->GetVersion().UsesPolygons;
     }
 
     if (!_GetEditPic()->Traits->SupportsVectorCommands)

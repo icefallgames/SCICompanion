@@ -48,6 +48,7 @@ SCIVersion sciVersion0 =
     KernelSet::Provided,
     false,
 	false,
+    false,
 };
 
 // e.g. QFG2 EGA. Not checked for accuracy yet. Only used in pic unit tests.
@@ -81,6 +82,7 @@ SCIVersion sciVersion1_EarlyEGA =
     KernelSet::Provided,
     false,
 	false,
+    false,
 };
 
 
@@ -114,6 +116,7 @@ SCIVersion sciVersion1_Early =
     KernelSet::SCI0SCI1,
     false,
 	false,
+    true,
 };
 
 // Not tested, but used for Longbow pics in unittests,
@@ -147,6 +150,7 @@ SCIVersion sciVersion1_Mid =
     KernelSet::SCI0SCI1,
     true,
 	false,
+    true,
 };
 
 // Note sure what game this is for (VGA1_1???)
@@ -180,6 +184,7 @@ SCIVersion sciVersion1_Late =
     KernelSet::SCI0SCI1,
     false,
 	false,
+    true,
 };
 
 SCIVersion sciVersion1_1 =
@@ -212,6 +217,7 @@ SCIVersion sciVersion1_1 =
     KernelSet::SCI0SCI1,
     false,
 	false,
+    true,
 };
 
 SCIVersion sciVersion2 =
@@ -244,6 +250,7 @@ SCIVersion sciVersion2 =
     KernelSet::SCI21,
     false,
 	true,
+    true,
 };
 
 bool SCIVersion::operator == (const SCIVersion &src) const

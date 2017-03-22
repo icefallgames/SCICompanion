@@ -35,17 +35,17 @@ char c_szPolyNamePrefix[] = "P_";
 
 // PicCommandSidePane dialog
 
-PicCommandSidePane::PicCommandSidePane(bool showPalette, CWnd* pParent /*=NULL*/)
-    : CExtDialogFwdCmd(showPalette ? PicCommandSidePane::IDD_VGA : PicCommandSidePane::IDD, pParent)
+PicCommandSidePane::PicCommandSidePane(bool showPalette, bool usePoly, CWnd* pParent /*=NULL*/)
+    : CExtDialogFwdCmd(showPalette ? PicCommandSidePane::IDD_VGA : (usePoly ? PicCommandSidePane::IDD_EGAPOLY : PicCommandSidePane::IDD), pParent),
+    _fAttached(FALSE),
+    _iUserSelectedPos(LB_ERR),
+    _iCurrentPicPos(LB_ERR),
+    _showPalette(showPalette),
+    _showPolygons(usePoly)
 {
-    _fAttached = FALSE;
-    _iUserSelectedPos = LB_ERR;
-    _iCurrentPicPos = LB_ERR;
-    _showPalette = showPalette;
-
     // Load our accelerators
-	HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
-	_hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS));
+    HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
+    _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS));
 }
 
 PicCommandSidePane::~PicCommandSidePane()
@@ -76,7 +76,10 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_COMBO_PALETTE, m_wndComboPaletteChoices);
 
         DDX_Control(pDX, ID_EDIT_IMPORTPICBACKGROUND, m_wndSetBackground);
+    }
 
+    if (_showPolygons)
+    {
         DDX_Control(pDX, IDC_TABWHICHLIST, m_wndTabWhichList);
 
         DDX_Control(pDX, IDC_LISTPOLYGONS, m_wndListPolygons);
@@ -882,7 +885,10 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
             _SyncPaletteChoice();
             _UpdatePalette();
         }
+    }
 
+    if (_showPolygons)
+    {
         if (IsFlagSet(hint, PicChangeHint::PolygonsChanged))
         {
             _UpdatePolyItemCount();
@@ -900,7 +906,7 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
 
 void PicCommandSidePane::_SyncPolyChoice()
 {
-    if (_showPalette && GetDocument())
+    if (_showPolygons && GetDocument())
     {
         int index = GetDocument()->GetCurrentPolygonIndex();
         m_wndListPolygons.SetCurSel(index);

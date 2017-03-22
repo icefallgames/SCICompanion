@@ -1252,7 +1252,7 @@ ResourceTraits picResourceTraitsEGA =
     PicReadFromEGA,
     PicWriteTo,
     PicValidateEGA,
-    nullptr
+    PicWritePolygons, // ok, because checks for null.
 };
 
 ResourceTraits picResourceTraitsVGA =

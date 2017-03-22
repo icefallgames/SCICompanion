@@ -125,6 +125,7 @@ struct SCIVersion
     KernelSet Kernels;
     bool IsExportWide;
 	bool IsZeroExportValid;
+    bool UsesPolygons;
 
     bool operator==(const SCIVersion &src) const;
     bool operator!=(const SCIVersion &src) const;

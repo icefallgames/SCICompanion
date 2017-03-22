@@ -433,7 +433,7 @@ LRESULT CMainFrame::OnOutputPaneResults(WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-CMainFrame::CMainFrame() : m_dlgForPanelDialogPic(false), m_dlgForPanelDialogPicVGA(true), _fFindInAll(1), _fMatchWholeWord(0), _fMatchCase(0)
+CMainFrame::CMainFrame() : m_dlgForPanelDialogPic(false, false), m_dlgForPanelDialogPicVGA(true, true), m_dlgForPanelDialogPicEGAPoly(false, true), _fFindInAll(1), _fMatchWholeWord(0), _fMatchCase(0)
 {
     _pActiveFrame = nullptr;
     _fDidntGetDocYet = false;
@@ -444,6 +444,26 @@ CMainFrame::CMainFrame() : m_dlgForPanelDialogPic(false), m_dlgForPanelDialogPic
     m_dataFrameWP.length = sizeof(WINDOWPLACEMENT);
     m_dataFrameWP.showCmd = SW_HIDE;
     g_ResourceManager->SetLangLayout( LAYOUT_LTR );
+
+    /*
+    for (double lum = -0.5; lum < 0.5; lum += 0.25)
+    {
+        OutputDebugString("byte[] stepDown = {\n");
+        // REMOVE THIS
+        for (int i = 0; i < 256; i++)
+        {
+            RGBQUAD orig = g_egaColorsMixed[i];
+            COLORREF crOld = RGB(orig.rgbRed, orig.rgbGreen, orig.rgbBlue);
+            COLORREF crNew = CExtBitmap::stat_HLS_Adjust(crOld, 0.0, lum, 0.0);
+            // Find new match:
+            EGACOLOR closestEGA = GetClosestEGAColor(1, true, 1, crNew);
+
+            // TODO potentially swap colors if one is the same as prev
+            OutputDebugString(fmt::format("    0x{0:02x},\n", (uint16_t)closestEGA.ToByte()).c_str());
+        }
+        OutputDebugString("};\n");
+    }
+    */
 }
 
 void CMainFrame::ActivateFrame(int nCmdShow) 
@@ -1033,6 +1053,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogPicVGA.Create(IDD_PICCOMMANDS_VGA1, &m_dlgEmpty))
+    {
+        TRACE0("Failed to create m_wndResizableBar_Pic\n");
+        return -1;		// fail to create
+    }
+    if (!m_dlgForPanelDialogPicEGAPoly.Create(IDD_PICCOMMANDS_EGAPOLY, &m_dlgEmpty))
     {
         TRACE0("Failed to create m_wndResizableBar_Pic\n");
         return -1;		// fail to create
@@ -2388,6 +2413,7 @@ void CMainFrame::_RefreshToolboxPanelOnDeactivate(CFrameWnd *pWnd)
             m_dlgForPanelDialogCursor.SetDocument(nullptr);
             m_dlgForPanelDialogPic.SetDocument(nullptr);
             m_dlgForPanelDialogPicVGA.SetDocument(nullptr);
+            m_dlgForPanelDialogPicEGAPoly.SetDocument(nullptr);
             m_dlgForPanelDialogScript.SetDocument(nullptr);
             m_wndScriptToolComboBoxClass.SetDocument(nullptr);
             m_dlgForPanelDialogGame.SetDocument(nullptr);
@@ -2591,8 +2617,16 @@ void CMainFrame::_RefreshToolboxPanel(CFrameWnd *pWnd)
             case TAB_PIC:
                 if (appState->GetVersion().PicFormat == PicFormat::EGA)
                 {
-                    pWndToShow = &m_dlgForPanelDialogPic;
-                    m_dlgForPanelDialogPic.SetDocument(pDoc);
+                    if (appState->GetVersion().UsesPolygons)
+                    {
+                        pWndToShow = &m_dlgForPanelDialogPicEGAPoly;
+                        m_dlgForPanelDialogPicEGAPoly.SetDocument(pDoc);
+                    }
+                    else
+                    {
+                        pWndToShow = &m_dlgForPanelDialogPic;
+                        m_dlgForPanelDialogPic.SetDocument(pDoc);
+                    }
                 }
                 else
                 {

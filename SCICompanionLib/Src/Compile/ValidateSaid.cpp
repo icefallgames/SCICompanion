@@ -68,7 +68,7 @@ public:
                 Synonym &synClause = static_cast<Synonym&>(node);
                 for (const auto &syn : synClause.Synonyms)
                 {
-                    _allWordGroups.insert((uint16_t)_vocab000.GroupFromString(syn.c_str()));
+                    _allWordGroups[((uint16_t)_vocab000.GroupFromString(syn.c_str()))]++;
                 }
             }
             break;
@@ -163,9 +163,20 @@ public:
         }
     }
 
-    void GrabWordGroups(std::set<uint16_t> &allSaidsInScripts)
+    void GrabWordGroups(std::map<uint16_t, int> &allSaidsInScripts)
     {
-        std::copy(_allWordGroups.begin(), _allWordGroups.end(), std::inserter(allSaidsInScripts, allSaidsInScripts.begin()));
+        for (auto pair : _allWordGroups)
+        {
+            allSaidsInScripts[pair.first] += pair.second;
+        }
+    }
+
+    void GrabRoots(map<string, int> &allRoots)
+    {
+        for (auto pair : _roots)
+        {
+            allRoots[pair.first] += pair.second;
+        }
     }
 
 private:
@@ -178,6 +189,7 @@ private:
             vector<uint8_t> output;
             vector<string> words;
 
+            WordClass firstWordClass = WordClass::Unknown;
             ParseSaidString(nullptr, *this, stringCode, &output, &value, &words);
             std::vector<pair<uint16_t, string>> wordGroups;
             int wordIndex = 0;
@@ -191,21 +203,90 @@ private:
                     wordGroup |= output[++i];
                     wordGroups.emplace_back(wordGroup, words[wordIndex]);
                     wordIndex++;
-                    _allWordGroups.insert(wordGroup);
+                    _allWordGroups[wordGroup]++;
+
+                    if (firstWordClass == WordClass::Unknown)
+                    {
+                        _vocab000.GetGroupClass(wordGroup, &firstWordClass);
+                    }
                 }
             }
             _allSaids[&value] = wordGroups;
+
+            if ((firstWordClass & (WordClass::IndicativeVerb | WordClass::ImperativeVerb)) != WordClass::Unknown)
+            {
+                // Starts with a verb
+                auto it = stringCode.find_first_of("/>");
+                if (it == string::npos)
+                {
+                    _roots[stringCode]++;
+                }
+                else if (it != 0)
+                {
+                    // Might erroneously catch [* or something...
+                    _roots[stringCode.substr(0, it)]++;
+                }
+            }
         }
     }
 
     CompileLog &_log;
     const Vocab000 &_vocab000;
     ScriptId _scriptId;
-    std::unordered_map<PropertyValueBase*, std::vector<pair<uint16_t, std::string>>> _allSaids;
-    std::set<uint16_t> _allWordGroups;
+    unordered_map<PropertyValueBase*, vector<pair<uint16_t, string>>> _allSaids;
+    map<uint16_t, int> _allWordGroups; // Includes a count
+    map<string, int> _roots;
 };
 
-void ListUnusedOfType(CompileLog &log, const Vocab000 &vocab000, WordClass wordClass, const std::set<uint16_t> &saidsUsedInScripts)
+void ListMostPopularVerbs(CompileLog &log, const map<string, int> &rootsUsedInScript)
+{
+    // Let's just output it alphabetically for now
+    for (auto pair : rootsUsedInScript)
+    {
+        std::string errorMessage = fmt::format(
+            "{0}: {1} times",
+            pair.first,
+            pair.second
+        );
+        log.ReportResult(CompileResult(
+            errorMessage,
+            ResourceType::Vocab,
+            appState->GetVersion().MainVocabResource,
+            0
+        ));
+    }
+
+}
+
+void ListMostPopularOfType(CompileLog &log, const Vocab000 &vocab000, WordClass wordClass, const map<uint16_t, int> &saidsUsedInScripts)
+{
+    multimap<int, uint16_t> sortedSaids;
+    for (const auto &pair : saidsUsedInScripts)
+    {
+        WordClass theClass;
+        vocab000.GetGroupClass(pair.first, &theClass);
+        if ((theClass & wordClass) != WordClass::Unknown)
+        {
+            sortedSaids.insert(make_pair(pair.second, pair.first));
+        }
+    }
+    for (auto it = sortedSaids.rbegin(); it != sortedSaids.rend(); ++it)
+    {
+        std::string errorMessage = fmt::format(
+            "Verb ({0}): {1}",
+            it->first,
+            vocab000.GetGroupWordString(it->second)
+        );
+        log.ReportResult(CompileResult(
+            errorMessage,
+            ResourceType::Vocab,
+            appState->GetVersion().MainVocabResource,
+            (int)it->second
+        ));
+    }
+}
+
+void ListUnusedOfType(CompileLog &log, const Vocab000 &vocab000, WordClass wordClass, const std::map<uint16_t, int> &saidsUsedInScripts)
 {
     std::string wordClassName = GetWordClassString(wordClass);
 
@@ -241,7 +322,8 @@ void ListUnusedOfType(CompileLog &log, const Vocab000 &vocab000, WordClass wordC
 
 void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
 {
-    std::set<uint16_t> saidsUsedInScripts;
+    std::map<uint16_t, int> saidsUsedInScripts;
+    std::map<string, int> rootsUsedInScripts;
 
     std::vector<ScriptId> scripts;
     appState->GetResourceMap().GetAllScripts(scripts);
@@ -256,6 +338,7 @@ void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
             mainSaids = std::make_unique<ExtractSaids>(script, log, vocab000);
             mainScript->Traverse(*mainSaids);
             mainSaids->GrabWordGroups(saidsUsedInScripts);
+            mainSaids->GrabRoots(rootsUsedInScripts);
             break;
         }
     }
@@ -270,6 +353,7 @@ void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
                 ExtractSaids scriptSaids(scriptId, log, vocab000);
                 script->Traverse(scriptSaids);
                 scriptSaids.GrabWordGroups(saidsUsedInScripts);
+                scriptSaids.GrabRoots(rootsUsedInScripts);
                 if (!script->GetSynonyms().empty())
                 {
                     // This script declares synonyms - so we'll validate against itself and main.
@@ -288,5 +372,8 @@ void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
         ListUnusedOfType(log, vocab000, (WordClass)wordClass, saidsUsedInScripts);
         wordClass >>= 1;
     }
+
+    //ListMostPopularOfType(log, vocab000, WordClass::ImperativeVerb, saidsUsedInScripts);
+    ListMostPopularVerbs(log, rootsUsedInScripts);
 
 }

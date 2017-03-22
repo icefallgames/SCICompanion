@@ -57,6 +57,7 @@ public:
     std::string GameFolderHelper::GetPolyFolder(const std::string *prefix = nullptr) const;
     std::string GetGameIniFileName() const;
     std::string GetIniString(const std::string &sectionName, const std::string &keyName, PCSTR pszDefault = "") const;
+    bool GetIniBool(const std::string &sectionName, const std::string &keyName, bool value = false) const;
     bool DoesSectionExistWithEntries(const std::string &sectionName);
     static std::string GetIncludeFolder();
     static std::string GetHelpFolder();
