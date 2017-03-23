@@ -195,7 +195,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
                     // This goes out of bounds. Some code is corrupt, like SmoothLooper in script 968 in Hero's Quest.
                     // We can't intelligently reason about where the branch is supposed to point, so just replace it with a load operation.
                     // We need to make sure it's the same size though.
-                    code.push_back(scii(sciVersion, Opcode::LDI, 0xbaad));
+                    code.push_back(scii(sciVersion, Opcode::LDI, 0xbaad, -1));
                     lookups.DecompileResults().AddResult(DecompilerResultType::Warning, fmt::format("Bad branch at 0x{0:4x}, replaced with -17747.", (wReferencePosition + wBaseOffset)));
                 }
             }
@@ -210,7 +210,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
         }
         else
         {
-            code.push_back(scii(sciVersion, bOpcode, wOperands[0], wOperands[1], wOperands[2]));
+            code.push_back(scii(sciVersion, bOpcode, wOperands[0], wOperands[1], wOperands[2], -1));
         }
 
         // Store the position of the instruction we just added:
