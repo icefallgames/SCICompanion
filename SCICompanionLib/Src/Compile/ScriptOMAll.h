@@ -202,9 +202,8 @@ namespace sci
         DECLARE_NODE_TYPE(NodeTypeReturn)
     public:
         ReturnStatement() : OneStatementNode() {}
-
-		ReturnStatement(const ReturnStatement &src) = delete;
-		ReturnStatement& operator=(const ReturnStatement& src) = delete;
+        ReturnStatement(const ReturnStatement &src) = delete;
+        ReturnStatement& operator=(const ReturnStatement& src) = delete;
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;

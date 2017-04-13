@@ -457,8 +457,8 @@ void FunctionSignature::AddParam(std::unique_ptr<FunctionParameter> pParam, bool
 }
 
 
-FunctionBase::FunctionBase() : NamedNode(), StatementsNode(), ScriptSite() { _pOwnerClass = nullptr; }
-FunctionBase::FunctionBase(const std::string &str) : NamedNode(), StatementsNode(), ScriptSite()
+FunctionBase::FunctionBase() : NamedNode(), StatementsNode(), ScriptSite(), _isThread(false) { _pOwnerClass = nullptr; }
+FunctionBase::FunctionBase(const std::string &str) : NamedNode(), StatementsNode(), ScriptSite(), _isThread(false)
 {
     _innerName = str;
 }

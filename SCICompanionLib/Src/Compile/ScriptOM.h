@@ -369,7 +369,7 @@ namespace sci
 		SyntaxNode &_node;
 	};
 
-
+    // REVIEW: This could become SyntaxNode instead of Script, and be more useful.
     template<typename _T, typename _TFunc>
     class EnumAll : public IExploreNode
     {
@@ -844,7 +844,11 @@ namespace sci
 
         void PruneExtraneousReturn();
 
+        void SetIsThread(bool isThread) { _isThread = isThread; }
+        bool GetIsThread() const { return _isThread; }
+
     private:
+        bool _isThread;
         FunctionSignatureVector _signatures;
         VariableDeclVector _tempVars;           // Temp variables
         const ClassDefinition *_pOwnerClass;    // Our owner class (weak ref)

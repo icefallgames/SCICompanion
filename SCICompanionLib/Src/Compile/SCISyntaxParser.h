@@ -59,10 +59,13 @@ private:
     ParserSCI property_decl;
     ParserSCI method_decl;
     ParserSCI method_base;
+    ParserSCI thread_decl;
+    ParserSCI thread_base;
 
     // Statements
     ParserSCI statement;
     ParserSCI return_statement;
+    ParserSCI yield_statement;
     ParserSCI value;
     ParserSCI assignment;
     ParserSCI assignment_operator;

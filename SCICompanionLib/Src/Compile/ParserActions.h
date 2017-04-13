@@ -304,6 +304,68 @@ void FinishFunctionTempVarA(MatchResult &match, const _TParser *pParser, SyntaxC
 
 // Procedures
 
+template<typename _TParser>
+void CreateThreadA
+(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Need to start a class.
+        CreateClassA<true>(match, pParser, pContext, stream);
+
+        // We don't know its name yet. But we know the superclass.
+        pContext->ClassPtr->SetSuperClass("Thread");
+
+        // Add a method
+        pContext->CreateMethod();
+        pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
+        pContext->FunctionPtr->SetName("cue"); // And we know the function name.
+        pContext->FunctionPtr->SetIsThread(true);
+
+        // Add a RestoreContext at the start.
+        pContext->FunctionPtr->AddStatement(std::make_unique<sci::ProcedureCall>("RestoreContext"));
+        // The class name will come later...
+    }
+}
+
+template<typename _TParser>
+void ThreadCloseA
+(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Try to re-use as much as possible.
+        FunctionCloseA(match, pParser, pContext, stream);
+        FinishClassMethodA(match, pParser, pContext, stream);
+        ClassCloseA(match, pParser, pContext, stream);
+    }
+}
+
+template<typename _TParser>
+void CreateYieldA
+(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        if (!pContext->FunctionPtr->GetIsThread())
+        {
+            match.ChangeResult(false);
+            pContext->ReportError("yield statements can only appear in threads.", stream);
+        }
+        pContext->FunctionPtr->AddStatement(std::make_unique<ProcedureCall>("SaveContext"));
+
+        pContext->CreateSyntaxNode<ReturnStatement>(stream);
+        pContext->GetSyntaxNode<ReturnStatement>()->SetPosition(stream.GetPosition());
+        pContext->GetSyntaxNode<ReturnStatement>()->SetStatement1(std::make_unique<PropertyValue>(0));
+       // pContext->FinishStatement(true);
+
+        // We need to do our final statement in a weird way.
+/*        auto returnStatement = std::make_unique<ReturnStatement>();
+        returnStatement->SetStatement1(std::make_unique<PropertyValue>(0));
+        pContext->StatementPtrReturn = std::move(returnStatement);*/
+    }
+}
+
 // Function
 template<typename _TParser>
 void CreateProcedureA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)

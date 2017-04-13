@@ -125,6 +125,8 @@ vector<string> SCIKeywords =
     "class#"        // In classdef
     "super#"        // In classdef
     "file#"         // Procedure forward declarations
+    "thread"
+    "yield"
 };
 
 template<typename _It, typename _TContext>
@@ -822,6 +824,9 @@ void SCISyntaxParser::Load()
         keyword_p("return")[SetStatementA<ReturnStatement>]
         >> -statement[StatementBindTo1stA<ReturnStatement, nullptr>];
 
+    yield_statement =
+        keyword_p("yield")[CreateYieldA];
+
     break_statement =
         keyword_p("break")[SetStatementA<BreakStatement>] >>
         -integerNonZero_p[SetLevelsA<BreakStatement, GetBreakContinue<BreakStatement>>];
@@ -1010,6 +1015,7 @@ void SCISyntaxParser::Load()
         naryassoc_operation |
         narycompare_operation |
         return_statement |
+        yield_statement |
         if_statement |
         while_loop |
         for_loop |
@@ -1057,6 +1063,16 @@ void SCISyntaxParser::Load()
         >> *statement[FunctionStatementA];
 
     procedure_decl = keyword_p("procedure")[CreateProcedureA] >> procedure_base[{FunctionCloseA, ParseAutoCompleteContext::Block}];
+
+    thread_base = oppar
+        >> alphanumNK_p[ClassNameA]     // Yup, thread method name is the class name.
+        >> *alphanumNK_p[FunctionParameterA]
+        >> *function_var_decl
+        >> clpar[GeneralE]
+        >> *statement[FunctionStatementA];
+
+    thread_decl = keyword_p("thread")[CreateThreadA] >> thread_base[{ThreadCloseA, ParseAutoCompleteContext::Block}];
+
 
     // Unsupported (unneeded) methods forward declaration
     // (methods
@@ -1148,6 +1164,7 @@ void SCISyntaxParser::Load()
         | instance_decl[FinishClassA]
         | class_decl[FinishClassA]
         | procedure_decl[FinishProcedureA]
+        | thread_decl[FinishClassA]
         | synonyms
         | exports
         | scriptNum
