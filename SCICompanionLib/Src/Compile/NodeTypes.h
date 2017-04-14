@@ -64,6 +64,8 @@ namespace sci
         NodeTypeClassDefDeclaration,
         NodeTypeGlobal,
         NodeTypeExtern,
-        NodeTypeSelector
+        NodeTypeSelector,
+        NodeTypeYield,
+        NodeTypeRestore
     };
 }

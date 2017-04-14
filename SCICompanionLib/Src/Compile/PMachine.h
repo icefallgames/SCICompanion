@@ -66,7 +66,7 @@ enum OperandType : uint8_t
 
 enum class Opcode : uint8_t
 {
-	// Opcodes
+    // Opcodes
     BNOT = 0,
     ADD = 1,
     SUB = 2,
@@ -105,6 +105,8 @@ enum class Opcode : uint8_t
     CALLE = 35,          // call public proc in external script
     RET = 36,      // return (value goes in acc)
     SEND = 37,      // send
+    Yield = 38,
+    Restore = 39,
     CLASS = 40,          // load address of class # to accumulator
     SELF = 42,      // send to self
     SUPER = 43,          // send to super

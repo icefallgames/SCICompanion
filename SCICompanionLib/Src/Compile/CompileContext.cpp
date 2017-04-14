@@ -968,6 +968,19 @@ void CompileContext::PopVariableLookupContext()
 {
     _varContext.pop();
 }
+void CompileContext::PushIsThread(bool isThread)
+{
+    _isThread.push(isThread);
+}
+void CompileContext::PopIsThread()
+{
+    _isThread.pop();
+}
+bool CompileContext::GetIsThread() const
+{
+    return (_isThread.empty() ? false : _isThread.top());
+}
+
 void CompileContext::SetClassPropertyLookupContext(const IVariableLookupContext *pVarContext)
 {
     _pClassProperties = pVarContext;

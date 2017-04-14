@@ -1475,6 +1475,14 @@ public:
         out.out << "(break)";
     }
 
+    void Visit(const YieldStatement &yieldStatement) override
+    {
+        _MaybeNewLineIndent();
+        out.out << "(yield)";
+    }
+
+    void Visit(const RestoreStatement &yieldStatement) override {}
+
     void Visit(const ContinueStatement &breakStatement) override
     {
         _MaybeNewLineIndent();

@@ -227,6 +227,14 @@ void ReturnStatement::Traverse(IExploreNode &en)
 	ExploreNodeBlock enb(en, *this);
 	if (_statement1) _statement1->Traverse(en);
 }
+void YieldStatement::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+}
+void RestoreStatement::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+}
 void CaseStatementBase::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);

@@ -825,7 +825,7 @@ void SCISyntaxParser::Load()
         >> -statement[StatementBindTo1stA<ReturnStatement, nullptr>];
 
     yield_statement =
-        keyword_p("yield")[CreateYieldA];
+        keyword_p("yield")[SetStatementA<YieldStatement>];
 
     break_statement =
         keyword_p("break")[SetStatementA<BreakStatement>] >>

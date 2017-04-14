@@ -301,6 +301,9 @@ public:
     void PreScanSaid(const std::string &theSaid, const ISourceCodePosition *pPos);
     void PushVariableLookupContext(const IVariableLookupContext *pVarContext);
     void PopVariableLookupContext();
+    void PushIsThread(bool isThread);
+    void PopIsThread();
+    bool GetIsThread() const;
     void SetClassPropertyLookupContext(const IVariableLookupContext *pVarContext);
     void SetReturnValueTypes(const std::vector<SpeciesIndex> &types);
     std::vector<SpeciesIndex> GetReturnValueTypes();
@@ -340,6 +343,7 @@ private:
     std::stack<bool> _conditional;
     std::vector<CompileQuery*> _queries;
 
+    std::stack<bool> _isThread;
     // Local, script vars
     std::stack<const IVariableLookupContext *> _varContext;
     // class properties

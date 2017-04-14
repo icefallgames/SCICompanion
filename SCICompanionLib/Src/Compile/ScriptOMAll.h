@@ -217,6 +217,38 @@ namespace sci
 
     };
 
+    class YieldStatement : public SyntaxNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeReturn)
+    public:
+        YieldStatement() {}
+        YieldStatement(const YieldStatement &src) = delete;
+        YieldStatement& operator=(const YieldStatement& src) = delete;
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+    };
+
+    class RestoreStatement : public SyntaxNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeRestore)
+    public:
+        RestoreStatement() {}
+        RestoreStatement(const YieldStatement &src) = delete;
+        RestoreStatement& operator=(const RestoreStatement& src) = delete;
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+    };
+
     class ForLoop : public SyntaxNode, public StatementsNode, public ConditionNode, public CodeBlockNode
     {
         DECLARE_NODE_TYPE(NodeTypeForLoop)

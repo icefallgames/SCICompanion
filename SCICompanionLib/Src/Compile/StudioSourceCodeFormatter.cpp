@@ -542,6 +542,14 @@ public:
         out.out << "break";
     }
 
+    void Visit(const YieldStatement &breakStatement) override
+    {
+        out.SyncComments(breakStatement);
+        DebugLine line(out);
+        out.out << "yield";
+    }
+    void Visit(const RestoreStatement &breakStatement) override {}
+
     void Visit(const ContinueStatement &breakStatement) override
     {
         out.SyncComments(breakStatement);

@@ -156,6 +156,17 @@ void WriteSimple(CompileContext &context, Opcode bOpcode, int lineNumber)
     context.code().inst(lineNumber, bOpcode);
 }
 
+void FinishOffFunction(int sourceCodePosition, CompileContext &context)
+{
+    // Stick in a ret statement. If this is a thread, then also put 1 in the accumulator.
+    if (context.GetIsThread())
+    {
+        context.code().inst(sourceCodePosition, Opcode::LDI, 1);
+    }
+    WriteSimple(context, Opcode::RET, sourceCodePosition);
+}
+
+
 //
 // The value is in the accumulator. If our output context is the stack, then
 // insert a push instruction.
@@ -315,6 +326,21 @@ public:
     ~variable_lookup_context()
     {
         _context.PopVariableLookupContext();
+    }
+private:
+    CompileContext &_context;
+};
+
+class is_thread_context
+{
+public:
+    is_thread_context(CompileContext &context, const FunctionBase &func) : _context(context)
+    {
+        _context.PushIsThread(func.GetIsThread());
+    }
+    ~is_thread_context()
+    {
+        _context.PopIsThread();
     }
 private:
     CompileContext &_context;
@@ -884,6 +910,9 @@ bool _PreScanPropertyTokenToNumber(CompileContext &context, SyntaxNode *pNode, c
     }
     return fRet;
 }
+
+void YieldStatement::PreScan(CompileContext &context) {}
+void RestoreStatement::PreScan(CompileContext &context) {}
 
 void Define::PreScan(CompileContext &context)
 {
@@ -1817,6 +1846,34 @@ CodeResult ConditionalExpression::OutputByteCode(CompileContext &context) const
     return 0; // void
 }
 
+CodeResult YieldStatement::OutputByteCode(CompileContext &context) const
+{
+    if (!context.GetIsThread())
+    {
+        context.ReportError(this, "yield can only be used in a thread.");
+    }
+
+    declare_conditional isCondition(context, false);
+    change_meaning meaning(context, true);
+
+    // Then return
+    WriteSimple(context, Opcode::Yield, GetLineNumber());
+    return 0; // void
+}
+CodeResult RestoreStatement::OutputByteCode(CompileContext &context) const
+{
+    if (!context.GetIsThread())
+    {
+        context.ReportError(this, "Internal compiler error: restore statement found in non-thread.");
+    }
+
+    declare_conditional isCondition(context, false);
+    change_meaning meaning(context, true);
+
+    // Then return
+    WriteSimple(context, Opcode::Restore, GetLineNumber());
+    return 0; // void
+}
 
 CodeResult ReturnStatement::OutputByteCode(CompileContext &context) const
 {
@@ -1828,6 +1885,11 @@ CodeResult ReturnStatement::OutputByteCode(CompileContext &context) const
     {
         COutputContext accContext(context, OC_Accumulator);
         returnValueType = _statement1->OutputByteCode(context).GetType();
+
+        if (context.GetIsThread())
+        {
+            context.ReportError(this, "Return statements can not have values in a thread.");
+        }
     }
 
     // Type checking
@@ -1842,7 +1904,7 @@ CodeResult ReturnStatement::OutputByteCode(CompileContext &context) const
     }
 
     // Then return
-    WriteSimple(context, Opcode::RET, GetLineNumber());
+    FinishOffFunction(GetLineNumber(), context);
     return 0; // void
 }
 
@@ -2715,6 +2777,7 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
 
     // Set the variable context so parameters and local variables are accessible.
     variable_lookup_context varContext(context, &function);
+    is_thread_context isThreadContext(context, function);
 
     // Supply the return values that are currently allowed
     std::vector<SpeciesIndex> returnTypes;
@@ -2776,8 +2839,7 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
         (fHasDanglingBranches)// Someone is waiting to branch to something (we'll write two rets in a row here)
         )
     {
-        // Stick in a ret statement.
-        WriteSimple(context, Opcode::RET, function.GetLineNumber());
+        FinishOffFunction(function.GetLineNumber(), context);
     }
 
     // Ensure no one is waiting for a branch (should have been handled by the ret instruction

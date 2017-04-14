@@ -319,11 +319,13 @@ void CreateThreadA
         // Add a method
         pContext->CreateMethod();
         pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
-        pContext->FunctionPtr->SetName("cue"); // And we know the function name.
+        pContext->FunctionPtr->SetScript(&pContext->Script());
+        pContext->FunctionPtr->SetName("step"); // And we know the function name.
         pContext->FunctionPtr->SetIsThread(true);
+        pContext->FunctionPtr->SetPosition(stream.GetPosition());
 
         // Add a RestoreContext at the start.
-        pContext->FunctionPtr->AddStatement(std::make_unique<sci::ProcedureCall>("RestoreContext"));
+        pContext->FunctionPtr->AddStatement(std::make_unique<sci::RestoreStatement>());
         // The class name will come later...
     }
 }
@@ -352,6 +354,9 @@ void CreateYieldA
             match.ChangeResult(false);
             pContext->ReportError("yield statements can only appear in threads.", stream);
         }
+        // Since a yield becomes two instructions, we can't just use SetStatement1
+        // We could possibly put them in a code block though?
+
         pContext->FunctionPtr->AddStatement(std::make_unique<ProcedureCall>("SaveContext"));
 
         pContext->CreateSyntaxNode<ReturnStatement>(stream);
