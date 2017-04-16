@@ -31,6 +31,9 @@
 #include "SoundUtil.h"
 #include "format.h"
 #include "AudioCacheResourceSource.h"
+#include "View.h"
+#include "PatchResourceSource.h"
+#include "PaletteOperations.h"
 
 void ExtractAllResources(SCIVersion version, const std::string &destinationFolderIn, bool extractResources, bool extractPicImages, bool extractViewImages, bool disassembleScripts, bool extractMessages, bool generateWavs, IExtractProgress *progress)
 {
@@ -252,4 +255,80 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
             }
         }
     }
+}
+
+// Putting this here for now.
+// TODO: Invoke it, and also make a palette999. And set the ini flag.
+
+void ConvertViewsToVGA()
+{
+    std::vector<std::unique_ptr<ResourceEntity>> allViews;
+
+    auto container = appState->GetResourceMap().Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
+    for (auto &blob : *container)
+    {
+        std::unique_ptr<ResourceEntity> entityOrig(CreateResourceFromResourceData(*blob));
+        std::unique_ptr<ResourceEntity> entity(CreateViewResourceEGAToVGA(sciVersion0));
+        entity->RemoveComponent<RasterComponent>();
+        entity->AddComponent<RasterComponent>(std::make_unique<RasterComponent>(entityOrig->GetComponent<RasterComponent>()));
+        entity->ResourceNumber = blob->GetNumber();
+        entity->PackageNumber = blob->GetPackageHint();
+        // Double up the colors
+        RasterComponent &raster = entity->GetComponent<RasterComponent>();
+        for (int loop = 0; loop < raster.LoopCount(); loop++)
+        {
+            for (size_t celIndex = 0; celIndex < raster.Loops[loop].Cels.size(); celIndex++)
+            {
+                Cel &cel = raster.Loops[loop].Cels[celIndex];
+
+                for (uint8_t &color : cel.Data)
+                {
+                    color |= (color << 4);
+                }
+                cel.TransparentColor |= (cel.TransparentColor << 4);
+            }
+        }
+
+        allViews.push_back(std::move(entity));
+    }
+
+    const GameFolderHelper &helper = appState->GetResourceMap().Helper();
+    PatchFilesResourceSource patchFiles(ResourceTypeFlags::All, sciVersion0, helper.GameFolder, ResourceSourceFlags::PatchFile);
+
+    for (auto &entity : allViews)
+    {
+        ResourceBlob data;
+        sci::ostream serial;
+        entity->WriteTo(serial, true, entity->ResourceNumber, data.GetPropertyBag());
+        data.SetNumber(entity->ResourceNumber);
+        data.SetPackage(0);
+        data.SetSourceFlags(ResourceSourceFlags::PatchFile);
+        sci::istream readStream = istream_from_ostream(serial);
+        data.CreateFromBits(helper, nullptr, entity->GetType(), &readStream, 0, entity->ResourceNumber, 0xffffffff, helper.Version, ResourceSourceFlags::PatchFile);
+        std::vector<const ResourceBlob *> temp;
+        temp.push_back(&data);
+        patchFiles.AppendResources(temp);
+    }
+
+    // Make a palette 999
+    {
+        std::unique_ptr<ResourceEntity> paletteEntity(CreatePaletteResource(sciVersion1_Mid));
+        paletteEntity->ResourceNumber = 999;
+        PaletteComponent &palette = paletteEntity->GetComponent<PaletteComponent>();
+        for (size_t i = 0; i < ARRAYSIZE(palette.Colors); i++)
+        {
+            palette.Colors[i] = g_egaColorsMixed[i];
+        }
+        ResourceBlob data;
+        sci::ostream serial;
+        paletteEntity->WriteTo(serial, true, paletteEntity->ResourceNumber, data.GetPropertyBag());
+        sci::istream readStream = istream_from_ostream(serial);
+        data.CreateFromBits(helper, nullptr, paletteEntity->GetType(), &readStream, 0, paletteEntity->ResourceNumber, 0xffffffff, helper.Version, ResourceSourceFlags::PatchFile);
+        std::vector<const ResourceBlob *> temp;
+        temp.push_back(&data);
+        patchFiles.AppendResources(temp);
+    }
+
+    // Finally
+    helper.SetHasVGAViews(true);
 }

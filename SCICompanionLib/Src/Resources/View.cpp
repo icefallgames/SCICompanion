@@ -1084,6 +1084,7 @@ void ViewWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool 
     {
         loopCountWord |= 0x8000; // Indicate this has a palette
     }
+
     byteStream.WriteWord(loopCountWord);
     // Mirror mask:
     byteStream.WriteWord((uint16_t)wMirrorMask);
@@ -1219,6 +1220,15 @@ ResourceTraits viewTraitsEGA =
     nullptr
 };
 
+ResourceTraits viewTraitsEGAToVGA =
+{
+    ResourceType::View,
+    &ViewReadFromEGA,
+    &ViewWriteToVGA,
+    &NoValidationFunc,
+    nullptr
+};
+
 ResourceTraits viewTraitsVGA =
 {
     ResourceType::View,
@@ -1245,6 +1255,39 @@ ResourceTraits viewTraitsVGA2 =
     &NoValidationFunc,
     nullptr
 };
+
+
+
+ResourceTraits convertEGAViewToVGA =
+{
+    ResourceType::View,
+    &ViewReadFromEGA,
+    &ViewWriteToVGA,
+    &NoValidationFunc,
+    nullptr
+};
+
+ResourceEntity *CreateViewResourceEGAToVGA(SCIVersion version)
+{
+    ResourceTraits *ptraits = &convertEGAViewToVGA;
+    RasterTraits *prasterTraits = &viewRasterTraits;
+    if (version.ViewFormat == ViewFormat::VGA1)
+    {
+        prasterTraits = &viewRasterTraitsVGA1;
+    }
+    else if (version.ViewFormat == ViewFormat::VGA1_1)
+    {
+        prasterTraits = &viewRasterTraitsVGA1_1;
+    }
+    else if (version.ViewFormat == ViewFormat::VGA2)
+    {
+        prasterTraits = &viewRasterTraitsVGA1_1;
+    }
+
+    std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(*ptraits);
+    pResource->AddComponent(move(make_unique<RasterComponent>(*prasterTraits, viewRasterSettings)));
+    return pResource.release();
+}
 
 ResourceEntity *CreateViewResource(SCIVersion version)
 {

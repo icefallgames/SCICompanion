@@ -21,3 +21,5 @@ public:
 };
 
 void ExtractAllResources(SCIVersion version, const std::string &destinationFolder, bool extractResources, bool extractPicImages, bool extractViewImages, bool disassembleScripts, bool extractMessages, bool generateWavs, IExtractProgress *progress = nullptr);
+
+void ConvertViewsToVGA();

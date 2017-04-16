@@ -207,4 +207,5 @@ struct CelHeader_VGA11
 #include <poppack.h>
 
 ResourceEntity *CreateViewResource(SCIVersion version);
+ResourceEntity *CreateViewResourceEGAToVGA(SCIVersion version);
 ResourceEntity *CreateDefaultViewResource(SCIVersion version);

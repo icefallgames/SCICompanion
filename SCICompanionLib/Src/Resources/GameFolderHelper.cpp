@@ -35,6 +35,7 @@ const std::string PatchFileKey = "SaveToPatchFiles";
 const std::string TrueValue = "true";
 const std::string FalseValue = "false";
 const std::string GenerateDebugInfoKey = "GenerateDebugInfo";
+const std::string VGAViews = "VGAViews";
 
 // Returns "n004" for input of 4
 std::string default_reskey(int iNumber, uint32_t base36Number)
@@ -261,6 +262,18 @@ bool GameFolderHelper::GetGenerateDebugInfo() const
     std::string value = GetIniString(GameSection, GenerateDebugInfoKey, FalseValue.c_str());
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
     return (value == TrueValue);
+}
+
+bool GameFolderHelper::GetHasVGAViews() const
+{
+    std::string value = GetIniString(GameSection, VGAViews, FalseValue.c_str());
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+    return (value == TrueValue);
+}
+
+void GameFolderHelper::SetHasVGAViews(bool vgaViews) const
+{
+    SetIniString(GameSection, VGAViews, vgaViews ? TrueValue : FalseValue);
 }
 
 ResourceSaveLocation GameFolderHelper::GetResourceSaveLocation(ResourceSaveLocation location) const

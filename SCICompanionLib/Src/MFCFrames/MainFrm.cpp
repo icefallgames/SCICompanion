@@ -1666,7 +1666,7 @@ void CMainFrame::OnFileNewSound()
 #define PATCH_FILE_CURSOR "cursor.*;*.cur"
 #define PATCH_FILE_PATCH "patch.*;*.pat"
 #define PATCH_FILE_BITMAP "*.bit"
-#define PATCH_FILE_PALETTE "*.pal"
+#define PATCH_FILE_PALETTE "palette.*;*.pal"
 #define PATCH_FILE_CDAUDIO "*.cda"
 #define PATCH_FILE_AUDIO "*.aud"
 #define PATCH_FILE_SYNC "*.syn"
@@ -1730,7 +1730,7 @@ const TCHAR g_szResourceFilter[] = TEXT("All resources|" PATCH_FILE_TYPES "|"
     "Patches (patch.*)|patch.*;*.pat|"
     "Scripts (script.*)|script.*;*.scr|"
     "Messages (*.msg)|*.msg|"
-    "Palettes (*.pal)|*.pal|"
+    "Palettes (*.pal)|palette.*;*.pal|"
     "Audio (*.aud)|*.aud|"
     "CD Audio (*.cda)|*.cda|"
     "All files (*.*)|*.*|");
@@ -1955,8 +1955,10 @@ void CMainFrame::OnRebuildClassTable()
 
 void CMainFrame::OnExtractAllResources()
 {
+    ConvertViewsToVGA();
+    /*
     ExtractAllDialog extractAll;
-    extractAll.DoModal();
+    extractAll.DoModal();*/
 }
 
 void CMainFrame::_OnNewScriptDialog(CNewScriptDialog &dialog)

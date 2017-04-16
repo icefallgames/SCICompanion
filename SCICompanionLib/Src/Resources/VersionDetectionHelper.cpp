@@ -670,7 +670,11 @@ void SniffSCIVersion(GameFolderHelper &helper)
         }
     }
 
-
+    bool forceVGAViews = helper.GetHasVGAViews();
+    if (forceVGAViews)
+    {
+        helper.Version.HasPalette = true;
+    }
 
     // Now that we've determined a resource map format, we can iterate through them.
     // Now see if we can load a palette. If so, then we'll assume we have VGA pics and views
@@ -727,6 +731,11 @@ void SniffSCIVersion(GameFolderHelper &helper)
             helper.Version.PicFormat = PicFormat::VGA1;
             helper.Version.ViewFormat = ViewFormat::VGA1; // We'll get more specific on this later.
         }
+    }
+
+    if (forceVGAViews)
+    {
+        helper.Version.ViewFormat = ViewFormat::VGA1;
     }
 
     if (helper.Version.PackageFormat == ResourcePackageFormat::SCI2)
