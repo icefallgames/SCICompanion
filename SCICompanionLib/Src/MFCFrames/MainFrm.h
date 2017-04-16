@@ -139,6 +139,7 @@ private:  // control bar embedded members
     // The empty dialog can contain these subdialogs:
     RasterSidePane m_dlgForPanelDialogFont;
     RasterSidePane m_dlgForPanelDialogView;
+    RasterSidePane m_dlgForPanelDialogViewEGAFixed;
     RasterSidePane m_dlgForPanelDialogCursor;
     PicCommandSidePane m_dlgForPanelDialogPic;
     PicCommandSidePane m_dlgForPanelDialogPicVGA;

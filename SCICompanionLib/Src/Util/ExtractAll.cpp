@@ -330,5 +330,5 @@ void ConvertViewsToVGA()
     }
 
     // Finally
-    helper.SetHasVGAViews(true);
+    helper.SetFixedVGAPalette(true);
 }

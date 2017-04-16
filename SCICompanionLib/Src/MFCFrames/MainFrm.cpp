@@ -1042,6 +1042,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to create m_wndResizableBar_View\n");
         return -1;		// fail to create
     }
+    if (!m_dlgForPanelDialogViewEGAFixed.Create(IDD_DIALOGCELVIEW3, &m_dlgEmpty))
+    {
+        TRACE0("Failed to create m_wndResizableBar_View\n");
+        return -1;		// fail to create
+    }
     if (!m_dlgForPanelDialogCursor.Create(IDD_DIALOGCELCURSOR2, &m_dlgEmpty))
     {
         TRACE0("Failed to create m_wndResizableBar_Cursor\n");
@@ -1856,7 +1861,7 @@ void CMainFrame::_HideTabIfNot(MDITabType iTabTypeCurrent, MDITabType iTabTypeCo
         // Hide it if it's visible.
         if (bar.IsWindowVisible())
         {
-            ShowControlBar(&bar, FALSE, TRUE);
+ShowControlBar(&bar, FALSE, TRUE);
         }
     }
 }
@@ -1955,10 +1960,15 @@ void CMainFrame::OnRebuildClassTable()
 
 void CMainFrame::OnExtractAllResources()
 {
-    ConvertViewsToVGA();
-    /*
-    ExtractAllDialog extractAll;
-    extractAll.DoModal();*/
+    if (GetKeyState(VK_SHIFT) & 0x8000)
+    {
+        ConvertViewsToVGA();
+    }
+    else
+    {
+        ExtractAllDialog extractAll;
+        extractAll.DoModal();
+    }
 }
 
 void CMainFrame::_OnNewScriptDialog(CNewScriptDialog &dialog)
@@ -2411,6 +2421,7 @@ void CMainFrame::_RefreshToolboxPanelOnDeactivate(CFrameWnd *pWnd)
             // Clear out all documents first.
             // REVIEW: This code really needs reworking.
             m_dlgForPanelDialogView.SetDocument(nullptr);
+            m_dlgForPanelDialogViewEGAFixed.SetDocument(nullptr);
             m_dlgForPanelDialogFont.SetDocument(nullptr);
             m_dlgForPanelDialogCursor.SetDocument(nullptr);
             m_dlgForPanelDialogPic.SetDocument(nullptr);
@@ -2605,8 +2616,16 @@ void CMainFrame::_RefreshToolboxPanel(CFrameWnd *pWnd)
             switch (_pActiveFrame->GetTabType())
             {
             case TAB_VIEW:
-                pWndToShow = &m_dlgForPanelDialogView;
-                m_dlgForPanelDialogView.SetDocument(pDoc);
+                if (appState->GetVersion().FixedPalette)
+                {
+                    pWndToShow = &m_dlgForPanelDialogViewEGAFixed;
+                    m_dlgForPanelDialogViewEGAFixed.SetDocument(pDoc);
+                }
+                else
+                {
+                    pWndToShow = &m_dlgForPanelDialogView;
+                    m_dlgForPanelDialogView.SetDocument(pDoc);
+                }
                 break;
             case TAB_FONT:
                 pWndToShow = &m_dlgForPanelDialogFont;

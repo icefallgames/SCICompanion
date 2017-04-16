@@ -49,6 +49,7 @@ SCIVersion sciVersion0 =
     false,
 	false,
     false,
+    false,
 };
 
 // e.g. QFG2 EGA. Not checked for accuracy yet. Only used in pic unit tests.
@@ -82,6 +83,7 @@ SCIVersion sciVersion1_EarlyEGA =
     KernelSet::Provided,
     false,
 	false,
+    false,
     false,
 };
 
@@ -117,6 +119,7 @@ SCIVersion sciVersion1_Early =
     false,
 	false,
     true,
+    false,
 };
 
 // Not tested, but used for Longbow pics in unittests,
@@ -151,6 +154,7 @@ SCIVersion sciVersion1_Mid =
     true,
 	false,
     true,
+    false,
 };
 
 // Note sure what game this is for (VGA1_1???)
@@ -185,6 +189,7 @@ SCIVersion sciVersion1_Late =
     false,
 	false,
     true,
+    false,
 };
 
 SCIVersion sciVersion1_1 =
@@ -218,6 +223,7 @@ SCIVersion sciVersion1_1 =
     false,
 	false,
     true,
+    false,
 };
 
 SCIVersion sciVersion2 =
@@ -251,6 +257,7 @@ SCIVersion sciVersion2 =
     false,
 	true,
     true,
+    false,
 };
 
 bool SCIVersion::operator == (const SCIVersion &src) const

@@ -261,10 +261,28 @@ void RasterSidePane::_SyncPalette()
         }
 
         m_wndPalette.SetPalette(_cRows, _cColumns, reinterpret_cast<const EGACOLOR *>(raster.Traits.PaletteMapping), 256, paletteColors, dithered);
+
+        if (m_wndPaletteA)
+        {
+            m_wndPaletteA.SetPalette(1, 16, g_egaColorChooserPalette, 256, paletteColors, false);
+            m_wndPaletteB.SetPalette(16, 1, g_egaColorChooserPalette, 256, paletteColors, false);
+        }
+
         m_wndPalette.OnPaletteUpdated();
         m_wndChosenColors.Invalidate(FALSE);
         m_wndPalette.SetSelection(_pDoc->GetViewColor());
         m_wndPalette.SetAuxSelection(_pDoc->GetAlternateViewColor());
+
+        if (m_wndPaletteA)
+        {
+            m_wndPaletteA.OnPaletteUpdated();
+            m_wndPaletteA.SetSelection(_pDoc->GetViewColor());
+            m_wndPaletteA.SetAuxSelection(_pDoc->GetAlternateViewColor());
+            m_wndPaletteB.OnPaletteUpdated();
+            m_wndPaletteB.SetSelection(_pDoc->GetViewColor());
+            m_wndPaletteB.SetAuxSelection(_pDoc->GetAlternateViewColor());
+        }
+
         _UpdatePaletteChoices();
     }
 }
@@ -322,19 +340,44 @@ void RasterSidePane::OnColorClick(BYTE bIndex, int nID, BOOL fLeft)
 {
     if (_pDoc)
     {
-        assert((int)bIndex < (_cRows * _cColumns)); // Don't overflow our array.
-        const RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
-        uint8_t mappedColorIndex = raster.Traits.PaletteMapping[bIndex];
-
-        if (fLeft)
+        if (nID == IDC_STATIC_PALETTE)
         {
-            // Foreground colour.
-            _pDoc->SetViewColor(mappedColorIndex);
+            assert((int)bIndex < (_cRows * _cColumns)); // Don't overflow our array.
+            const RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
+            uint8_t mappedColorIndex = raster.Traits.PaletteMapping[bIndex];
+            if (fLeft)
+            {
+                // Foreground colour.
+                _pDoc->SetViewColor(mappedColorIndex);
+            }
+            else
+            {
+                // Background colour.
+                _pDoc->SetAlternateViewColor(mappedColorIndex);
+            }
         }
         else
         {
-            // Background colour.
-            _pDoc->SetAlternateViewColor(mappedColorIndex);
+            uint8_t index = fLeft ? _pDoc->GetViewColor() : _pDoc->GetAlternateViewColor();
+            bIndex &= 0x0f; // Isolate bottom 4 bits
+            if (nID == IDC_STATIC_PALETTEA)
+            {
+                // Lower nibble
+                index = (index & 0xf0) | bIndex;
+            }
+            else if (nID == IDC_STATIC_PALETTEB)
+            {
+                // Lower nibble
+                index = (index & 0x0f) | (bIndex << 4);
+            }
+            if (fLeft)
+            {
+                _pDoc->SetViewColor(index);
+            }
+            else
+            {
+                _pDoc->SetAlternateViewColor(index);
+            }
         }
     }
 }
@@ -589,6 +632,13 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
         {
             m_wndPalette.SetSelection(_pDoc->GetViewColor());
             m_wndPalette.SetAuxSelection(_pDoc->GetAlternateViewColor());
+            if (m_wndPaletteA)
+            {
+                m_wndPaletteA.SetSelection(_pDoc->GetViewColor() & 0xf);
+                m_wndPaletteA.SetAuxSelection(_pDoc->GetAlternateViewColor() & 0xf);
+                m_wndPaletteB.SetSelection((_pDoc->GetViewColor() & 0xf0) >> 4);
+                m_wndPaletteB.SetAuxSelection((_pDoc->GetAlternateViewColor() & 0xf0) >> 4);
+            }
         }
         ClearFlag(hint, RasterChangeHint::Color);
     }
@@ -875,6 +925,25 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     m_wndPalette.SetShowHover(false);
     m_wndPalette.ShowFocusBoxes(true);
     m_wndPalette.SetShowTransparentIndex(_fTransparency);
+
+    if (GetDlgItem(IDC_STATIC_PALETTEA))
+    {
+        // Assume B too
+        DDX_Control(pDX, IDC_STATIC_PALETTEA, m_wndPaletteA);
+        AddAnchor(IDC_STATIC_PALETTEA, CPoint(0, 0), CPoint(100, 0));
+        m_wndPalette.SetPalette(0, 0, nullptr, 0, nullptr);
+        m_wndPaletteA.SetCallback(this);
+        m_wndPaletteA.SetShowHover(false);
+        m_wndPaletteA.ShowFocusBoxes(true);
+        m_wndPaletteA.SetShowTransparentIndex(false);
+        DDX_Control(pDX, IDC_STATIC_PALETTEB, m_wndPaletteB);
+        AddAnchor(IDC_STATIC_PALETTEB, CPoint(0, 0), CPoint(0, 0));
+        m_wndPalette.SetPalette(0, 0, nullptr, 0, nullptr);
+        m_wndPaletteB.SetCallback(this);
+        m_wndPaletteB.SetShowHover(false);
+        m_wndPaletteB.ShowFocusBoxes(true);
+        m_wndPaletteB.SetShowTransparentIndex(false);
+    }
 
     DDX_Control(pDX, IDC_STATIC_CHOSENCOLORS, m_wndChosenColors);
     AddAnchor(IDC_STATIC_CHOSENCOLORS, CPoint(0, 0), CPoint(0, 0));

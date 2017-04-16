@@ -315,6 +315,7 @@
 #define IDD_PICCLIPS                    403
 #define IDI_STAMP                       404
 #define IDD_PICCOMMANDS_EGAPOLY         404
+#define IDD_DIALOGCELVIEW3              405
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -396,11 +397,14 @@
 #define IDC_STATIC_PALETTE              1060
 #define IDC_STATIC_CHOSENCOLORS         1061
 #define IDC_COMBO_PENWIDTH              1062
+#define IDC_STATIC_PALETTEA             1062
 #define IDC_ANIMATE                     1063
 #define IDC_COMBO_PALETTE               1063
 #define IDC_EDIT_FINDWHAT               1064
 #define IDC_WAVEFORM                    1064
 #define IDC_LEVELMETER                  1064
+#define IDC_STATIC_PALETTE3             1064
+#define IDC_STATIC_PALETTEB             1064
 #define IDC_CHECK_MATCHCASE             1065
 #define IDC_CHECK_MATCHWHOLEWORD        1066
 #define IDC_WAVEFORM2                   1066
@@ -1230,7 +1234,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        411
+#define _APS_NEXT_RESOURCE_VALUE        413
 #define _APS_NEXT_COMMAND_VALUE         33353
 #define _APS_NEXT_CONTROL_VALUE         1406
 #define _APS_NEXT_SYMED_VALUE           105

@@ -670,9 +670,10 @@ void SniffSCIVersion(GameFolderHelper &helper)
         }
     }
 
-    bool forceVGAViews = helper.GetHasVGAViews();
+    bool forceVGAViews = helper.GetFixedVGAPalette();
     if (forceVGAViews)
     {
+        helper.Version.FixedPalette = true;
         helper.Version.HasPalette = true;
     }
 

@@ -73,10 +73,10 @@ public:
     void SetUseSierraAspectRatio(bool useSierra) const;
 	bool GetUndither() const;
 	void SetUndither(bool undither) const;
-    void SetHasVGAViews(bool vgaView) const;
+    void SetFixedVGAPalette(bool vgaView) const;
 
     bool GetGenerateDebugInfo() const;
-    bool GetHasVGAViews() const;
+    bool GetFixedVGAPalette() const;
 
     ResourceSaveLocation GetResourceSaveLocation(ResourceSaveLocation location) const;
     void SetResourceSaveLocation(ResourceSaveLocation location) const;

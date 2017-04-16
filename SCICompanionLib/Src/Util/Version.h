@@ -126,6 +126,7 @@ struct SCIVersion
     bool IsExportWide;
 	bool IsZeroExportValid;
     bool UsesPolygons;
+    bool FixedPalette;
 
     bool operator==(const SCIVersion &src) const;
     bool operator!=(const SCIVersion &src) const;

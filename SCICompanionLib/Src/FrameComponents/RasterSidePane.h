@@ -118,6 +118,10 @@ private:
     CChooseColorStatic m_wndPalette;
     CExtLabel m_wndChosenColors;
 
+    // Fixed palette only
+    CChooseColorStatic m_wndPaletteA;
+    CChooseColorStatic m_wndPaletteB;
+
     // Font related things
     bool _fSupportsFonts;
     CEdit m_wndLineHeight;
