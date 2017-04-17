@@ -32,6 +32,7 @@ class RasterSidePane : public CExtDialogFwdCmd, public INonViewClient, public IC
 {
 public:
 	RasterSidePane(CWnd *pParent = NULL);
+
 	virtual ~RasterSidePane();
 
     void SetDocument(CDocument *pDoc);
@@ -90,6 +91,7 @@ private:
     void _OnPenStyleChanged();
     void _OnDirectionButton(CPoint point);
     void _SyncPalette();
+    void _SyncEGAPalettes();
 
 private:
     CNewRasterResourceDocument *_pDoc;
@@ -105,6 +107,9 @@ private:
     bool _fTransparency;
     CColorPickerButton m_wndTransparent;
 
+    CColorPickerButton m_wndButtonMainColor;
+    CColorPickerButton m_wndButtonAltColor;
+
     // Loops:
     bool _fSupportsLoops;
     CExtComboBox m_wndMirrorOf;
@@ -115,7 +120,7 @@ private:
     CExtButton m_wndEditPaletteButton;
 
     // Color: (supported by all)
-    CChooseColorStatic m_wndPalette;
+    CChooseColorStatic m_wndPalette; // Actually not all
     CExtLabel m_wndChosenColors;
 
     // Fixed palette only

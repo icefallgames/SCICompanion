@@ -283,7 +283,7 @@ EGACOLOR egaColorWheel[] =
 RGBQUAD dummy[256] = {}; // Unneeded for rendering, since we're dithering.
 
 CChooseColorAdvancedDialog::CChooseColorAdvancedDialog(CWnd* pParent /*=NULL*/)
-	: CExtResizableDialog(CChooseColorAdvancedDialog::IDD, pParent)
+	: CExtResizableDialog(CChooseColorAdvancedDialog::IDD, pParent), _fUseTrack(false)
 {
     _bChoice = 0;
     // 256 things here.
@@ -351,3 +351,60 @@ void CChooseColorAdvancedDialog::OnColorClick(BYTE bIndex, int nID, BOOL fLeftCl
     }
 }
 
+
+BOOL CChooseColorAdvancedDialog::OnInitDialog()
+{
+    BOOL bRet = __super::OnInitDialog();
+    _SetPosition();
+    return bRet;
+}
+
+void CChooseColorAdvancedDialog::_SetPosition()
+{
+    if (_fUseTrack)
+    {
+        // Calculate the most appropriate position for the left-top corner of control
+        // By default, at left and bottom of the caller
+        CPoint pt(_rcTrack.left, _rcTrack.bottom);
+        RECT rcCtrl;
+        GetClientRect(&rcCtrl);
+
+        RECT rcScreen;
+        rcScreen.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        rcScreen.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+        rcScreen.right = rcScreen.left + GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        rcScreen.bottom = rcScreen.top + GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+        // Alignment at right if necessary
+        if (pt.x + RECTWIDTH(rcCtrl) > rcScreen.right)
+        {
+            pt.x = _rcTrack.right - RECTWIDTH(rcCtrl);
+        }
+        // Alignment at top if necessary
+        if (pt.y + RECTHEIGHT(rcCtrl) > rcScreen.bottom)
+        {
+            pt.y = _rcTrack.top - RECTHEIGHT(rcCtrl);
+        }
+
+        // Adjustments to keep control into screen
+        if (pt.x + RECTWIDTH(rcCtrl) > rcScreen.right)
+        {
+            pt.x = rcScreen.right - RECTWIDTH(rcCtrl);
+        }
+        if (pt.y + RECTHEIGHT(rcCtrl) > rcScreen.bottom)
+        {
+            pt.y = rcScreen.bottom - RECTHEIGHT(rcCtrl);
+        }
+        if (pt.x < rcScreen.left)
+        {
+            pt.x = rcScreen.left;
+        }
+        if (pt.y < rcScreen.top)
+        {
+            pt.y = rcScreen.top;
+        }
+
+        RECT rcNew = { pt.x, pt.y, pt.x + RECTWIDTH(rcCtrl), pt.y + RECTHEIGHT(rcCtrl) };
+        MoveWindow(&rcNew);
+    }
+}

@@ -348,9 +348,12 @@
 #define IDC_CHOOSEBRUSHSTATIC           1009
 #define IDC_BUTTONLEFT                  1009
 #define IDC_PALETTEPREVIEW              1010
+#define IDC_BUTTON_MAINCOLOR            1010
 #define IDC_TAB1                        1011
 #define IDC_PALETTETAB                  1011
 #define IDC_TABS                        1011
+#define IDC_BUTTON_MAINCOLOR2           1011
+#define IDC_BUTTON_ALTCOLOR             1011
 #define IDC_EDITPACKAGE                 1012
 #define IDC_EDITRESOURCE                1013
 #define IDC_FAKEEGOX                    1014

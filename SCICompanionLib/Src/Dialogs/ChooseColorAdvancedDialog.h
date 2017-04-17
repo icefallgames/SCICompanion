@@ -21,6 +21,7 @@ class CChooseColorAdvancedDialog : public CExtResizableDialog, public IColorDial
 {
 public:
     CChooseColorAdvancedDialog(CWnd* pParent = NULL);  // standard constructor
+    void SetTrackRect(RECT *prc) { _rcTrack = *prc; _fUseTrack = true; }
 
     // IColorDialogCallback
     void OnColorClick(BYTE bIndex, int nID, BOOL fLeftClick);
@@ -34,6 +35,8 @@ public:
 	enum { IDD = IDD_COLORADVANCED };
 
 protected:
+    virtual BOOL OnInitDialog();
+
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
@@ -44,4 +47,10 @@ protected:
     // Visuals
     CExtButton m_wndCancel;
     CExtLabel m_wndDesc;
+
+private:
+    void _SetPosition(); // Determine the right position to start this in.
+
+    RECT _rcTrack;
+    bool _fUseTrack;
 };

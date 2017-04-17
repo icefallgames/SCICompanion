@@ -27,7 +27,7 @@
 #include "PaletteOperations.h"
 #include "format.h"
 #include "ChoosePenStyleDialog.h"
-
+#include "ChooseColorAdvancedDialog.h"
 // RasterSidePane
 
 RasterSidePane::RasterSidePane(CWnd* pParent /*=nullptr*/)
@@ -220,6 +220,7 @@ void RasterSidePane::SetDocument(CDocument *pDoc)
         _SyncSampleText();
         _OnPenStyleChanged();
         _SyncCelPane();
+        _SyncEGAPalettes();
         _SyncLoopPane();
         _OnUpdateCommandUIs();
         _UpdatePaletteChoices();
@@ -230,6 +231,11 @@ void RasterSidePane::SetDocument(CDocument *pDoc)
             appState->SetRecentlyInteractedView(_pDoc->GetResource()->ResourceNumber);
         }
     }
+}
+
+uint8_t ExpandEGA(uint8_t ega)
+{
+    return (0xf & ega) | (ega << 4);
 }
 
 void RasterSidePane::_SyncPalette()
@@ -260,27 +266,37 @@ void RasterSidePane::_SyncPalette()
             break;
         }
 
-        m_wndPalette.SetPalette(_cRows, _cColumns, reinterpret_cast<const EGACOLOR *>(raster.Traits.PaletteMapping), 256, paletteColors, dithered);
+        if (m_wndPalette)
+        {
+            m_wndPalette.SetPalette(_cRows, _cColumns, reinterpret_cast<const EGACOLOR *>(raster.Traits.PaletteMapping), 256, paletteColors, dithered);
+        }
 
         if (m_wndPaletteA)
         {
-            m_wndPaletteA.SetPalette(1, 16, g_egaColorChooserPalette, 256, paletteColors, false);
-            m_wndPaletteB.SetPalette(16, 1, g_egaColorChooserPalette, 256, paletteColors, false);
+            m_wndPaletteA.SetPalette(2, 8, g_egaColorChooserPalette, 256, paletteColors, false);
+            m_wndPaletteB.SetPalette(2, 8, g_egaColorChooserPalette, 256, paletteColors, false);
         }
 
-        m_wndPalette.OnPaletteUpdated();
+        if (m_wndPalette)
+        {
+            m_wndPalette.OnPaletteUpdated();
+            m_wndPalette.SetSelection(_pDoc->GetViewColor());
+            m_wndPalette.SetAuxSelection(_pDoc->GetAlternateViewColor());
+        }
         m_wndChosenColors.Invalidate(FALSE);
-        m_wndPalette.SetSelection(_pDoc->GetViewColor());
-        m_wndPalette.SetAuxSelection(_pDoc->GetAlternateViewColor());
 
         if (m_wndPaletteA)
         {
             m_wndPaletteA.OnPaletteUpdated();
-            m_wndPaletteA.SetSelection(_pDoc->GetViewColor());
-            m_wndPaletteA.SetAuxSelection(_pDoc->GetAlternateViewColor());
+            uint8_t mainA = _pDoc->GetViewColor() & 0xf;
+            uint8_t mainB = (_pDoc->GetViewColor() & 0xf0) >> 4;
+            m_wndPaletteA.SetSelection(ExpandEGA(mainA));
+            m_wndPaletteA.SetAuxSelection(ExpandEGA(mainB));
             m_wndPaletteB.OnPaletteUpdated();
-            m_wndPaletteB.SetSelection(_pDoc->GetViewColor());
-            m_wndPaletteB.SetAuxSelection(_pDoc->GetAlternateViewColor());
+            uint8_t altA = _pDoc->GetAlternateViewColor() & 0xf;
+            uint8_t altB = (_pDoc->GetAlternateViewColor() & 0xf0) >> 4;
+            m_wndPaletteB.SetSelection(ExpandEGA(altA));
+            m_wndPaletteB.SetAuxSelection(ExpandEGA(altB));
         }
 
         _UpdatePaletteChoices();
@@ -358,19 +374,19 @@ void RasterSidePane::OnColorClick(BYTE bIndex, int nID, BOOL fLeft)
         }
         else
         {
-            uint8_t index = fLeft ? _pDoc->GetViewColor() : _pDoc->GetAlternateViewColor();
+            uint8_t index = nID == IDC_STATIC_PALETTEA ? _pDoc->GetViewColor() : _pDoc->GetAlternateViewColor();
             bIndex &= 0x0f; // Isolate bottom 4 bits
-            if (nID == IDC_STATIC_PALETTEA)
+            if (fLeft)
             {
                 // Lower nibble
                 index = (index & 0xf0) | bIndex;
             }
-            else if (nID == IDC_STATIC_PALETTEB)
+            else
             {
                 // Lower nibble
                 index = (index & 0x0f) | (bIndex << 4);
             }
-            if (fLeft)
+            if (nID == IDC_STATIC_PALETTEA)
             {
                 _pDoc->SetViewColor(index);
             }
@@ -385,32 +401,62 @@ void RasterSidePane::OnColorClick(BYTE bIndex, int nID, BOOL fLeft)
 // IDialogFactory
 void RasterSidePane::InvokeDialog(UINT nID, RECT *prcTarget)
 {
-    assert(nID == IDC_BUTTON_TRANSPARENCY);
     if (_pDoc)
     {
-        const RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
-        const Cel &cel = raster.GetCel(_pDoc->GetSelectedIndex());
-        uint8_t bColor = cel.TransparentColor;
-        CChoosePriConDialog dialog(_pDoc->GetCurrentPaletteComponent());
-        dialog.SetCaptionID(IDS_CHOOSEATRANSPARENCY);
-        dialog.SetColor(bColor);
-        dialog.SetTrackRect(prcTarget);
-        if (IDOK == dialog.DoModal())
+        switch (nID)
         {
-            bColor = dialog.GetColor();
-
-            CelIndex rgdwIndices[128];
-            int cCels = _pDoc->GetSelectedGroup(rgdwIndices, ARRAYSIZE(rgdwIndices));
-            if (cCels > 0)
+        case IDC_BUTTON_TRANSPARENCY:
+        {
+            const RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
+            const Cel &cel = raster.GetCel(_pDoc->GetSelectedIndex());
+            uint8_t bColor = cel.TransparentColor;
+            CChoosePriConDialog dialog(_pDoc->GetCurrentPaletteComponent());
+            dialog.SetCaptionID(IDS_CHOOSEATRANSPARENCY);
+            dialog.SetColor(bColor);
+            dialog.SetTrackRect(prcTarget);
+            if (IDOK == dialog.DoModal())
             {
-                ResourceEntityDocument *pred = static_cast<ResourceEntityDocument*>(_pDoc);
-                pred->ApplyChanges<RasterComponent>(
-                    [&](RasterComponent &raster)
+                bColor = dialog.GetColor();
+
+                CelIndex rgdwIndices[128];
+                int cCels = _pDoc->GetSelectedGroup(rgdwIndices, ARRAYSIZE(rgdwIndices));
+                if (cCels > 0)
+                {
+                    ResourceEntityDocument *pred = static_cast<ResourceEntityDocument*>(_pDoc);
+                    pred->ApplyChanges<RasterComponent>(
+                        [&](RasterComponent &raster)
                     {
                         return WrapRasterChange(SetGroupTransparentColor(raster, cCels, rgdwIndices, bColor));
                     }
                     );
+                }
             }
+            break;
+        }
+        case IDC_BUTTON_MAINCOLOR:
+        {
+            CChooseColorAdvancedDialog dialog;
+            EGACOLOR color = EGAColorFromByte(_pDoc->GetViewColor());
+            dialog.SetColor(color);
+            dialog.SetTrackRect(prcTarget);
+            if (IDOK == dialog.DoModal())
+            {
+                _pDoc->SetViewColor(dialog.GetColor().ToByte());
+            }
+            break;
+        }
+        case IDC_BUTTON_ALTCOLOR:
+        {
+            CChooseColorAdvancedDialog dialog;
+            EGACOLOR color = EGAColorFromByte(_pDoc->GetAlternateViewColor());
+            dialog.SetColor(color);
+            dialog.SetTrackRect(prcTarget);
+            if (IDOK == dialog.DoModal())
+            {
+                _pDoc->SetAlternateViewColor(dialog.GetColor().ToByte());
+            }
+            break;
+        }
         }
     }
 }
@@ -620,6 +666,24 @@ void RasterSidePane::OnEditSampleText()
     }
 }
 
+void RasterSidePane::_SyncEGAPalettes()
+{
+
+    if (m_wndPaletteA)
+    {
+        // left is the lower nibble, right (aux) is the higher.
+        m_wndPaletteA.SetSelection(_pDoc->GetViewColor() & 0xf);
+        m_wndPaletteA.SetAuxSelection((_pDoc->GetViewColor() & 0xf0) >> 4);
+        m_wndPaletteB.SetSelection(_pDoc->GetAlternateViewColor() & 0xf);
+        m_wndPaletteB.SetAuxSelection((_pDoc->GetAlternateViewColor() & 0xf0) >> 4);
+    }
+    if (m_wndButtonMainColor)
+    {
+        m_wndButtonMainColor.SetColorAndState(g_egaColorsMixed[_pDoc->GetViewColor()], TRUE);
+        m_wndButtonAltColor.SetColorAndState(g_egaColorsMixed[_pDoc->GetAlternateViewColor()], TRUE);
+    }
+}
+
 void RasterSidePane::UpdateNonView(CObject *pObject)
 {
     RasterChangeHint hint = GetHint<RasterChangeHint>(pObject);
@@ -630,15 +694,13 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
         m_wndChosenColors.Invalidate(FALSE);
         if (_pDoc)
         {
-            m_wndPalette.SetSelection(_pDoc->GetViewColor());
-            m_wndPalette.SetAuxSelection(_pDoc->GetAlternateViewColor());
-            if (m_wndPaletteA)
+            if (m_wndPalette)
             {
-                m_wndPaletteA.SetSelection(_pDoc->GetViewColor() & 0xf);
-                m_wndPaletteA.SetAuxSelection(_pDoc->GetAlternateViewColor() & 0xf);
-                m_wndPaletteB.SetSelection((_pDoc->GetViewColor() & 0xf0) >> 4);
-                m_wndPaletteB.SetAuxSelection((_pDoc->GetAlternateViewColor() & 0xf0) >> 4);
+                m_wndPalette.SetSelection(_pDoc->GetViewColor());
+                m_wndPalette.SetAuxSelection(_pDoc->GetAlternateViewColor());
             }
+
+            _SyncEGAPalettes();
         }
         ClearFlag(hint, RasterChangeHint::Color);
     }
@@ -812,7 +874,10 @@ void RasterSidePane::_SyncCelPane()
                 EGACOLOR color = { bTransparent, bTransparent };
                 m_wndTransparent.SetColorAndState(color, TRUE);
             }
-            m_wndPalette.SetTransparentIndex(bTransparent);
+            if (m_wndPalette)
+            {
+                m_wndPalette.SetTransparentIndex(bTransparent);
+            }
         }
 
         // Font line height and number of chars
@@ -887,6 +952,15 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         m_wndTransparent.SetDialogFactory(this);
         _fTransparency = true;
     }
+    if (GetDlgItem(IDC_BUTTON_MAINCOLOR))
+    {
+        DDX_Control(pDX, IDC_BUTTON_MAINCOLOR, m_wndButtonMainColor);
+        AddAnchor(IDC_BUTTON_MAINCOLOR, CPoint(0, 0), CPoint(0, 0));
+        m_wndButtonMainColor.SetDialogFactory(this);
+        DDX_Control(pDX, IDC_BUTTON_ALTCOLOR, m_wndButtonAltColor);
+        AddAnchor(IDC_BUTTON_ALTCOLOR, CPoint(0, 0), CPoint(0, 0));
+        m_wndButtonAltColor.SetDialogFactory(this);
+    }
     if (GetDlgItem(IDC_EDIT_LINEHEIGHT))
     {
         DDX_Control(pDX, IDC_EDIT_LINEHEIGHT, m_wndLineHeight);
@@ -918,13 +992,16 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     }
 
     // Prepare the palette - a 4x4 grid of colours - we'll set this up later
-    DDX_Control(pDX, IDC_STATIC_PALETTE, m_wndPalette);
-    AddAnchor(IDC_STATIC_PALETTE, CPoint(0, 0), CPoint(100, 0));
-    m_wndPalette.SetPalette(0, 0, nullptr, 0, nullptr);
-    m_wndPalette.SetCallback(this);
-    m_wndPalette.SetShowHover(false);
-    m_wndPalette.ShowFocusBoxes(true);
-    m_wndPalette.SetShowTransparentIndex(_fTransparency);
+    if (GetDlgItem(IDC_STATIC_PALETTE))
+    {
+        DDX_Control(pDX, IDC_STATIC_PALETTE, m_wndPalette);
+        AddAnchor(IDC_STATIC_PALETTE, CPoint(0, 0), CPoint(100, 0));
+        m_wndPalette.SetPalette(0, 0, nullptr, 0, nullptr);
+        m_wndPalette.SetCallback(this);
+        m_wndPalette.SetShowHover(false);
+        m_wndPalette.ShowFocusBoxes(true);
+        m_wndPalette.SetShowTransparentIndex(_fTransparency);
+    }
 
     if (GetDlgItem(IDC_STATIC_PALETTEA))
     {
@@ -937,7 +1014,7 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         m_wndPaletteA.ShowFocusBoxes(true);
         m_wndPaletteA.SetShowTransparentIndex(false);
         DDX_Control(pDX, IDC_STATIC_PALETTEB, m_wndPaletteB);
-        AddAnchor(IDC_STATIC_PALETTEB, CPoint(0, 0), CPoint(0, 0));
+        AddAnchor(IDC_STATIC_PALETTEB, CPoint(0, 0), CPoint(100, 0));
         m_wndPalette.SetPalette(0, 0, nullptr, 0, nullptr);
         m_wndPaletteB.SetCallback(this);
         m_wndPaletteB.SetShowHover(false);
@@ -1195,6 +1272,7 @@ void RasterSidePane::OnMakeFont()
         _pDoc->MakeFont();
     }
 }
+
 void RasterSidePane::OnPenStyle()
 {
     if (_pDoc)
