@@ -1321,11 +1321,12 @@ void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
                     if (fShowing)
                     {
                         // Copy a pixel!
-						if (isEGAUndithered)
-						{
-							// Duplicate the color into the other slot if undithered.
-							bView |= (bView << 4);
-						}
+                        // We already expand, no longer needed?
+                        /*if (isEGAUndithered)
+                        {
+                            // Duplicate the color into the other slot if undithered.
+                            bView |= (bView << 4);
+                        }*/ 
                         *(pdataDisplay + pPicOffset) = bView;
                         xLastPixel = -1;
 
