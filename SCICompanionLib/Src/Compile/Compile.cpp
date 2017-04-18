@@ -955,7 +955,7 @@ void PropertyValueBase::PreScan(CompileContext &context)
     case ValueType::ResourceString:
         // Generating a token here means that the string will be added to the
         // script. But we don't want that if it is used as a resource string only.
-        // In some contexts (e.g. script vars, class properties, assignments, comparisons, etc..),
+        // In some contexts (e.g. class properties, assignments, comparisons, etc..),
         // quoted resource strings are treated as regular strings. So any part of the script that does that
         // needs to be output prior to the string section. Or, the parser needs to ensure that script part
         // never has ValueType::ResourceString. This is a bit fragile, should think how to rework or enforce this.
@@ -3620,6 +3620,22 @@ void WhileLoop::PreScan(CompileContext &context)
 
 void ExportEntry::PreScan(CompileContext &context) {}
 
+void Script::TrackGenText(CompileContext &context)
+{
+    if (_genTextValue)
+    {
+        _genTextValue->PreScan(context);
+        if (_genTextValue->GetType() == ValueType::Number)
+        {
+            context.SetAutoText(_genTextValue->GetNumberValue());
+        }
+        else
+        {
+            context.ReportError(_genTextValue.get(), "Can't resolve '%s' to a number.", _genTextValue->GetStringValue().c_str());
+        }
+    }
+}
+
 void Script::PreScan(CompileContext &context)
 {
     ForwardPreScan2(_defines, context);
@@ -3707,19 +3723,6 @@ void Script::PreScan(CompileContext &context)
     for (auto &stringDecl : _scriptStringDeclarations)
     {
         _PreScanStringDeclaration(context, *stringDecl);
-    }
-
-    if (_genTextValue)
-    {
-        _genTextValue->PreScan(context);
-        if (_genTextValue->GetType() == ValueType::Number)
-        {
-            context.SetAutoText(_genTextValue->GetNumberValue());
-        }
-        else
-        { 
-            context.ReportError(_genTextValue.get(), "Can't resolve '%s' to a number.", _genTextValue->GetStringValue().c_str());
-        }
     }
 }
 
@@ -3873,10 +3876,32 @@ void TrackArraySizes(CompileContext &context, sci::Script &script)
         if (varDecl->IsUnspecifiedSize())
         {
             // It's pretty straightforward... the size is the number of initializers
-            uint16_t size = (uint16_t)varDecl->GetInitializers().size();
+            // *unless there is a resource string*
+            uint16_t autoText;
+            uint16_t size = 0;
+            if (context.IsAutoText(autoText))
+            {
+                for (const auto &initializer : varDecl->GetInitializers())
+                {
+                    if ((initializer->GetNodeType() == NodeTypeValue) || (initializer->GetNodeType() == NodeTypeComplexValue))
+                    {
+                        PropertyValueBase &propValue = static_cast<PropertyValueBase&>(*initializer);
+                        if (propValue.GetType() == ValueType::ResourceString)
+                        {
+                            size++; // An additional one...
+                        }
+                    }
+                    size++;
+                }
+            }
+            else
+            {
+                size = (uint16_t)varDecl->GetInitializers().size();
+            }
             // And at least one.
             size = max(1, size);
             context.ScriptArraySizes[varDecl->GetName()] = size;
+            varDecl->SetSize(size);
         }
         else
         {

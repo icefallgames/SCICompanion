@@ -363,6 +363,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_OBSERVECONTROLLINES, CPicView::OnObserveControlLines)
     ON_COMMAND(ID_OBSERVEPOLYGONS, CPicView::OnObservePolygons)
     ON_COMMAND(ID_EGO_COPY, CPicView::OnCopyFakeEgoAttributes)
+    ON_COMMAND(ID_EGO_APPENDCOPY, CPicView::OnAppendCopyFakeEgoAttributes)
     ON_COMMAND(ID_PIC_EXPORT8, CPicView::OnExportPalettizedBitmap)
     ON_COMMAND(ID_PIC_EDITPALETTE, CPicView::EditVGAPalette)
     ON_COMMAND(ID_PIC_DELETEPOINT, CPicView::OnDeletePoint)
@@ -446,6 +447,8 @@ END_MESSAGE_MAP()
 
 CPicView::CPicView()
 {
+    _fakeEgoAttributes.emplace_back();
+
     _fGridLines = false;
     _transformCommandMod = std::make_unique<CommandModifier>();
     _currentPolyPointIndexInEdit = -1;
@@ -471,8 +474,8 @@ CPicView::CPicView()
     _fCapturing = FALSE;
     _pointCapture.x = 0;
     _pointCapture.y = 0;
-    _fakeEgoAttributes.Location.x = 140; // Good starting values.
-    _fakeEgoAttributes.Location.y = 80;
+    _fakeEgoAttributes.back().Location.x = 140; // Good starting values.
+    _fakeEgoAttributes.back().Location.y = 80;
     _fCanBeHere = false;
 
     _fDrawingLine = FALSE;
@@ -641,11 +644,11 @@ void CPicView::OnSetEgoPriority(UINT nID)
 {
     if (nID == ID_DEFAULTPRIORITY)
     {
-        _fakeEgoAttributes.Pri = -1;
+        _fakeEgoAttributes.back().Pri = -1;
     }
     else
     {
-        _fakeEgoAttributes.Pri = (nID - ID_MAIN_PRI0);
+        _fakeEgoAttributes.back().Pri = (nID - ID_MAIN_PRI0);
     }
 }
 
@@ -661,21 +664,41 @@ void CPicView::OnObservePolygons()
 
 void CPicView::OnCopyFakeEgoAttributes()
 {
+    // Remove all but the last one...
+    _fakeEgoAttributes.erase(_fakeEgoAttributes.begin(), _fakeEgoAttributes.end() - 1);
+    _OnCopyFakeEgoAttributesHelper();
+    // Dupe the most recent one... (i.e. freeze the previous one, and all new attributes
+    // henceforth go to the new one)
+    _fakeEgoAttributes.push_back(_fakeEgoAttributes.back());
+}
+
+void CPicView::OnAppendCopyFakeEgoAttributes()
+{
+    _OnCopyFakeEgoAttributesHelper();
+    _fakeEgoAttributes.push_back(_fakeEgoAttributes.back());
+}
+
+void CPicView::_OnCopyFakeEgoAttributesHelper()
+{
     if (GetDocument())
     {
-        _fakeEgoAttributes.View = GetDocument()->GetFakeEgo();
+        _fakeEgoAttributes.back().View = GetDocument()->GetFakeEgo();
 
         auto fakeEgo = _GetFakeEgo();
         if (fakeEgo)
         {
             RasterComponent &raster = fakeEgo->GetComponent<RasterComponent>();
             // Ensure loop/cel is valid
-            _fakeEgoAttributes.Loop = max(0, min(raster.LoopCount() - 1, _fakeEgoAttributes.Loop));
-            const Loop &loop = raster.Loops[_fakeEgoAttributes.Loop];
-            _fakeEgoAttributes.Cel = max(0, min((int)loop.Cels.size() - 1, _fakeEgoAttributes.Cel));
+            _fakeEgoAttributes.back().Loop = max(0, min(raster.LoopCount() - 1, _fakeEgoAttributes.back().Loop));
+            const Loop &loop = raster.Loops[_fakeEgoAttributes.back().Loop];
+            _fakeEgoAttributes.back().Cel = max(0, min((int)loop.Cels.size() - 1, _fakeEgoAttributes.back().Cel));
 
             sci::ostream stream;
-            stream << _fakeEgoAttributes;
+            stream << _fakeEgoAttributes.size();
+            for (auto &fakeEgo : _fakeEgoAttributes)
+            {
+                stream << fakeEgo;
+            }
             OpenAndSetClipboardDataFromStream(this, appState->ViewAttributesClipboardFormat, stream);
         }
     }
@@ -1911,8 +1934,8 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
             if (fCanBeHere)
             {
                 _fCanBeHere = fCanBeHere;
-                _fakeEgoAttributes.Location = ptNew;
-                appState->_ptFakeEgo = _fakeEgoAttributes.Location;
+                _fakeEgoAttributes.back().Location = ptNew;
+                appState->_ptFakeEgo = _fakeEgoAttributes.back().Location;
                 InvalidateOurselves();
             }
             else if (fCanBeHere != _fCanBeHere)
@@ -2129,27 +2152,27 @@ void CPicView::_GenerateTraceImage(CDC *pDC)
 
 void CPicView::_DrawEgoCoordinates(CDC *pDC)
 {
-    if ((appState->_fUseBoxEgo && (_fakeEgoAttributes.Pri != -1)) || (!appState->_fUseBoxEgo && _GetFakeEgo()))
+    if ((appState->_fUseBoxEgo && (_fakeEgoAttributes.back().Pri != -1)) || (!appState->_fUseBoxEgo && _GetFakeEgo()))
     {
         // The cursor is over the ego.  Draw the coordinates.
         // First we need to convert the ego coordinates to "client" coordinates
-        CPoint ptEgoClient = _MapPicPointToClient(_fakeEgoAttributes.Location);
+        CPoint ptEgoClient = _MapPicPointToClient(_fakeEgoAttributes.back().Location);
         TCHAR szCoords[20];
         if (appState->_fUseBoxEgo)
         {
-            assert(_fakeEgoAttributes.Pri != -1);
+            assert(_fakeEgoAttributes.back().Pri != -1);
             // The only time we draw anything for "box" egos is if the user set a pri.
-            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("pri %d"), _fakeEgoAttributes.Pri);
+            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("pri %d"), _fakeEgoAttributes.back().Pri);
         }
         else
         {
-            if (_fakeEgoAttributes.Pri == -1)
+            if (_fakeEgoAttributes.back().Pri == -1)
             {
-                StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d)"), _fakeEgoAttributes.Location.x, _fakeEgoAttributes.Location.y);
+                StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d)"), _fakeEgoAttributes.back().Location.x, _fakeEgoAttributes.back().Location.y);
             }
             else
             {
-                StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d) - pri %d"), _fakeEgoAttributes.Location.x, _fakeEgoAttributes.Location.y, _fakeEgoAttributes.Pri);
+                StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d) - pri %d"), _fakeEgoAttributes.back().Location.x, _fakeEgoAttributes.back().Location.y, _fakeEgoAttributes.back().Pri);
             }
         }
         CRect rectTextSize;
@@ -2786,17 +2809,17 @@ void CPicView::OnDraw(CDC *pDC)
 
 CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags)
 {
-    int16_t egoPriority = PriorityFromY((uint16_t)_fakeEgoAttributes.Location.y, viewPort);
+    int16_t egoPriority = PriorityFromY((uint16_t)_fakeEgoAttributes.back().Location.y, viewPort);
     if (_GetEditPic() && _GetEditPic()->Traits->ContinuousPriority)
     {
         // TODO: Don't use global DefaultResolution, but instead pic resolution
-        point16 position = ScreenResolutionToGameResolution(CPointToPoint(_fakeEgoAttributes.Location));
+        point16 position = ScreenResolutionToGameResolution(CPointToPoint(_fakeEgoAttributes.back().Location));
         egoPriority = position.y;
         // Now turn it into something we can compare with the priority screen
         egoPriority = PriorityValueToColorIndex(true, egoPriority);
     }
     
-    uint8_t bEgoPriority = (_fakeEgoAttributes.Pri) == -1 ? (uint8_t)egoPriority : (uint8_t)_fakeEgoAttributes.Pri;
+    uint8_t bEgoPriority = (_fakeEgoAttributes.back().Pri) == -1 ? (uint8_t)egoPriority : (uint8_t)_fakeEgoAttributes.back().Pri;
     // Now we need to draw a box (or whatever), but only where
     // the bEgoPriority is equal to or greater than the priority
     // of the priority screen.
@@ -2807,12 +2830,12 @@ CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVi
         if (!appState->_fUseBoxEgo && _GetFakeEgo())
         {
             // Draw a view.
-            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, _GetFakeEgo(), _fakeEgoAttributes.Loop, _fakeEgoAttributes.Cel, _HitTestFakeEgo(_ptCurrentHover), GetDocument()->IsUndithered());
+            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, _GetFakeEgo(), _fakeEgoAttributes.back().Loop, _fakeEgoAttributes.back().Cel, _HitTestFakeEgo(_ptCurrentHover), GetDocument()->IsUndithered());
         }
         else
         {
             // Just draw a box.
-            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, appState->_cxFakeEgo, appState->_cyFakeEgo, !GetDocument()->IsUndithered());
+            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, appState->_cxFakeEgo, appState->_cyFakeEgo, !GetDocument()->IsUndithered());
         }
     }
     return rc;
@@ -2834,7 +2857,7 @@ void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
         if (dcMem.CreateCompatibleDC(&dc))
         {
             // Prepare a pic-sized buffer to draw the ego into 
-            const Cel &cel = GetCel(fakeEgo, _fakeEgoAttributes.Loop, _fakeEgoAttributes.Cel);
+            const Cel &cel = GetCel(fakeEgo, _fakeEgoAttributes.back().Loop, _fakeEgoAttributes.back().Cel);
             const PaletteComponent *egoPalette = fakeEgo->TryGetComponent<PaletteComponent>();
             PaletteComponent paletteCopy;
             if (egoPalette)
@@ -3461,8 +3484,8 @@ ResourceEntity *CPicView::_GetFakeEgo()
 {
     if (!_fakeEgo && GetDocument())
     {
-        _fakeEgoAttributes.View = GetDocument()->GetFakeEgo();
-        _fakeEgo = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, _fakeEgoAttributes.View);
+        _fakeEgoAttributes.back().View = GetDocument()->GetFakeEgo();
+        _fakeEgo = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, _fakeEgoAttributes.back().View);
     }
     return _fakeEgo.get();
 }
@@ -4059,7 +4082,7 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
         // The ego is showing.  Start capture.
         _fCapturing = TRUE;
         _pointCapture = ptPic;
-        _pointEgoOrig = _fakeEgoAttributes.Location;
+        _pointEgoOrig = _fakeEgoAttributes.back().Location;
         _fCanBeHere = _EvaluateCanBeHere(_pointEgoOrig);
         SetCapture();
         InvalidateOurselves();
@@ -4248,7 +4271,7 @@ bool CPicView::_EvaluateCanBeHere(CPoint pt)
     bool canBe = true;
     if (appState->_fObserveControlLines)
     {
-        canBe = CanBeHere(_GetPicSize(), pdataControl, GetViewBoundsRect((uint16_t)pt.x, (uint16_t)pt.y, _GetFakeEgo(), _fakeEgoAttributes.Loop, _fakeEgoAttributes.Cel));
+        canBe = CanBeHere(_GetPicSize(), pdataControl, GetViewBoundsRect((uint16_t)pt.x, (uint16_t)pt.y, _GetFakeEgo(), _fakeEgoAttributes.back().Loop, _fakeEgoAttributes.back().Cel));
     }
 
     if (canBe && appState->_fObservePolygons)
@@ -4264,11 +4287,11 @@ bool CPicView::_HitTestFakeEgo(CPoint ptPic)
     bool fHitTest = false;
     if (!appState->_fUseBoxEgo && _GetFakeEgo())
     {
-        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, _GetFakeEgo(), _fakeEgoAttributes.Loop, _fakeEgoAttributes.Cel);
+        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, _GetFakeEgo(), _fakeEgoAttributes.back().Loop, _fakeEgoAttributes.back().Cel);
     }
     else
     {
-        fHitTest = HitTestEgoBox((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
+        fHitTest = HitTestEgoBox((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
     }
     return fHitTest;
 }
@@ -4280,11 +4303,11 @@ CPoint CPicView::_FindCenterOfFakeEgo()
 {
     if (appState->_fUseBoxEgo)
     {
-        return CPoint(_fakeEgoAttributes.Location.x, _fakeEgoAttributes.Location.y - appState->_cyFakeEgo / 2);
+        return CPoint(_fakeEgoAttributes.back().Location.x, _fakeEgoAttributes.back().Location.y - appState->_cyFakeEgo / 2);
     }
     else
     {
-        return FindCenterOfView((uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, _GetFakeEgo(), _fakeEgoAttributes.Loop, _fakeEgoAttributes.Cel);
+        return FindCenterOfView((uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, _GetFakeEgo(), _fakeEgoAttributes.back().Loop, _fakeEgoAttributes.back().Cel);
     }
 }
 
@@ -4375,10 +4398,10 @@ void CPicView::OnLButtonDblClk(UINT nFlags, CPoint point)
             if (_fShowingEgo)
             {
                 // The ego is showing - double click centers it around the mouse again.
-                _fakeEgoAttributes.Location = ptPic;
-                _fakeEgoAttributes.Location.y += appState->_cyFakeEgo / 2;
-                _fCanBeHere = _EvaluateCanBeHere(_fakeEgoAttributes.Location);
-                appState->_ptFakeEgo = _fakeEgoAttributes.Location;
+                _fakeEgoAttributes.back().Location = ptPic;
+                _fakeEgoAttributes.back().Location.y += appState->_cyFakeEgo / 2;
+                _fCanBeHere = _EvaluateCanBeHere(_fakeEgoAttributes.back().Location);
+                appState->_ptFakeEgo = _fakeEgoAttributes.back().Location;
                 InvalidateOurselves();
             }
             break;
@@ -4675,22 +4698,22 @@ void CPicView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
         case VK_RIGHT:
             {
-                _fakeEgoAttributes.Cel++;
+                _fakeEgoAttributes.back().Cel++;
                 break;
             }
         case VK_LEFT:
             {
-                _fakeEgoAttributes.Cel--;
+                _fakeEgoAttributes.back().Cel--;
                 break;
             }
         case VK_UP:
             {
-                _fakeEgoAttributes.Loop--;
+                _fakeEgoAttributes.back().Loop--;
                 break;
             }
         case VK_DOWN:
             {
-                _fakeEgoAttributes.Loop++;
+                _fakeEgoAttributes.back().Loop++;
                 break;
             }
         default:

@@ -119,6 +119,9 @@ protected:
     afx_msg void OnInsertObject();
     afx_msg void OnDestroy();
     afx_msg void OnInsertObjectAt();
+    afx_msg void OnPasteCoord();
+    afx_msg void OnPasteXY();
+    afx_msg void OnPasteApproachXY();
     afx_msg void OnInsertObjectAtRange(UINT nID);
     afx_msg void OnInsertMethodAtRange(UINT nID);
     afx_msg void OnAddAsNoun();
@@ -158,6 +161,7 @@ protected:
     void _BringUpToolTip(CPoint ptClient);
     BOOL _ClientToTextNoMargin(CPoint ptClient, CPoint &ptText);
     void _OnInsertObject(bool currentPosition);
+    void _OnPasteXYHelper(const std::string &formatString);
 
     CString _contextMenuText;
     CString _gotoScriptText;

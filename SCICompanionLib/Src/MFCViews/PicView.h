@@ -195,6 +195,7 @@ protected:
     PicDrawManager &_GetDrawManager();
     const SCIPolygon *_GetCurrentPolygon();
     ResourceEntity *_GetFakeEgo();
+    void _OnCopyFakeEgoAttributesHelper();
 
     // Scrolling
     int _GetViewWidth() override;
@@ -246,6 +247,7 @@ protected:
     afx_msg void OnObserveControlLines();
     afx_msg void OnObservePolygons();
     afx_msg void OnCopyFakeEgoAttributes();
+    afx_msg void OnAppendCopyFakeEgoAttributes();
     afx_msg void OnExportPalettizedBitmap();
     afx_msg void EditVGAPalette();
     afx_msg void ChangeDimensions();
@@ -299,7 +301,7 @@ private:
 
     BOOL _fShowingEgo;
 
-    FakeEgo _fakeEgoAttributes;
+    std::vector<FakeEgo> _fakeEgoAttributes;
     std::unique_ptr<ResourceEntity> _fakeEgo;
     BOOL _fCapturing;
     CPoint _pointEgoOrig;
