@@ -873,7 +873,9 @@ void CNewRasterResourceDocument::MakeFont(bool dialog, bool antiAlias, bool scal
     fontDialog.m_cf.Flags |= CF_USESTYLE;
 
     // Turn our point size into height.
-    currentLogFont.lfHeight = -MulDiv(size, GetDeviceCaps(GetDC(nullptr), LOGPIXELSY), 72);
+    HDC dcScreen = GetDC(nullptr);
+    currentLogFont.lfHeight = -MulDiv(size, GetDeviceCaps(dcScreen, LOGPIXELSY), 72);
+    ReleaseDC(nullptr, dcScreen);
 
     bool good = true;
     if (dialog)

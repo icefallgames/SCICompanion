@@ -228,8 +228,7 @@ void InitFontFromLOGFONT(RasterComponent &raster, FontComponent &fontComponent, 
 
             // "In addition, you must select a TrueType font into a screen DC prior to using it in a DIBSection, otherwise antialiasing does not occur."
             // -> still doesn't work. Only cleartype works.
-            HGDIOBJ hScreenFontOld = SelectObject(GetDC(nullptr), font);
-
+            CDC dcScreen;
 
             HGDIOBJ hFontOld = dc.SelectObject(&font);
 
@@ -249,7 +248,6 @@ void InitFontFromLOGFONT(RasterComponent &raster, FontComponent &fontComponent, 
                 RenderLetter(raster, i, &dc, scale, (char)i, false, &maxCharHeight, &iAboveMin, &iBelowMin);
             }
             dc.SelectObject(hFontOld);
-            SelectObject(GetDC(nullptr), hScreenFontOld);
         }
     }
 }
