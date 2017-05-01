@@ -91,6 +91,7 @@ public:
     }
     std::string GetPreviewLetters() { return _previewLetters;  }
     void MakeFont();
+    void MakeFont(bool dialog, bool antiAlias, bool scaleUp, std::string &familyName, std::string &weight, int &size, LOGFONT &currentLogFont);
     void ExportAsGif();
 
     bool v_PreventUndos() const override { return _fLocked; }

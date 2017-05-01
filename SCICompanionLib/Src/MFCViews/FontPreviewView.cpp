@@ -161,7 +161,14 @@ void CFontPreviewView::_OnDraw(CDC *pDC, BOOL fHitTestOnly, CPoint point, int *p
             else
             {
                 // Draw it
-                SCIBitmapInfo bmi(cel.size.cx, cel.size.cy);
+                const RGBQUAD *palette = nullptr;
+                int paletteCount = 0;
+                if (raster.Traits.PaletteType == PaletteType::EGA_SixteenGreyscale)
+                {
+                    palette = raster.Traits.Palette;
+                    paletteCount = 16;
+                }
+                SCIBitmapInfo bmi(cel.size.cx, cel.size.cy, palette, paletteCount);
                 StretchDIBits((HDC)*pDC, x, y, cel.size.cx, cel.size.cy, 0, 0, cel.size.cx, cel.size.cy, pData.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);
             }
             x += size.cx;

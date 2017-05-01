@@ -221,6 +221,7 @@ struct EGACOLOR
 
 TCHAR g_szGdiplusFilter[];
 
+extern RGBQUAD g_greyScale16[16];
 extern RGBQUAD g_egaColors[16];
 extern RGBQUAD g_egaColorsPlusOne[17];
 extern RGBQUAD g_egaColorsExtended[256];	// 256, 16 repeated 16 times.

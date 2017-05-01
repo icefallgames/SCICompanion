@@ -149,7 +149,7 @@ void ReallocBits(
 HBITMAP GetBitmap(
     const Cel &cel,
     const PaletteComponent *palette,
-    int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor)
+    int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor, bool greyScale)
 {
     uint16_t height = cel.size.cy;
     uint16_t width = cel.size.cx;
@@ -188,6 +188,11 @@ HBITMAP GetBitmap(
         {
             paletteColors = palette->Colors;
             paletteCount = ARRAYSIZE(palette->Colors);
+        }
+        else if (greyScale)
+        {
+            paletteColors = g_greyScale16;
+            paletteCount = ARRAYSIZE(g_greyScale16);
         }
 
         SCIBitmapInfo bmi(cx, cy, paletteColors, paletteCount);
@@ -268,8 +273,8 @@ HBITMAP GetBitmap(
     if (IsValidLoopCel(raster, celIndex))
     {
         return GetBitmap(raster.GetCel(celIndex), palette, cx, cy, scaleOptions,
-            (raster.Traits.PaletteType == PaletteType::VGA_256) ? 0xff : 0xf
-            );
+            (raster.Traits.PaletteType == PaletteType::VGA_256) ? 0xff : 0xf,
+            (raster.Traits.PaletteType == PaletteType::EGA_SixteenGreyscale));
     }
     return nullptr;
 }

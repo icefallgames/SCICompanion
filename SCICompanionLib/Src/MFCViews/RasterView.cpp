@@ -727,7 +727,15 @@ void CRasterView::_SyncColor(CNewRasterResourceDocument *pDoc)
         }
         else
         {
-            memcpy(_palette, g_egaColors, 16 * sizeof(*_palette));
+            const RasterComponent &raster = pResource->GetComponent<RasterComponent>();
+            if (raster.Traits.PaletteType == PaletteType::EGA_SixteenGreyscale)
+            {
+                memcpy(_palette, raster.Traits.Palette, 16 * sizeof(*_palette));
+            }
+            else
+            {
+                memcpy(_palette, g_egaColors, 16 * sizeof(*_palette));
+            }
             _paletteCount = 16;
         }
     }

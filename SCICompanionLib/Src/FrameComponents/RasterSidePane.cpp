@@ -31,7 +31,7 @@
 // RasterSidePane
 
 RasterSidePane::RasterSidePane(CWnd* pParent /*=nullptr*/)
-	: CExtDialogFwdCmd(0, pParent) // 0 for template, since we always use Create (since we use different templates)
+    : CExtDialogFwdCmd(0, pParent), _currentLogFont() // 0 for template, since we always use Create (since we use different templates)
 {
     _pDoc = nullptr;
     _cRows = 0;
@@ -86,6 +86,9 @@ BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_COMMAND(IDC_BUTTON_DELETELOOP, OnDeleteLoop)
     ON_COMMAND(IDC_CHECKAPPLYTOALL, OnApplyToAll)
     ON_COMMAND(IDC_CHECKISSCALEABLE, OnIsScalable)
+    ON_COMMAND(IDC_CHECKANTIALIAS, OnMakeFontSilent)
+    ON_COMMAND(IDC_CHECKRENDERUP, OnMakeFontSilent)
+    ON_EN_CHANGE(IDC_EDITSIZE, OnMakeFontSilent)
     ON_WM_DRAWITEM()
     ON_COMMAND(IDC_BUTTONUP, OnUp)
     ON_COMMAND(IDC_BUTTONDOWN, OnDown)
@@ -256,6 +259,10 @@ void RasterSidePane::_SyncPalette()
             dithered = false;
             break;
         case PaletteType::EGA_Sixteen:
+            _cRows = 4; _cColumns = 4;
+            dithered = false;
+            break;
+        case PaletteType::EGA_SixteenGreyscale:
             _cRows = 4; _cColumns = 4;
             dithered = false;
             break;
@@ -1147,6 +1154,20 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     {
         DDX_Control(pDX, ID_MAKEFONT, m_wndMakeFont);
         AddAnchor(ID_MAKEFONT, CPoint(100, 0), CPoint(100, 0));
+
+        DDX_Control(pDX, IDC_EDITFAM, m_wndEditFontFamily);
+        AddAnchor(IDC_EDITFAM, CPoint(0, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_EDITWEIGHT, m_wndEditFontStyle);
+        AddAnchor(IDC_EDITWEIGHT, CPoint(0, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_EDITSIZE, m_wndEditFontSize);
+        AddAnchor(IDC_EDITSIZE, CPoint(0, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_SPINSIZE, m_wndSpinFontSize);
+        AddAnchor(IDC_SPINSIZE, CPoint(100, 0), CPoint(100, 0));
+
+        DDX_Control(pDX, IDC_CHECKANTIALIAS, m_wndCheckAntiAlias);
+        AddAnchor(IDC_CHECKANTIALIAS, CPoint(0, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_CHECKRENDERUP, m_wndCheckScaleUp);
+        AddAnchor(IDC_CHECKRENDERUP, CPoint(0, 0), CPoint(100, 0));
     }
     if (GetDlgItem(IDC_BUTTONPENSTYLE))
     {
@@ -1265,11 +1286,43 @@ void RasterSidePane::OnLeft()
 {
     _OnDirectionButton(CPoint(-1, 0));
 }
+void RasterSidePane::OnMakeFontSilent()
+{
+    _OnMakeFontWorker(false);
+}
 void RasterSidePane::OnMakeFont()
+{
+    _OnMakeFontWorker(true);
+}
+
+void RasterSidePane::_OnMakeFontWorker(bool dialog)
 {
     if (_pDoc)
     {
-        _pDoc->MakeFont();
+        CString strFontFamily;
+        m_wndEditFontFamily.GetWindowText(strFontFamily);
+        std::string fontFamily = strFontFamily;
+
+        CString strFontStyle;
+        m_wndEditFontStyle.GetWindowText(strFontStyle);
+        std::string fontStyle = strFontStyle;
+
+        CString str;
+        m_wndEditFontSize.GetWindowText(str);
+        int size = StrToInt(str);
+
+        bool renderUp = m_wndCheckScaleUp.GetCheck() == BST_CHECKED;
+        bool antiAlias = m_wndCheckAntiAlias.GetCheck() == BST_CHECKED;
+
+        _pDoc->MakeFont(dialog, antiAlias, renderUp, fontFamily, fontStyle, size, _currentLogFont);
+
+        // Push things back:
+        if (dialog)
+        {
+            m_wndEditFontFamily.SetWindowText(fontFamily.c_str());
+            m_wndEditFontStyle.SetWindowText(fontStyle.c_str());
+            m_wndEditFontSize.SetWindowText(fmt::format("{0}", size).c_str());
+        }
     }
 }
 

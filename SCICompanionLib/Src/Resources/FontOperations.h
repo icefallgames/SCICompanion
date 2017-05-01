@@ -16,4 +16,4 @@
 
 struct RasterComponent;
 struct FontComponent;
-void InitFontFromLOGFONT(RasterComponent &raster, FontComponent &font, const LOGFONT *pLogFont);
+void InitFontFromLOGFONT(RasterComponent &raster, FontComponent &font, const LOGFONT &logFont, bool scaleUp);

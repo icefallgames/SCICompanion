@@ -713,7 +713,7 @@ void CBitmapToVGADialog::_Update()
             _Overlay(*_finalResult, _currentBackgroundOptional);
         }
         CBitmap bitmap;
-        bitmap.Attach(GetBitmap(*_finalResult, _finalResultPalette.get(), _finalResult->size.cx, _finalResult->size.cy, BitmapScaleOptions::None, 0));
+        bitmap.Attach(GetBitmap(*_finalResult, _finalResultPalette.get(), _finalResult->size.cx, _finalResult->size.cy, BitmapScaleOptions::None, 0, false));
         m_wndPic.FromBitmap((HBITMAP)bitmap, _finalResult->size.cx, _finalResult->size.cy, true);
         m_wndPic.ShowWindow(SW_SHOW);
         _UpdatePalette();

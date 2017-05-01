@@ -37,8 +37,12 @@ uint16_t FontTraits::ValidateCharCount(uint16_t charCount) const
     return charCount;
 }
 
-void ReadLetter(RasterComponent &raster, int nLetter, sci::istream &byteStream)
+void ReadLetter(RasterComponent &raster, int nLetter, sci::istream &byteStream, bool antiAliased)
 {
+    int multiplier = antiAliased ? 4 : 1;
+    uint8_t sourceMask = antiAliased ? 0x0f : 0x01;
+    uint8_t valueMultiplier = antiAliased ? 1 : 15;
+
     uint8_t cx;
     byteStream >> cx;
     uint8_t cy;
@@ -51,26 +55,26 @@ void ReadLetter(RasterComponent &raster, int nLetter, sci::istream &byteStream)
     ::FillEmpty(raster, CelIndex(0, nLetter), size16(cx, cy));
 
     // Calcualte how many bytes to read from the resource, for each line:
-    int cBytesToReadPerLine = (((int)cel.size.cx) + 7) / 8;
+    int mod = (8 / multiplier);
+    int cBytesToReadPerLine = (((int)cel.size.cx) + (mod - 1)) / mod;
 
     // Now transfer from the resource into our datastructure.
     for (int y = 0; byteStream.good() && (y < (int)cel.size.cy); y++)
     {
-        int cBitsRemainingThisLine = cx;
+        int cBitsRemainingThisLine = cx * multiplier;
 
-        // Start of the line:
+        // Start of the destination line (byte per pixel):
         uint8_t *pLineDest = &cel.Data[0] + ((int)cel.size.cy - 1 - y) * CX_ACTUAL((int)cel.size.cx);
-        // Figure out how many bytes to read.  A byte holds up to 8 pixel values.
 
         for (int iByte = 0; iByte < cBytesToReadPerLine; iByte++)
         {
             uint8_t bValue;
             byteStream >> bValue;
-            // Read a byte.  Now convert it into up to
-            for (int iBit = 7; (iBit >= 0) && cBitsRemainingThisLine; iBit--, cBitsRemainingThisLine--)
+            // Read a byte.  
+            for (int iShift = (8 - multiplier); (iShift >= 0) && cBitsRemainingThisLine; iShift -= multiplier, cBitsRemainingThisLine -= multiplier)
             {
                 // Black (0x00) for on, and white (0x0f) for off
-                *pLineDest = ((bValue >> iBit) & 1) ? 0x00 : 0x0f;
+                *pLineDest = ((~(bValue >> iShift)) & sourceMask) * valueMultiplier;
                 pLineDest++;
             }
         }
@@ -93,6 +97,10 @@ void FontReadFrom(ResourceEntity &resource, sci::istream &byteStream, const std:
     byteStream >> cChars;           // Number of chars (128)
     byteStream >> font.LineHeight;
 
+    // So dummy is actually the start char, but it's never used in our case.
+    // Instead, let it be the bit depth
+    font.AntiAliased = (wDummy != 0);
+
     // Some validation
     // TODO: report a status error 
     cChars = min(256, cChars);
@@ -106,13 +114,13 @@ void FontReadFrom(ResourceEntity &resource, sci::istream &byteStream, const std:
         byteStream >> wOffset;
         sci::istream byteStreamLetter(byteStream);
         byteStreamLetter.seekg(wOffset);
-        ReadLetter(raster, i, byteStreamLetter);
+        ReadLetter(raster, i, byteStreamLetter, font.AntiAliased);
     }
 }
 
 #define ROUND_UP_BYTE(cx) (((cx) + 7) / 8)
 
-void WriteLetter(const RasterComponent &raster, sci::ostream &byteStream, uint16_t iChar)
+void WriteLetter(const RasterComponent &raster, sci::ostream &byteStream, uint16_t iChar, bool antiAliased)
 {
     const Cel &cel = raster.Loops[0].Cels[iChar];
     // The Font Resource format at
@@ -125,7 +133,9 @@ void WriteLetter(const RasterComponent &raster, sci::ostream &byteStream, uint16
     int cx = (int)cel.size.cx;
 
     // This is how many bytes we'll write out (one bit per pixel)
-    int cBytesToWrite = ROUND_UP_BYTE((uint8_t)cel.size.cx);
+    int multiplier = antiAliased ? 4 : 1;
+    uint8_t sourceMask = antiAliased ? 0x0f : 0x01;
+    int cBytesToWrite = ROUND_UP_BYTE((uint8_t)cel.size.cx * multiplier);
 
     // Now go through each line
     for (int y = 0; y < (int)cel.size.cy; y++)
@@ -137,15 +147,15 @@ void WriteLetter(const RasterComponent &raster, sci::ostream &byteStream, uint16
         for (int i = 0; i < cBytesToWrite; i++)
         {
             uint8_t bOut = 0;
-            int jEnd = 8 * (i + 1);
-            int iShift = 7;
-            for (int j = 8 * i; (j < jEnd) && (j < cx); j++, iShift--)
+            int invWidth = (8 / multiplier);
+            int jEnd = invWidth * (i + 1);
+
+            int iShift = 8 - multiplier;
+            for (int jSourceByte = invWidth * i; (jSourceByte < jEnd) && (jSourceByte < cx); jSourceByte++, iShift -= multiplier)
             {
-                if (*(pBitsLine + j) == 0)
-                {
-                    // If it's 0 (black), then consider it on.
-                    bOut |= (1 << iShift);
-                }
+                // Invert and mask, then shift over
+                uint8_t sourceByte = (~(*(pBitsLine + jSourceByte))) & sourceMask;
+                bOut |= (sourceByte << iShift);
             }
             byteStream.WriteByte(bOut);
         }
@@ -158,7 +168,10 @@ void FontWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::
     const FontComponent &font = resource.GetComponent<FontComponent>();
 
     // First prepare the header.
-    byteStream.WriteWord(0);
+    // byteStream.WriteWord(0);
+    // My modification:
+    byteStream.WriteWord(font.AntiAliased ? 1 : 0);
+
     // The number of characters
     uint16_t cChars = (uint16_t)raster.Loops[0].Cels.size();
     assert((cChars == 128) || font.Traits.SupportsExtendedCharSet);  // This is all that is supported in SCI0
@@ -175,7 +188,7 @@ void FontWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::
     for (uint16_t i = 0; i < cChars; i++)
     {
         rgwOffsets[i] = (uint16_t)(byteStream.tellp());
-        WriteLetter(raster, byteStream, i);
+        WriteLetter(raster, byteStream, i, font.AntiAliased);
     }
 
     // Now copy the offset table directly into the sci::istream;
@@ -201,6 +214,28 @@ void GetCharacterLabel(PTSTR  pszLabel, size_t cch, int nCel)
 }
 
 uint8_t fontPaletteMapping[] = { 0, 0xf };
+uint8_t fontPaletteMapping4[] = { 0, 0x8, 0x7, 0xf };
+uint8_t fontPaletteMapping16[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
+RGBQUAD g_greyScale16[16] = {
+{ 0x00, 0x00, 0x00, 0x01 },
+{ 0x11, 0x11, 0x11, 0x01 },
+{ 0x22, 0x22, 0x22, 0x01 },
+{ 0x33, 0x33, 0x33, 0x01 },
+{ 0x44, 0x44, 0x44, 0x01 },
+{ 0x55, 0x55, 0x55, 0x01 },
+{ 0x66, 0x66, 0x66, 0x01 },
+{ 0x77, 0x77, 0x77, 0x01 },
+{ 0x88, 0x88, 0x88, 0x01 },
+{ 0x99, 0x99, 0x99, 0x01 },
+{ 0xaa, 0xaa, 0xaa, 0x01 },
+{ 0xbb, 0xbb, 0xbb, 0x01 },
+{ 0xcc, 0xcc, 0xcc, 0x01 },
+{ 0xdd, 0xdd, 0xdd, 0x01 },
+{ 0xee, 0xee, 0xee, 0x01 },
+{ 0xff, 0xff, 0xff, 0x01 },
+};
+
 
 RasterTraits fontRasterTraits =
 {
@@ -208,9 +243,9 @@ RasterTraits fontRasterTraits =
     OriginStyle::None,
     127,
     127,
-    PaletteType::EGA_Two,
-    fontPaletteMapping,
-    g_egaColors,
+    PaletteType::EGA_SixteenGreyscale,
+    fontPaletteMapping16,
+    g_greyScale16,
     65,         // Preview cel
     &GetCharacterLabel,
     false,

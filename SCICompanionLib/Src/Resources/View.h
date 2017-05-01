@@ -102,6 +102,7 @@ enum class PaletteType : uint8_t
     EGA_Four,
     EGA_Sixteen,
     VGA_256,
+    EGA_SixteenGreyscale,
 };
 
 

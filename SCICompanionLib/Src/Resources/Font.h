@@ -31,13 +31,14 @@ struct FontTraits
 struct FontComponent : ResourceComponent
 {
     FontComponent(const FontComponent &src) = default;
-    FontComponent(const FontTraits &traits) : Traits(traits), LineHeight(8) {}
+    FontComponent(const FontTraits &traits) : Traits(traits), LineHeight(8), AntiAliased(false) {}
     ResourceComponent *Clone() const override
     {
         return new FontComponent(*this);
     }
 
     uint16_t LineHeight;
+    bool AntiAliased;
 
     const FontTraits &Traits;
 };

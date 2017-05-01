@@ -67,7 +67,7 @@ enum class BitmapScaleOptions
 DEFINE_ENUM_FLAGS(BitmapScaleOptions, uint8_t)
 
 HBITMAP GetBitmap(const RasterComponent &raster, const PaletteComponent *palette, CelIndex celIndex, int cx, int cy, BitmapScaleOptions scaleOptions);
-HBITMAP GetBitmap(const Cel &cel, const PaletteComponent *palette, int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor);
+HBITMAP GetBitmap(const Cel &cel, const PaletteComponent *palette, int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor, bool greyScale);
 void CopyBitmapData(const RasterComponent &raster, CelIndex celIndex, uint8_t *pData, size16 size);
 void CopyBitmapData(const Cel &cel, uint8_t *pData, size16 size);
 void CopyBitmapData(const Cel &cel, uint8_t *pData, int x, int y, int stride, bool flip);

@@ -72,6 +72,7 @@ private:
     void OnRight();
     void OnLeft();
     void OnMakeFont();
+    void OnMakeFontSilent();
     void OnPenStyle();
     void OnApplyToAll();
     void OnIsScalable();
@@ -92,6 +93,7 @@ private:
     void _OnDirectionButton(CPoint point);
     void _SyncPalette();
     void _SyncEGAPalettes();
+    void _OnMakeFontWorker(bool dialog);
 
 private:
     CNewRasterResourceDocument *_pDoc;
@@ -151,7 +153,6 @@ private:
     CExtButton m_wndCelAfter;
     CExtButton m_wndCelBefore;
     CExtButton m_wndDeleteCel;
-    CExtButton m_wndMakeFont;
     CBrushButton m_wndButtonPenStyle;
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
@@ -165,6 +166,16 @@ private:
     CExtGroupBox m_wndGroup1;
     CExtGroupBox m_wndGroup2;
     CExtCheckBox m_wndIsScalable;
+
+    // Font stuff
+    CExtButton m_wndMakeFont;
+    CExtEdit m_wndEditFontFamily;
+    CExtEdit m_wndEditFontStyle;
+    CExtEdit m_wndEditFontSize;
+    CExtCheckBox m_wndCheckAntiAlias;
+    CExtCheckBox m_wndCheckScaleUp;
+    CExtSpinWnd m_wndSpinFontSize;
+    LOGFONT _currentLogFont;
 
     int _cRows;
     int _cColumns;

@@ -421,6 +421,7 @@
 #define IDC_CHECKUSEBOXEGO              1076
 #define IDC_STATIC_CELGROUP             1078
 #define IDC_STATIC_LOOPGROUP            1079
+#define IDC_STATIC_CELGROUP2            1079
 #define IDC_CHECKSCI01                  1080
 #define IDC_STATICPIC                   1081
 #define IDC_CHECKHSL                    1082
@@ -622,6 +623,7 @@
 #define IDC_EDITTRANSPARENTCOLOR        1233
 #define IDC_EDITRANGE                   1233
 #define IDC_EDITSEQ                     1233
+#define IDC_EDITSIZE                    1233
 #define IDC_STATICTRANSLABEL            1234
 #define IDC_CHECKDONTUSEINPALETTE       1235
 #define IDC_BUTTONREVERT                1236
@@ -832,6 +834,15 @@
 #define IDC_COMBOFILES                  1403
 #define IDC_CHECKINDICES                1404
 #define IDC_CHECKPOLYGONS               1405
+#define IDC_STATICFAM                   1406
+#define IDC_STATICWEIGHT                1407
+#define IDC_EDITFAM                     1408
+#define IDC_EDITWEIGHT                  1409
+#define IDC_STATICSIZE                  1410
+#define IDC_SPINSIZE                    1411
+#define IDC_CHECKANTIALIAS              1412
+#define IDC_CHECKRENDERUP               1413
+#define IDC_CHECKRENDERUP2              1415
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1247,9 +1258,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        413
+#define _APS_NEXT_RESOURCE_VALUE        414
 #define _APS_NEXT_COMMAND_VALUE         33363
-#define _APS_NEXT_CONTROL_VALUE         1406
+#define _APS_NEXT_CONTROL_VALUE         1416
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

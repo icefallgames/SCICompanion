@@ -194,6 +194,10 @@ COLORREF CNewRasterResourceDocument::SCIColorToCOLORREF(uint8_t color)
                 rgb = RGBQUAD();
             }
         }
+        else if (raster.Traits.PaletteType == PaletteType::EGA_SixteenGreyscale)
+        {
+            rgb = raster.Traits.Palette[color % 16];
+        }
         else
         {
             rgb = g_egaColors[color % 16];
@@ -493,6 +497,9 @@ bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const
             break;
         case PaletteType::EGA_Sixteen:
             isEGA16 = true;
+            *colorCount = 16;
+            break;
+        case PaletteType::EGA_SixteenGreyscale:
             *colorCount = 16;
             break;
         case PaletteType::EGA_Two:
@@ -851,26 +858,68 @@ void CNewRasterResourceDocument::ExportAsGif()
 
 void CNewRasterResourceDocument::MakeFont()
 {
+    LOGFONT logFontDummy = {};
+    std::string familyName, styleName;
+    int size = 0;
+    MakeFont(true, false, false, familyName, styleName, size, logFontDummy);
+}
+
+void CNewRasterResourceDocument::MakeFont(bool dialog, bool antiAlias, bool scaleUp, std::string &familyName, std::string &styleName, int &size, LOGFONT &currentLogFont)
+{
     CFontDialog fontDialog;
-    if (IDOK == fontDialog.DoModal())
+
+    char styleBuffer[300] = {};
+    fontDialog.m_cf.lpszStyle = styleBuffer;
+    fontDialog.m_cf.Flags |= CF_USESTYLE;
+
+    // Turn our point size into height.
+    currentLogFont.lfHeight = -MulDiv(size, GetDeviceCaps(GetDC(nullptr), LOGPIXELSY), 72);
+
+    bool good = true;
+    if (dialog)
     {
-        LOGFONT *pLogFont = fontDialog.m_cf.lpLogFont;
-
-        // Trying this
-        pLogFont->lfQuality = PROOF_QUALITY;
-        pLogFont->lfOutPrecision = OUT_RASTER_PRECIS;
-
-        if (pLogFont)
+        if (!familyName.empty())
         {
-            ApplyChanges<RasterComponent, FontComponent>(
-                [&](RasterComponent &raster, FontComponent &font)
-            {
-                InitFontFromLOGFONT(raster, font, pLogFont);
-                return WrapHint(RasterChangeHint::Cel | RasterChangeHint::NewView);
-            }
-            );
+            fontDialog.m_cf.Flags |= CF_INITTOLOGFONTSTRUCT;
+            StringCchCopy(currentLogFont.lfFaceName, ARRAYSIZE(currentLogFont.lfFaceName), familyName.c_str());
+            fontDialog.m_cf.lpLogFont = &currentLogFont;
+
+            StringCchCopy(styleBuffer, ARRAYSIZE(styleBuffer), styleName.c_str());
+        }
+        if (IDOK == fontDialog.DoModal())
+        {
+            currentLogFont = *fontDialog.m_cf.lpLogFont;
+
+            styleName = fontDialog.m_cf.lpszStyle;
+            size = fontDialog.m_cf.iPointSize / 10;
+
+            // Copy stuff back
+            familyName = currentLogFont.lfFaceName;
+        }
+        else
+        {
+            good = false;
         }
     }
+
+    if (good && !familyName.empty())
+    {
+        // Trying this
+        // NOTE: Anti-aliasing may not work if fonts are small enough (common for SCI use cases)
+        // Clear-type we don't want, because that's colored.
+        currentLogFont.lfQuality = antiAlias ? ANTIALIASED_QUALITY : NONANTIALIASED_QUALITY;
+        currentLogFont.lfOutPrecision = antiAlias ? OUT_DEFAULT_PRECIS : OUT_RASTER_PRECIS;
+
+        ApplyChanges<RasterComponent, FontComponent>(
+            [&](RasterComponent &raster, FontComponent &font)
+        {
+            font.AntiAliased = antiAlias | scaleUp;
+            InitFontFromLOGFONT(raster, font, currentLogFont, scaleUp);
+            return WrapHint(RasterChangeHint::Cel | RasterChangeHint::NewView);
+        }
+        );
+    }
+
 }
 
 void CNewRasterResourceDocument::OnCloseDocument()
