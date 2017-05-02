@@ -82,6 +82,7 @@ enum class NativeResolution : uint8_t
     Res320x200 = 0,
     Res640x400 = 1,
     Res640x480 = 2,
+    Res356x200 = 2,
 };
 
 enum class KernelSet : uint8_t

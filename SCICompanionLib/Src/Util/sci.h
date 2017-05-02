@@ -198,11 +198,12 @@ struct ScopedFile : public ScopedHandle
 #define DEFAULT_PIC_HEIGHT     190  
 #define sPIC_WIDTH_MAX          320
 #define sPIC_HEIGHT_MAX         200
+#define sPIC_WIDTH_REALLYBIG    400
 #define SCITicksPerSecond 60
 
 // 320 x 190 pixels, each a byte. (For our drawing buffers)
 #define BMPSIZE (DEFAULT_PIC_WIDTH * DEFAULT_PIC_HEIGHT)
-#define BMPSIZE_MAX (sPIC_WIDTH_MAX * sPIC_HEIGHT_MAX)
+#define BMPSIZE_MAX (sPIC_WIDTH_REALLYBIG * sPIC_HEIGHT_MAX)
 
 struct EGACOLOR
 {

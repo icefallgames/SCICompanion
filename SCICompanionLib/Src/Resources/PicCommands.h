@@ -50,6 +50,7 @@ const uint8_t  PIC_END = 0xff;
 
 const uint8_t  PIC_OPX_SET_PALETTE_ENTRY = 0x00;
 const uint8_t  PIC_OPX_SET_PALETTE = 0x01;
+const uint8_t  PIC_OPX_SET_SIZE = 0x09;
 
 const uint8_t  PIC_OPXSC1_DRAW_BITMAP = 0x01;
 const uint8_t  PIC_OPXSC1_SET_PALETTE = 0x02;
