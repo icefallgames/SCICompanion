@@ -60,5 +60,10 @@ void PicDimensionsDialog::OnOK()
     _size.cy = max(DEFAULT_PIC_HEIGHT, _size.cy);
     _size.cy = min(sPIC_HEIGHT_MAX, _size.cy);
 
+    m_wndEditWidth.GetWindowText(str);
+    _size.cx = (uint16_t)StrToInt(str);
+    _size.cx = max(DEFAULT_PIC_WIDTH, _size.cx);
+    //_size.cx = min(sPIC_WIDTH_MAX, _size.cy);
+
     __super::OnOK();
 }

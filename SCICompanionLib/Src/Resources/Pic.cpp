@@ -394,6 +394,15 @@ void PicWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::m
     }
 
     const PicComponent &pic = resource.GetComponent<PicComponent>();
+
+    // Support non-standard EGA pic sizes
+    if (!pic.Traits->IsVGA && (pic.Size != size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT)))
+    {
+        byteStream.WriteByte(PIC_OP_OPX);
+        byteStream.WriteByte(PIC_OPX_SET_SIZE);
+        byteStream << pic.Size;
+    }
+
     SerializeAllCommands_SCI0_SCI1(&byteStream, pic.commands, pic.commands.size());
 }
 
@@ -517,6 +526,11 @@ void PicReadExtendedFunctionSCI0(ResourceEntity &resource, PicComponent &pic, sc
             break;
         case 0x08: //  PIC_OPX_SET_PRIORITY_TABLE
             AddSetPriorityBarsCommand(byteStream, pic, false, false);
+            break;
+
+            // I added this
+        case PIC_OPX_SET_SIZE:
+            byteStream >> pic.Size;
             break;
     }
 }

@@ -421,7 +421,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_OBSERVEPOLYGONS, CPicView::OnUpdateObservePolygons)
     ON_UPDATE_COMMAND_UI(ID_PIC_EXPORT8, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_EDITPALETTE, CPicView::OnUpdateIsVGA)
-    ON_UPDATE_COMMAND_UI(ID_PIC_CHANGEDIMENSIONS, CPicView::OnUpdateIsVGA)
+    ON_UPDATE_COMMAND_UI(ID_PIC_CHANGEDIMENSIONS, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_PIC_DELETEPOINT, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_UPDATE_COMMAND_UI(ID_PIC_CUTLINE, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_UPDATE_COMMAND_UI(ID_PIC_SPLITEDGE, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
