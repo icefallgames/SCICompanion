@@ -1431,7 +1431,7 @@ void CPicView::OnPasteIntoPic()
     }
     else
     {
-        CBitmapToPicDialog dialog;
+        CBitmapToPicDialog dialog(_GetEditPic()->Size);
 
         // Initialize the dialog with the current palette 0.
         const ViewPort *pstate = _GetDrawManager().GetViewPort(PicPosition::PostPlugin);

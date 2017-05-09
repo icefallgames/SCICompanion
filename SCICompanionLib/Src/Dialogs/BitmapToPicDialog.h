@@ -25,7 +25,7 @@ class PicCommand;
 class CBitmapToPicDialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase
 {
 public:
-	CBitmapToPicDialog(CWnd* pParent = NULL);   // standard constructor
+	CBitmapToPicDialog(size16 picDimensions, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CBitmapToPicDialog();
 
     void SetPicPalette(const EGACOLOR *pPalette) { CopyMemory(&_picPalette, pPalette, sizeof(_picPalette)); }

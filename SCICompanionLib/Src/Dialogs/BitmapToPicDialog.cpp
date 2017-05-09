@@ -112,8 +112,8 @@ BOOL InitThreadInfo(THREADINFO *pInfo, HWND hwnd, bool fIgnoreWhite, int iAlgori
 #define UWM_CONVERTPROGRESS (WM_APP + 1) // LPARAM is int from 0 to 100
 #define UWM_CONVERTSTATUS   (WM_APP + 2) // LPARAM is text
 
-CBitmapToPicDialog::CBitmapToPicDialog(CWnd* pParent /*=nullptr*/)
-    : CExtNCW<CExtResizableDialog>(CBitmapToPicDialog::IDD, pParent), PrepareBitmapBase(IDC_BUTTONCONVERT, IDC_STATICORIG, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT))
+CBitmapToPicDialog::CBitmapToPicDialog(size16 picSize, CWnd* pParent /*=nullptr*/)
+    : CExtNCW<CExtResizableDialog>(CBitmapToPicDialog::IDD, pParent), PrepareBitmapBase(IDC_BUTTONCONVERT, IDC_STATICORIG, picSize)
 {
     _pCRBitmap = nullptr;
     _nColors = g_nColors;

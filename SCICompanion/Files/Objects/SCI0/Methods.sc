@@ -24,5 +24,13 @@
     (method (doit)
         (super:doit())
     )
+
+	(method (doVerb theVerb params)
+		(switch (theVerb)
+			(default
+				(super:doVerb(theVerb rest params))
+			)
+		)
+	)
 )
 
