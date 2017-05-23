@@ -2884,7 +2884,7 @@ void CRasterView::OnIndicatorPixelColor(CCmdUI *pCmdUI)
                 rgb = g_egaColors[color % 16];
             }
 
-            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("Color: %03d (R=%d, G=%d, B=%d)"), color, rgb.rgbRed, rgb.rgbGreen, rgb.rgbBlue);
+            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("Color: %02x (R=%d, G=%d, B=%d)"), color, rgb.rgbRed, rgb.rgbGreen, rgb.rgbBlue);
         }
     }
 
@@ -3136,7 +3136,7 @@ void CRasterView::OnRButtonDown(UINT nFlags, CPoint point)
         break;
 
     case Fill:
-        _OnFillLClick(ptView, false);
+        //_OnFillLClick(ptView, false);
         break;
 
     case EyeDropper:
@@ -3145,13 +3145,30 @@ void CRasterView::OnRButtonDown(UINT nFlags, CPoint point)
         break;
 
     default:
+    {
+        // I need a good way to sample the color. So let's just do eyedropper for right click for most things?
+        switch (_currentTool)
         {
+        case Fill:
+        case Pen:
+        case Line:
+        case RectNormal:
+        case RoundedRect:
+        case RectSolid:
+        case RoundedRectSolid:
+        case Oval:
+        case OvalSolid:
+            _OnEyeDrop(ptView, true, false);
+            break;
+        default:
+
             if (_IsCaptureTool())
             {
                 _OnCaptureToolButtonDown(ptView, false);
             }
             break;
         }
+    }
     }
 }
 
