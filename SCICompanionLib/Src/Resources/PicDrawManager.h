@@ -49,6 +49,8 @@ public:
     virtual PicPositionFlags GetRequiredPicPosition() = 0;
 };
 
+const int NumPicBuffers = 5;
+
 // Holds onto the results of a pic resource being rendered.
 class PicDrawManager
 {
@@ -70,7 +72,7 @@ public:
     bool SeekToPos(ptrdiff_t iPos); // true if changed
     ptrdiff_t PosFromPoint(int x, int y, ptrdiff_t iStart);
     ptrdiff_t GetPos() const { return _iInsertPos; }
-    void SetPreview(bool fPreview);
+    //void SetPreview(bool fPreview);
     void Invalidate();
 
     void AddPicPlugin(IPicDrawPlugin *plugin);
@@ -106,11 +108,11 @@ private:
     const PicComponent *_pPicWeak;
     RGBQUAD _paletteVGA[256];
 
-    std::unique_ptr<BufferPool<12>> _bufferPool;
+    std::unique_ptr<BufferPool<3 * NumPicBuffers>> _bufferPool;
     // These are the screens (PicPosition is the first dimension, PicScreen is the second)
     // These are not necessarily all unique. If we only need the final version, then all 3
     // will be the same.
-    uint8_t* _screenBuffers[3][4];
+    uint8_t* _screenBuffers[3][NumPicBuffers]; // vis, pri, con, aux, index
     // Cached view port state for each of the 3 position buffers.
     std::unique_ptr<ViewPort[]> _viewPorts;
 

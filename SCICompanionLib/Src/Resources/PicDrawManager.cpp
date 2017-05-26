@@ -59,7 +59,7 @@ void PicDrawManager::_EnsureBufferPool(size16 size)
     size_t byteSize = size.cx * size.cy;
     if (!_bufferPool || (_bufferPool->GetSize() != byteSize))
     {
-        _bufferPool = std::make_unique<BufferPool<12>>(byteSize);
+        _bufferPool = std::make_unique<BufferPool<3 * NumPicBuffers>>(byteSize);
         Invalidate();
     }
 }
@@ -219,7 +219,7 @@ void PicDrawManager::SetScreenData(PicScreen screen, PicPosition pos, uint8_t *d
 
 void PicDrawManager::_EnsureInitialBuffers(PicScreenFlags screenFlags)
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < NumPicBuffers; i++)
     {
         if (IsFlagSet(screenFlags, (PicScreenFlags)(0x1 << i)))
         {
@@ -266,6 +266,10 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
     if (IsFlagSet(screenFlags, PicScreenFlags::Control | PicScreenFlags::Priority))
     {
         screenFlags |= PicScreenFlags::Visual;
+    }
+    if (IsFlagSet(screenFlags, PicScreenFlags::Visual))
+    {
+        screenFlags |= PicScreenFlags::Index;
     }
     screenFlags |= PicScreenFlags::Aux; // Always
 
@@ -337,6 +341,10 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
         {
             memset(GetScreenData(PicScreen::Visual, PicPosition::PrePlugin), (_isVGA || _isUndithered) ? 0xff : 0x0f, _bufferPool->GetSize());
         }
+        if (IsFlagSet(screenFlags, PicScreenFlags::Index))
+        {
+            memset(GetScreenData(PicScreen::Index, PicPosition::PrePlugin), 0x00, _bufferPool->GetSize());
+        }
         memset(GetScreenData(PicScreen::Aux, PicPosition::PrePlugin), 0x00, _bufferPool->GetSize());
 
         PicData data =
@@ -346,6 +354,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
             GetScreenData(PicScreen::Priority, PicPosition::PrePlugin),
             GetScreenData(PicScreen::Control, PicPosition::PrePlugin),
             GetScreenData(PicScreen::Aux, PicPosition::PrePlugin),
+            GetScreenData(PicScreen::Index, PicPosition::PrePlugin),
             _isVGA,
 			_isUndithered,
             _GetPicSize(),
@@ -379,6 +388,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 GetScreenData(PicScreen::Priority, PicPosition::PostPlugin),
                 GetScreenData(PicScreen::Control, PicPosition::PostPlugin),
                 GetScreenData(PicScreen::Aux, PicPosition::PostPlugin),
+                GetScreenData(PicScreen::Index, PicPosition::PostPlugin),
                 _isVGA,
 				_isUndithered,
                 _GetPicSize(),
@@ -423,6 +433,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 GetScreenData(PicScreen::Priority, PicPosition::Final),
                 GetScreenData(PicScreen::Control, PicPosition::Final),
                 GetScreenData(PicScreen::Aux, PicPosition::Final),
+                GetScreenData(PicScreen::Index, PicPosition::Final),
                 _isVGA,
 				_isUndithered,
                 _GetPicSize(),
@@ -440,7 +451,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
 
 void PicDrawManager::_ReturnOldBufferIfNotUsedAnywhere(PicPosition pos)
 {
-    for (int screenIndex = 0; screenIndex < 4; screenIndex++)
+    for (int screenIndex = 0; screenIndex < NumPicBuffers; screenIndex++)
     {
         PicScreen screen = (PicScreen)screenIndex;
         _ReturnOldBufferIfNotUsedAnywhere(screen, pos);
@@ -475,7 +486,7 @@ void PicDrawManager::_MoveToNextStep(PicPositionFlags requestedFlags, PicPositio
 
     _ReturnOldBufferIfNotUsedAnywhere(nextPos);
     // If the next position has different buffers, copy from the previous position.
-    for (int screenIndex = 0; screenIndex < 4; screenIndex++)
+    for (int screenIndex = 0; screenIndex < NumPicBuffers; screenIndex++)
     {
         PicScreen screen = (PicScreen)screenIndex;
         uint8_t *prev = GetScreenData(screen, posCompleted);
@@ -684,6 +695,7 @@ ptrdiff_t PicDrawManager::PosFromPoint(int x, int y, ptrdiff_t iStart)
     // Clear out our cached bitmaps.
     PicScreenFlags dwMapsToRedraw = PicScreenFlags::None;
     std::vector<uint8_t> pdataVisual(byteSize, 0x0f);
+    std::vector<uint8_t> pdataIndex(byteSize, 0x00);
     std::vector<uint8_t> pdataAux(byteSize, 0x00);
     dwMapsToRedraw |= PicScreenFlags::Visual;
     PicData data =
@@ -693,6 +705,7 @@ ptrdiff_t PicDrawManager::PosFromPoint(int x, int y, ptrdiff_t iStart)
         nullptr,
         nullptr,
         &pdataAux[0], // Aux always needs to be provided (for fill)
+        &pdataIndex[0],
         _isVGA,
 		_isUndithered,
         _GetPicSize(),

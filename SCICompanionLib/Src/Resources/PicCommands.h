@@ -102,6 +102,7 @@ struct PicData
     uint8_t *pdataPriority;
     uint8_t *pdataControl;
     uint8_t *pdataAux;
+    uint8_t *pdataIndex; // Palette index (for visual)
     bool isVGA;
 	bool isUndithered;
     size16 size;
@@ -466,7 +467,7 @@ void SerializeAllCommands_SCI0_SCI1(sci::ostream *pSerial, const std::vector<Pic
 //
 // Special one for post-processing in the image.
 //
-void LineCommand_DrawOverride(PicCommand *pCommand, PicData *pData, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable);
+void LineCommand_DrawOverride(PicCommand *pCommand, PicData *pData, EGACOLOR color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable);
 void LineCommand_DrawEx(int cx, int cy, PicCommand *pCommand, uint8_t *pData, EGACOLOR color);
 
 // Serialize functions (to be added later)
@@ -510,7 +511,7 @@ void GetViewRect(CRect *prc, int16_t xEgo, int16_t yEgo, const ResourceEntity *p
 CPoint FindCenterOfView(int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
 CRect GetViewBoundsRect(int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
 bool CanBeHere(size16 displaySize, const uint8_t *pdataPriority, const CRect &rect, uint16_t wControlMask = 0x8000);
-void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle);
+void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGACOLOR color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle);
 
 bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patternNR, bool rectangle, bool pattern);
 

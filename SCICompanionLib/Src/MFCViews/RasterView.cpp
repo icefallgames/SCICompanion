@@ -1924,7 +1924,9 @@ void CRasterView::_OnFillLClick(CPoint point, bool fUseForeground)
             hOld = helper.dc.SelectObject(&brush);
         }
         COLORREF color = helper.dc.GetPixel(point);
-        helper.dc.ExtFloodFill(point.x, point.y, color, FLOODFILLSURFACE );
+        // This fails for white/silver mix for some reason.
+        BOOL fResult = helper.dc.ExtFloodFill(point.x, point.y, color, FLOODFILLSURFACE );
+        
         helper.dc.SelectObject(hOld);
         if (_fDithered)
         {

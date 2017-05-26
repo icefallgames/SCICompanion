@@ -123,6 +123,9 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
                             if (pValue)
                             {
                                 int16_t x = (int16_t)pValue->GetNumberValue();
+
+                                //x += 18;
+
                                 if (it != statements.end())
                                 {
                                     pValue = _GetPropertyValue((*it).get());
