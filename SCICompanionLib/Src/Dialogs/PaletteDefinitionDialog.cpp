@@ -57,6 +57,7 @@ CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback
 
     // 40 things here.
     m_wndStaticPalette.ShowSelection(TRUE);
+    m_wndStaticPalette.ShowUnused(true);
     m_wndStaticPalette.SetAutoHandleSelection(true);
     m_wndStaticPalette.SetSelection(_multiSelection); // Just always start with zero.
     m_wndStaticPalette.SetPalette(5, 8, _palette, ARRAYSIZE(g_egaColors), g_egaColors); // In which someone will copy something.
@@ -110,7 +111,20 @@ void CPaletteDefinitionDialog::DoDataExchange(CDataExchange* pDX)
     // Set initial selection in color boxes.
     m_wndStaticColors.SetSelection(GetCurrentPalettePtr()[_bSelection].color1);
     m_wndStaticColors.SetAuxSelection(GetCurrentPalettePtr()[_bSelection].color2);
-    m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);
+
+    // Figure out which ones are used in the pic
+    PicDrawManager picDraw(&_pic, nullptr);
+    picDraw.RefreshAllScreens(PicScreenFlags::All, PicPositionFlags::Final);
+    const uint8_t *indicesBits = picDraw.GetPicBits(PicScreen::Index, PicPosition::Final, _pic.Size);
+    size_t count = _pic.Size.cx * _pic.Size.cy;
+    RGBQUAD usedIndices[256] = {};
+    for (size_t i = 0; i < count; i++)
+    {
+        usedIndices[indicesBits[i]].rgbReserved = 0x1;
+    }
+
+    m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(usedIndices), usedIndices);
+
     m_wndStaticPalette.OnPaletteUpdated();
 }
 
