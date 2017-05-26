@@ -303,13 +303,14 @@ void CBrushButton::_OnDraw(HDC hdc, RECT *prc)
 
             SCIBitmapInfo bmi(cMin, cMin);
             std::unique_ptr<BYTE[]> dataBrush = std::make_unique<BYTE[]>(cMin * cMin);
+            std::unique_ptr<BYTE[]> dataIndex = std::make_unique<BYTE[]>(cMin * cMin);
             // Fill with white.
             memset(dataBrush.get(), 0x0f, cMin * cMin);
 
             // Fake a PicData to draw into, with a visual brush.
-            PicData data = { PicScreenFlags::Visual, dataBrush.get(), nullptr, nullptr, nullptr, false, false, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT) };
+            PicData data = { PicScreenFlags::Visual, dataBrush.get(), nullptr, nullptr, nullptr, dataIndex.get(), false, false, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT) };
 
-            DrawPatternInRect(cMin, cMin, &data, 8, 8, color, 0, 0, PicScreenFlags::Visual, &_penStyle);
+            DrawPatternInRect(cMin, cMin, &data, 8, 8, color, 0, 0, 0, PicScreenFlags::Visual, &_penStyle);
 
             int nOldMode = pDC->SetStretchBltMode(HALFTONE);
             StretchDIBits((HDC)*pDC, rcLocal.left, rcLocal.top, RECTWIDTH(rcLocal), RECTHEIGHT(rcLocal),

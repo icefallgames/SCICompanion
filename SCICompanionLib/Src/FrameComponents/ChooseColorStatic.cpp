@@ -746,7 +746,7 @@ void CChooseBrushStatic::_DrawItem(CDC *pDC, int cx, int cy)
 
     BYTE dataBrush[PATTERN_BMP_SIZE];
     // Fake a PicData to draw into, with a visual brush.
-    PicData data = { PicScreenFlags::Visual, (BYTE*)&dataBrush, nullptr, nullptr, nullptr, false, false, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT) };
+    PicData data = { PicScreenFlags::Visual, (BYTE*)&dataBrush, nullptr, nullptr, nullptr, nullptr, false, false, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT) };
 
     for (BYTE bPaletteIndex = 0; bPaletteIndex < (_cRows * _cColumns); bPaletteIndex++)
     {
@@ -764,7 +764,7 @@ void CChooseBrushStatic::_DrawItem(CDC *pDC, int cx, int cy)
 
         // Ask the pattern to draw itself
         
-        DrawPatternInRect(PATTERN_PAINT_SIZE, PATTERN_PAINT_SIZE, &data, 8, 8, color, 0, 0, PicScreenFlags::Visual, &penStyle);
+        DrawPatternInRect(PATTERN_PAINT_SIZE, PATTERN_PAINT_SIZE, &data, 8, 8, color, 0, 0, 0, PicScreenFlags::Visual, &penStyle);
 
         // Now draw into the DC.
         RECT rectSquare;

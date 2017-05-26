@@ -626,11 +626,12 @@ void ViewPort::Reset(uint8_t bPaletteToUse)
     std::copy(g_defaultPriBands, g_defaultPriBands + ARRAYSIZE(g_defaultPriBands), bPriorityLines);
 }
 
-inline void _PlotPixI(int p, PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue)
+inline void _PlotPixI(int p, PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue)
 {
     if (IsFlagSet(pData->dwMapsToRedraw, PicScreenFlags::Visual) && IsFlagSet(dwDrawEnable, PicScreenFlags::Visual))
     {
         pData->pdataVisual[p] = ((x^y) & 1)? color.color1 : color.color2;
+        pData->pdataIndex[p] = index;
     }
     if (IsFlagSet(pData->dwMapsToRedraw, PicScreenFlags::Priority) && IsFlagSet(dwDrawEnable, PicScreenFlags::Priority))
     {
@@ -715,7 +716,7 @@ struct PlotVGA
 };
 
 template<typename _TFormat>
-inline void _PlotPix(PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, PicScreenFlags auxSet, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue)
+inline void _PlotPix(PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, PicScreenFlags auxSet, typename _TFormat::PixelType color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue)
 {
     if(x < 0 || y < 0 || x >= pData->size.cx || y >= pData->size.cy)
     {
@@ -728,6 +729,10 @@ inline void _PlotPix(PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDraw
     if (IsFlagSet(pData->dwMapsToRedraw, PicScreenFlags::Visual) && IsFlagSet(dwDrawEnable, PicScreenFlags::Visual))
     {
         pData->pdataVisual[p] = _TFormat::Plot(x, y, color);
+        if (IsFlagSet(dwDrawEnable, PicScreenFlags::Index))
+        {
+            pData->pdataIndex[p] = index;
+        }
     }
     if (IsFlagSet(pData->dwMapsToRedraw, PicScreenFlags::Priority) && IsFlagSet(dwDrawEnable, PicScreenFlags::Priority))
     {
@@ -760,7 +765,7 @@ PicScreenFlags _GetAuxSet(typename  _TFormat::PixelType color, uint8_t bPriority
     return auxSet;
 }
 
-void _PlotPixNonStd(int cx, int cy, PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue)
+void _PlotPixNonStd(int cx, int cy, PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue)
 {
     if(x < 0 || y < 0 || x >= cx || y >= cy)
     {
@@ -768,7 +773,7 @@ void _PlotPixNonStd(int cx, int cy, PicData *pData, int16_t x, int16_t y, PicScr
     }
 
     int p = BUFFEROFFSET_NONSTD(cx, cy, x, y);
-    _PlotPixI(p, pData, x, y, dwDrawEnable, color, bPriorityValue, bControlValue);
+    _PlotPixI(p, pData, x, y, dwDrawEnable, color, index, bPriorityValue, bControlValue);
 }
 
 
@@ -782,17 +787,17 @@ void _PlotPixNonStd(int cx, int cy, PicData *pData, int16_t x, int16_t y, PicScr
    incrE = ((deltanonlinear) > 0) ? -(deltanonlinear) : (deltanonlinear);  \
    d = nonlinearstart-1;  \
    while (linearvar != (linearend)) { \
-     _PlotPix<_TFormat>(pData, x,y, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue); \
+     _PlotPix<_TFormat>(pData, x,y, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue); \
      linearvar += linearmod; \
      if ((d+=incrE) < 0) { \
        d += incrNE; \
        nonlinearvar += nonlinearmod; \
      }; \
    }; \
-   _PlotPix<_TFormat>(pData, x, y, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
+   _PlotPix<_TFormat>(pData, x, y, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
 
 template<typename _TFormat>
-void _DitherLine(PicData *pData, int16_t xStart, int16_t yStart, int16_t xEnd, int16_t yEnd, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
+void _DitherLine(PicData *pData, int16_t xStart, int16_t yStart, int16_t xEnd, int16_t yEnd, typename _TFormat::PixelType color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
     int dx, dy, incrE, incrNE, d, finalx, finaly;
     int x = (int)xStart;
@@ -880,7 +885,7 @@ uint8_t junqindex[128] = { /* starting points for junq fill */
 // fRectangle:      rect or circle?
 //
 template<typename _TFormat>
-void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, bool fPattern, uint8_t bPatternSize, uint8_t bPatternNR, bool fRectangle)
+void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::PixelType color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, bool fPattern, uint8_t bPatternSize, uint8_t bPatternNR, bool fRectangle)
 {
     uint16_t wSize = (uint16_t)bPatternSize;
 
@@ -921,7 +926,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
                     {
                         if ( (junq[junqbit>>3] >> (7-(junqbit & 7))) & 1)
                         {
-                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
+                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
                         }
                         junqbit++;
                         if (junqbit == 0xff)
@@ -931,7 +936,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
                     }
                     else
                     {
-                        _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
+                        _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
                     }
                 }
             }
@@ -951,7 +956,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
                         {
                             if ((junq[junqbit>>3] >> (7-(junqbit & 7))) & 1)
                             {
-                                _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
+                                _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
                             }
                             junqbit++;
                             if (junqbit == 0xff)
@@ -961,7 +966,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
                         }
                         else
                         {
-                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
+                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
                         }
                     }
                     circlebit++;
@@ -987,6 +992,8 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
     memset(buffer.get(), 0xff, dataSize);
     std::unique_ptr<uint8_t[]> aux = std::make_unique<uint8_t[]>(dataSize);
     memset(aux.get(), 0, dataSize);
+    std::unique_ptr<uint8_t[]> index = std::make_unique<uint8_t[]>(dataSize);
+    memset(index.get(), 0, dataSize);
     PicData data =
     {
         PicScreenFlags::Visual,
@@ -994,6 +1001,7 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
         nullptr,
         nullptr,
         aux.get(),
+        index.get(),
         true,
 		false, // REVIEW: check this
         size16(actualSize, actualSize),
@@ -1002,7 +1010,7 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
 
     _DrawPattern<PlotVGA>(&data,
         patternSize, patternSize,
-        0, 0, 0, PicScreenFlags::Visual,
+        0, 0, 0, 0, PicScreenFlags::Visual,
         pattern,
         patternSize,
         patternNR,
@@ -1038,7 +1046,7 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
 // REVIEW: This sucks - I had to make a full copy of this function, just to allow it to draw to something smaller
 // than 320 x 200.  (don't want to pass extra params to _PlotPix due to perf)
 //
-void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle)
+void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGACOLOR color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle)
 {
     uint16_t wSize = (uint16_t)pPenStyle->bPatternSize;
 
@@ -1074,7 +1082,7 @@ void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGA
                     {
                         if ( (junq[junqbit>>3] >> (7-(junqbit & 7))) & 1)
                         {
-                            _PlotPixNonStd(cx, cy, pData, k, l, dwDrawEnable, color, bPriorityValue, bControlValue);
+                            _PlotPixNonStd(cx, cy, pData, k, l, dwDrawEnable, color, index, bPriorityValue, bControlValue);
                         }
                         junqbit++;
                         if (junqbit == 0xff)
@@ -1084,7 +1092,7 @@ void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGA
                     }
                     else
                     {
-                        _PlotPixNonStd(cx, cy, pData, k, l, dwDrawEnable, color, bPriorityValue, bControlValue);
+                        _PlotPixNonStd(cx, cy, pData, k, l, dwDrawEnable, color, index, bPriorityValue, bControlValue);
                     }
                 }
             }
@@ -1104,7 +1112,7 @@ void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGA
                         {
                             if ((junq[junqbit>>3] >> (7-(junqbit & 7))) & 1)
                             {
-                                _PlotPixNonStd(cx, cy, pData, k, l, dwDrawEnable, color, bPriorityValue, bControlValue);
+                                _PlotPixNonStd(cx, cy, pData, k, l, dwDrawEnable, color, index, bPriorityValue, bControlValue);
                             }
                             junqbit++;
                             if (junqbit == 0xff)
@@ -1114,7 +1122,7 @@ void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGA
                         }
                         else
                         {
-                            _PlotPixNonStd(cx, cy, pData, k, l, dwDrawEnable, color, bPriorityValue, bControlValue);
+                            _PlotPixNonStd(cx, cy, pData, k, l, dwDrawEnable, color, index, bPriorityValue, bControlValue);
                         }
                     }
                     circlebit++;
@@ -1523,7 +1531,7 @@ int g_commands = 0;
 std::mutex g_mutexDither;
 
 template<typename _TFormat>
-void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
+void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::PixelType color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
     PicScreenFlags auxSet = _GetAuxSet<_TFormat>(color, bPriorityValue, bControlValue, dwDrawEnable);
     dwDrawEnable = auxSet;
@@ -1588,7 +1596,7 @@ void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::Pixel
         {
             if (OK_TO_FILL(cx, cy, x1, y1, _TFormat))
             {
-                _PlotPix<_TFormat>(pdata, (int16_t)x1, (int16_t)y1, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
+                _PlotPix<_TFormat>(pdata, (int16_t)x1, (int16_t)y1, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
 
                 // PERF: Tried removing OK_TO_FILL here, but it made it worse
                 // (It's technically uncessary)
@@ -1646,30 +1654,30 @@ void LineCommand_DrawOnly(const PicCommand *pCommand, PicData *pData, const View
     {
         _DitherLine<PlotVGA>(pData,
             pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
-            pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+            pState->bPaletteOffset, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
     }
 	else if (pData->isUndithered)
 	{
 		_DitherLine<PlotEGAUndithered>(pData,
 			pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
-			pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+			pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
 	}
 	else
     {
         _DitherLine<PlotEGA>(pData,
             pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
-            pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+            pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
     }
 }
 
 //
 // Override for drawing lines on the buffers, w/o the line actually being part of the pic.
 //
-void LineCommand_DrawOverride(PicCommand *pCommand, PicData *pData, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
+void LineCommand_DrawOverride(PicCommand *pCommand, PicData *pData, EGACOLOR color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
     _DitherLine<PlotEGA>(pData,
         pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
-        color, bPriorityValue, bControlValue, dwDrawEnable);
+        color, index, bPriorityValue, bControlValue, dwDrawEnable);
 }
 
 
@@ -1772,7 +1780,7 @@ void PatternCommand_Draw_DrawOnly(const PicCommand *pCommand, PicData *pData, co
     {
         _DrawPattern<PlotVGA>(pData,
             pCommand->drawPattern.x, pCommand->drawPattern.y,
-            pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
+            pState->bPaletteOffset, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
             (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
             pCommand->drawPattern.bPatternSize,
             pCommand->drawPattern.bPatternNR,
@@ -1782,7 +1790,7 @@ void PatternCommand_Draw_DrawOnly(const PicCommand *pCommand, PicData *pData, co
 	{
 		_DrawPattern<PlotEGAUndithered>(pData,
 			pCommand->drawPattern.x, pCommand->drawPattern.y,
-			pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
+			pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
 			(pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
 			pCommand->drawPattern.bPatternSize,
 			pCommand->drawPattern.bPatternNR,
@@ -1792,7 +1800,7 @@ void PatternCommand_Draw_DrawOnly(const PicCommand *pCommand, PicData *pData, co
     {
         _DrawPattern<PlotEGA>(pData,
             pCommand->drawPattern.x, pCommand->drawPattern.y,
-            pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
+            pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
             (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
             pCommand->drawPattern.bPatternSize,
             pCommand->drawPattern.bPatternNR,
@@ -1930,15 +1938,15 @@ void FillCommand_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *pSta
 {
     if (pData->isVGA)
     {
-        _DitherFill<PlotVGA>(pData, pCommand->fill.x, pCommand->fill.y, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        _DitherFill<PlotVGA>(pData, pCommand->fill.x, pCommand->fill.y, pState->bPaletteOffset, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
     }
 	else if (pData->isUndithered)
 	{
-		_DitherFill<PlotEGAUndithered>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+		_DitherFill<PlotEGAUndithered>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
 	}
     else
     {
-        _DitherFill<PlotEGA>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        _DitherFill<PlotEGA>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
     }
 }
 
@@ -2012,7 +2020,7 @@ void SetVisualCommand_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
             pState->egaColor = pPalette[pCommand->setVisual.GetPaletteIndex()];
         }
     }
-    pState->dwDrawEnable |= PicScreenFlags::Visual;
+    pState->dwDrawEnable |= (PicScreenFlags::Visual | PicScreenFlags::Index);
 }
 
 void SetVisualCommand_GetName(const PicCommand *pCommand, TCHAR *pszBuf, size_t cchBuf)

@@ -554,6 +554,7 @@ enum class PicScreen
     Priority = 1,
     Control = 2,
     Aux = 3,
+    Index = 4,
 };
 
 enum class PicScreenFlags
@@ -564,6 +565,8 @@ enum class PicScreenFlags
     Control = 0x0004,
     Aux = 0x0008,
     All = 0x0007,
+    Index = 0x0010,     // Added this, simply to track palette index in EGA pics
+
     VGA = 0x0080,       // A hack, to pass information through to our draw functions that we should write vga
 };
 DEFINE_ENUM_FLAGS(PicScreenFlags, uint32_t)

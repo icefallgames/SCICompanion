@@ -1636,7 +1636,10 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
             else
             {
                 // Can we show the index? That would be difficult.
-                StringCchPrintf(szText, ARRAYSIZE(szText), "Color: %3d (%d + %d)", bColor, bColor & 0xf, (bColor >> 4));
+                // Nah, let's do it:
+                const uint8_t *indexBits = _GetDrawManager().GetPicBits(PicScreen::Index, PicPosition::PrePlugin, _GetPicSize());
+                uint8_t index = *(indexBits + BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, _ptCurrentHover.x, _ptCurrentHover.y));
+                StringCchPrintf(szText, ARRAYSIZE(szText), "Color: %2x (%x + %x), Idx: %d", bColor, bColor & 0xf, (bColor >> 4), index);
             }
         }
     }
@@ -2561,6 +2564,7 @@ void CPicView::_EnsurateCoordinates(PicCommand::CommandType commandType, _Functi
         PicData dataDummy =
         {
             PicScreenFlags::None,
+            nullptr,
             nullptr,
             nullptr,
             nullptr,
