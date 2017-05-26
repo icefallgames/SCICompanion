@@ -848,14 +848,14 @@ void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
 
         CExtCmdItem *pCmdItem = g_CmdManager->CmdGetPtr(appState->_pszCommandProfile, idToAdd);
         // Allocate this command if not used yet.
-        if (pCmdItem == nullptr)
-        {
-            pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, idToAdd);
-        }
-        pCmdItem->m_sMenuText = description.c_str();
-        menu.ItemInsert(idToAdd, index);
-        index++;
-        idToAdd++;
+if (pCmdItem == nullptr)
+{
+    pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, idToAdd);
+}
+pCmdItem->m_sMenuText = description.c_str();
+menu.ItemInsert(idToAdd, index);
+index++;
+idToAdd++;
     }
 }
 
@@ -938,9 +938,42 @@ void CMainFrame::OnWindowPosChanged(WINDOWPOS *wp)
     __super::OnWindowPosChanged(wp);
 }
 
+struct ColorAndDistance
+{
+    int a;
+    int b;
+    int distance;
+
+    bool operator<(const ColorAndDistance &cad) const
+    {
+        return cad.distance > distance;
+    }
+};
+
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    
+    std::vector<ColorAndDistance> boop;
+
+    // phil quick test
+    for (int a = 0; a < 256; a++)
+    {
+        for (int b = a; b < 256; b++)
+        {
+            if (_ColorRefFromRGBQuad(g_egaColorsExtended[a]) != _ColorRefFromRGBQuad(g_egaColorsExtended[b]))
+            {
+                int distance = GetColorDistanceRGB(g_egaColorsExtended[a], g_egaColorsExtended[b]);
+                boop.push_back({a, b, distance});
+            }
+        }
+    }
+    std::sort(boop.begin(), boop.end());
+
+    for (int i = 0; i < 10; i++)
+    {
+        OutputDebugString(fmt::format("color: {0:4x} and {1:4x}: dist: {2}\n", boop[i].a, boop[i].b, boop[i].distance).c_str());
+    }
+
+
     g_CmdManager->ProfileSetup(appState->_pszCommandProfile, GetSafeHwnd());
     g_CmdManager->UpdateFromMenu(appState->_pszCommandProfile, IDR_MAINFRAME);
     RegisterCommands();

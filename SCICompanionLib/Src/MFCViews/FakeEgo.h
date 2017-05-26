@@ -15,11 +15,12 @@
 
 struct FakeEgo
 {
-    FakeEgo() : View(0), Loop(0), Cel(0), Pri(-1) {}
+    FakeEgo() : View(0), Loop(0), Cel(0), Pri(-1), Z(0) {}
 
     int View;
     int Cel;
     int Loop;
     int Pri;
     CPoint Location;
+    int Z;
 };

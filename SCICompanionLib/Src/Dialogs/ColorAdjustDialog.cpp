@@ -122,6 +122,30 @@ void ColorAdjustDialog::_SyncPalette()
             _palette.Colors[i].rgbReserved = orig.rgbReserved;
         }
     }
+
+    // phil temp thing
+    std::string output;
+    for (size_t i = 0; i < 256; i++)
+    {
+        RGBQUAD orig = g_egaColorsMixed[i];
+        COLORREF crOld = RGB(orig.rgbRed, orig.rgbGreen, orig.rgbBlue);
+        COLORREF crNew = CExtBitmap::stat_HLS_Adjust(crOld, hue, lum, sat);
+
+        int r = (int)GetRValue(crNew) * (int)GetRValue(_crTint) / 255;
+        int g = (int)GetGValue(crNew) * (int)GetGValue(_crTint) / 255;
+        int b = (int)GetBValue(crNew) * (int)GetBValue(_crTint) / 255;
+        COLORREF crNewTinted = RGB(r, g, b);
+        crNew = CExtBitmap::stat_RGB_Blend(crNewTinted, crNew, _tintStrength);
+        EGACOLOR closestEGA = GetClosestEGAColor(1, true, 1, crNew);
+        if ((i % 16) == 0)
+        {
+            output += "\n";
+        }
+        output += fmt::format(" ${0:02x}", closestEGA.ToByte());
+    }
+    OutputDebugString(output.c_str());
+
+
     if (_callback)
     {
         _callback->OnVGAPaletteChanged();
