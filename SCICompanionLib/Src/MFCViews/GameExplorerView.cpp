@@ -534,7 +534,7 @@ void CGameExplorerView::OnUpdateItemCount(CCmdUI *pCmdUI)
         TCHAR szBuf[MAX_PATH];
         int iSelectedTab = (int)_iSelectedTab;
         ASSERT(iSelectedTab < ARRAYSIZE(g_resourceInfo));
-        StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d %s resources"), pView->GetItemCount(), g_resourceInfo[iSelectedTab].pszTitleDefault);
+        StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d %s resources %s"), pView->GetItemCount(), g_resourceInfo[iSelectedTab].pszTitleDefault, pView->GetSearchText().c_str());
         pCmdUI->SetText(szBuf);
     }
 }

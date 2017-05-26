@@ -32,6 +32,8 @@
 
 using namespace std;
 
+#define TIMER_MATCHTEXT 6936
+
 // CResourceListCtrl
 
 static const int ColumnName = 0;
@@ -73,7 +75,7 @@ ResourceBlob *ResourceBlobWrapper::GetBlob()
     return _blob.get();
 }
 
-CResourceListCtrl::CResourceListCtrl()
+CResourceListCtrl::CResourceListCtrl() : _startAfterCurrent(false)
 {
     _iView = -1; // Invalid viewmode
     _bFirstTime = TRUE;
@@ -104,6 +106,7 @@ BEGIN_MESSAGE_MAP(CResourceListCtrl, CListCtrl)
     //ON_NOTIFY_REFLECT(LVN_BEGINSCROLL, OnBeginScroll)
     //ON_NOTIFY_REFLECT(LVN_ENDSCROLL, OnEndScroll)
     ON_WM_KEYDOWN()
+    ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 #define UNUSED_STATUS_TEXT TEXT("Unused")
@@ -339,7 +342,69 @@ void CResourceListCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     }
     else
     {
-        __super::OnKeyDown(nChar, nRepCnt, nFlags);
+        UINT character = MapVirtualKey(nChar, MAPVK_VK_TO_CHAR);
+        if (character && IsCharAlphaNumericA((char)character))
+        {
+            // Select this group.
+            _strMatchText += (char)nChar;
+            _SelectItem(_strMatchText);
+            SetTimer(TIMER_MATCHTEXT, 1000, NULL);
+        }
+        else
+        {
+            __super::OnKeyDown(nChar, nRepCnt, nFlags);
+        }
+    }
+}
+
+void CResourceListCtrl::_SelectItem(std::string text)
+{
+    // Start with current and keep going?
+    int count = GetItemCount();
+    int selectedItem = GetSelectedItem();
+    if (selectedItem == -1)
+    {
+        selectedItem = 0;
+    }
+    for (int i = 0; i < count; i++)
+    {
+        // TODO: continue from current as long as it matches
+        // But if we clear, then continue from next.
+        int indexBump = _startAfterCurrent ? 1 : 0;
+
+        int iItem = (i + selectedItem + indexBump) % count;
+        CString itemTextStr = GetItemText(iItem, 0);
+        std::string itemText = (PCSTR)itemTextStr;
+        ToUpper(itemText);
+        size_t index  = itemText.find(text, 0);
+        if (index != std::string::npos)
+        {
+            SetItemState(-1, 0, LVIS_SELECTED);
+            SetItemState(iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+            EnsureVisible(iItem, FALSE);
+            _startAfterCurrent = false;
+            break;
+        }
+    }
+}
+
+const std::string &CResourceListCtrl::GetSearchText()
+{
+    return _strMatchText;
+}
+
+void CResourceListCtrl::OnTimer(UINT_PTR nIDEvent)
+{
+    // Timer ran out.
+    if (nIDEvent == TIMER_MATCHTEXT)
+    {
+        _strMatchText = "";
+        _startAfterCurrent = true;
+    }
+    else
+    {
+        // Must call __super::OnTimer, or else the label-editing won't work.
+        __super::OnTimer(nIDEvent);
     }
 }
 

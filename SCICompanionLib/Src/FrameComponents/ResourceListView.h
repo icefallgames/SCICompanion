@@ -62,7 +62,7 @@ public:
     void OnExtractResources();
     void OnViewRawData();
     BOOL PreTranslateMessage(MSG *pMsg);
-
+    const std::string &GetSearchText();
 public:
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -82,6 +82,7 @@ protected:
     void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
     void OnCustomDraw(NMHDR *pNMHDR, LRESULT *pResult);
     void OnContextMenu(CWnd *pWnd, CPoint point);
+    void OnTimer(UINT_PTR nIDEvent);
 	DECLARE_MESSAGE_MAP()
 
     void _SortItemsHelper(int sortColumn, bool toggle);
@@ -101,6 +102,7 @@ protected:
     ResourceBlob *_GetResourceForItemRealized(LPARAM lParam);
     int _GetItemForResource(const ResourceBlob *pData);
     void _DeleteMatchingItems(int resourceNumber, int packageNumber, ResourceSourceFlags sourceFlags);
+    void _SelectItem(std::string text);
 
     int _iView;
     BOOL _bFirstTime;
@@ -114,6 +116,9 @@ protected:
 
     std::unordered_map<int, bool> _sortOrder;
     int _iSortColumn;
+
+    std::string _strMatchText;
+    bool _startAfterCurrent;
 };
 
 
