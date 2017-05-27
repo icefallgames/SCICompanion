@@ -569,3 +569,7 @@ uint8_t PriorityValueToColorIndex(bool continuousPriority, int16_t priorityValue
 //
 
 extern uint16_t g_defaultPriBands16Bit[14];
+
+// 119 is actually the maximum, because double the value (238) is stored in
+// a byte, and that byte has to be < 240 in order not to be interpretered as a command.
+const uint8_t MaxPatternNr = 119;

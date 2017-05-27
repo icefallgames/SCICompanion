@@ -745,8 +745,9 @@ void CChooseBrushStatic::_DrawItem(CDC *pDC, int cx, int cy)
     _DrawSelection(pDC);
 
     BYTE dataBrush[PATTERN_BMP_SIZE];
+    BYTE indexBrush[PATTERN_BMP_SIZE];
     // Fake a PicData to draw into, with a visual brush.
-    PicData data = { PicScreenFlags::Visual, (BYTE*)&dataBrush, nullptr, nullptr, nullptr, nullptr, false, false, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT) };
+    PicData data = { PicScreenFlags::Visual, (uint8_t*)&dataBrush, nullptr, nullptr, nullptr, (uint8_t*)&indexBrush, false, false, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT) };
 
     for (BYTE bPaletteIndex = 0; bPaletteIndex < (_cRows * _cColumns); bPaletteIndex++)
     {
