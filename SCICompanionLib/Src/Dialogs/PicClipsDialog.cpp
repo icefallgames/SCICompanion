@@ -62,6 +62,17 @@ BOOL PicClipsDialog::PreTranslateMessage(MSG* pMsg)
     }
     if (!fRet)
     {
+        if ((pMsg->message == WM_KEYDOWN) && (pMsg->wParam == VK_DELETE))
+        {
+            if (GetFocus() == &m_wndClips)
+            {
+                fRet = TRUE;
+                DeleteAnItem();
+            }
+        }
+    }
+    if (!fRet)
+    {
         fRet = __super::PreTranslateMessage(pMsg);
     }
     return fRet;
@@ -245,6 +256,15 @@ void PicClipsDialog::OnUpdateCopyPaste(CCmdUI *pCmd)
     pCmd->Enable(TRUE);
 }
 
+void PicClipsDialog::DeleteAnItem()
+{
+    int item = m_wndClips.GetSelectionMark();
+    if (item != -1)
+    {
+        _clips.erase(_clips.begin() + item);
+        _UpdateList();
+    }
+}
 
 void PicClipsDialog::OnPaste()
 {

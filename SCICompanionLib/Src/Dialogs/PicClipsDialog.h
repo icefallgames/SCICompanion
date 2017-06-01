@@ -48,6 +48,8 @@ private:
     void _PopulateFilesList();
     void OnLvnBeginlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResult);
     void OnLvnEndlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResult);
+    void DeleteAnItem();
+    
     void OnCbnSelchangeFiles();
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
