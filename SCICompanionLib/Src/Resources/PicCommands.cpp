@@ -1480,7 +1480,9 @@ sPOINT g_buf[BMPSIZE_MAX + 1];
 sPOINT g_pEmpty={EMPTY,EMPTY};
 
 #define GET_PIX_VISUAL(cx, cy, x, y) (*((pdata->pdataVisual) + BUFFEROFFSET_NONSTD(cx, cy, x, y)))
-#define GET_PIX_AUX(cx, cy, x, y) (*((pdata->pdataAux) +  BUFFEROFFSET_NONSTD(cx, cy, x, y)))
+
+// Need to mask out with PicScreenflags::All, since we use the aux screen to store index too.
+#define GET_PIX_AUX(cx, cy, x, y) ((uint8_t)PicScreenFlags::All & (*((pdata->pdataAux) +  BUFFEROFFSET_NONSTD(cx, cy, x, y))))
 
 //
 // BUG in FILL_BOUNDS and DitherFill:
