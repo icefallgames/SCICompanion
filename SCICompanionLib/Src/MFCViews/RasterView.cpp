@@ -47,7 +47,6 @@ using namespace std;
 
 CExtBitmap g_AffectAllBitmap;
 
-
 //
 // Makes a rect bounded by the two points, no matter where the points are in relation
 // to each other.
@@ -1907,20 +1906,24 @@ void CRasterView::_OnFillLClick(CPoint point, bool fUseForeground)
     _GrabSourceData();
     for (int i = 0; i < _cWorkingCels; i++)
     {
-        CSCIDrawHelper helper(nullptr, _celData[i].GetDataPtr(), SizeToCSize(_celData[i].GetSize()), _palette, _paletteCount);
-
+        // Use a unique colormapping for palette indices, otherwise the flood-fill may fail when the same RGB colors are
+        // represented by multiple different palette indices.
+        CSCIDrawHelper helper(nullptr, _celData[i].GetDataPtr(), SizeToCSize(_celData[i].GetSize()), g_continuousPriorityColors, _paletteCount);
+        COLORREF mainColor = RGB(0, _color, 0);
+        COLORREF altColor = RGB(0, _alternateColor, 0);
+        
         CBrush brush;
         HGDIOBJ hOld;
         int crTextOld, crBkOld;
         if (_fDithered)
         {
-            crTextOld = helper.dc.SetTextColor(_SCIColorToCOLORREF(_color));
-            crBkOld = helper.dc.SetBkColor(_SCIColorToCOLORREF(_alternateColor));
+            crTextOld = helper.dc.SetTextColor(mainColor);
+            crBkOld = helper.dc.SetBkColor(altColor);
             hOld = helper.dc.SelectObject(&_brushPattern);
         }
         else
         {
-            brush.CreateSolidBrush(_SCIColorToCOLORREF(fUseForeground ? _color : _alternateColor));
+            brush.CreateSolidBrush(fUseForeground ? mainColor : altColor);
             hOld = helper.dc.SelectObject(&brush);
         }
         COLORREF color = helper.dc.GetPixel(point);
