@@ -432,6 +432,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_VIEW_REMOVEEMBEDDEDPALETTE, RemoveVGAPalette)
     ON_COMMAND(ID_VIEW_REMAPPALETTE, RemapPalette)
     ON_COMMAND(ID_VIEW_SHIFTCOLORS, ShiftColors)
+    ON_COMMAND(ID_VIEW_SHRINKWRAPCEL, ShrinkWrapCels)
     ON_COMMAND(ID_VIEW_LEFTONIONSKIN, ToggleLeftOnion)
     ON_COMMAND(ID_VIEW_RIGHTONIONSKIN, ToggleRightOnion)
     ON_COMMAND(ID_VIEW_ONIONSKINSETTINGS, OnOnionSkinSettings)
@@ -482,6 +483,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMAPPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_SHIFTCOLORS, OnUpdateAlwaysOn)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_SHRINKWRAPCEL, OnUpdateAlwaysOn)
     ON_UPDATE_COMMAND_UI(ID_VIEW_LEFTONIONSKIN, OnUpdateLeftOnion)
     ON_UPDATE_COMMAND_UI(ID_VIEW_RIGHTONIONSKIN, OnUpdateRightOnion)
 END_MESSAGE_MAP()
@@ -3755,6 +3757,37 @@ void CRasterView::RemapPalette()
 }
 
 void DoNothing(ResourceEntity &resource);
+
+
+
+void CRasterView::ShrinkWrapCels()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        bool fApplyToAll = pDoc->GetApplyToAllCels();
+        CelIndex celIndex = pDoc->GetSelectedIndex();
+        pDoc->ApplyChanges<RasterComponent>(
+            [celIndex, fApplyToAll](RasterComponent &raster)
+        {
+            RasterChangeHint hint = RasterChangeHint::None;
+            if (fApplyToAll)
+            {
+                Loop &loop = raster.Loops[celIndex.loop];
+                for (int i = 0; i < (int)loop.Cels.size(); i++)
+                {
+                    hint |= ShrinkWrapCel(raster, CelIndex(celIndex.loop, i));
+                }
+            }
+            else
+            {
+                hint |= ShrinkWrapCel(raster, celIndex);
+            }
+            return WrapHint(hint);
+        }
+        );
+    }
+}
 
 void CRasterView::ShiftColors()
 {

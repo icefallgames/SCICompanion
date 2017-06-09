@@ -714,6 +714,7 @@ BEGIN
             MENUITEM "180° degrees\tCtrl-\\",       ID_ROTATE_180
             MENUITEM "Arbitrary\tCtrl-R",           ID_ROTATE_ARBITRARY
         END
+        MENUITEM "Shrink&wrap cel",             ID_VIEW_SHRINKWRAPCEL
         MENUITEM SEPARATOR
         MENUITEM "Left Onion Skin\tCtrl-,",     ID_VIEW_LEFTONIONSKIN, CHECKED
         MENUITEM "Right Onion Skin\tCtrl-.",    ID_VIEW_RIGHTONIONSKIN

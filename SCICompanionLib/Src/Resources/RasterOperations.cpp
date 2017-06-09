@@ -408,6 +408,71 @@ void CreateDegenerate(Cel &cel, uint8_t bColor)
     cel.Data.fill(bColor);
 }
 
+// Remove extraneous space, and adjust placement so it's the same.
+// REVIEW: Only works horizontally for now.
+bool IsTx(const Cel &cel, int x, int y)
+{
+    const uint8_t *dataDest = &cel.Data[0];
+    return (cel.TransparentColor == *(dataDest + x + y * cel.GetStride()));
+}
+RasterChangeHint ShrinkWrapCel(RasterComponent &raster, CelIndex celIndex)
+{
+    Cel &cel = raster.GetCel(celIndex);
+    int leftEmptySpace = 0;
+    bool encounteredSolid = false;
+    for (int x = 0; !encounteredSolid && (x < cel.size.cx); x++)
+    {
+        for (int y = 0; !encounteredSolid && (y < cel.size.cy); y++)
+        {
+            encounteredSolid = !IsTx(cel, x, y);
+        }
+        if (!encounteredSolid)
+        {
+            leftEmptySpace++;
+        }
+    }
+
+    int rightEmptySpace = 0;
+    encounteredSolid = false;
+    for (int x = cel.size.cx - 1; !encounteredSolid && (x >= 0); x--)
+    {
+        for (int y = 0; !encounteredSolid && (y < cel.size.cy); y++)
+        {
+            encounteredSolid = !IsTx(cel, x, y);
+        }
+        if (!encounteredSolid)
+        {
+            rightEmptySpace++;
+        }
+    }
+
+    // This is the offset into the thingy from top left:
+    int placementCoordX = cel.size.cx / 2 - cel.placement.x;
+
+    RasterChangeHint hint = RasterChangeHint::None;
+    // Trim from left:
+    size16 newLeftSize = cel.size;
+    if (leftEmptySpace > 0)
+    {
+        placementCoordX -= leftEmptySpace; // Because it's now less offset.
+        newLeftSize.cx -= leftEmptySpace;
+        SetSize(raster, celIndex, newLeftSize, RasterResizeFlags::AnchorBottomRight);
+        hint |= RasterChangeHint::Loop;
+    }
+    if (rightEmptySpace > 0)
+    {
+        size16 newRightSize = newLeftSize;
+        newRightSize.cx -= rightEmptySpace;
+        SetSize(raster, celIndex, newRightSize, RasterResizeFlags::Normal);
+        hint |= RasterChangeHint::Loop;
+    }
+
+    // Update the placement
+    cel.placement.x = (int16_t)(cel.size.cx / 2 - placementCoordX);
+
+    return hint;
+}
+
 void SyncCelMirrorState(Cel &celMirror, const Cel &celOrig)
 {
     // Not valid anymore, with VGA
