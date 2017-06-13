@@ -312,6 +312,7 @@ private:
     afx_msg void RemoveVGAPalette();
     afx_msg void RemapPalette();
     afx_msg void ShiftColors();
+    afx_msg void ShrinkWrapCels();
     afx_msg void ToggleLeftOnion();
     afx_msg void ToggleRightOnion();
     afx_msg void OnOnionSkinSettings();

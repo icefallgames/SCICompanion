@@ -1218,7 +1218,9 @@ PicTraits picTraitsEGA =
 {
     false,  // IsVGA
     false,  // AllowMultipleBitmaps
-    false,  // CanChangePriorityLines
+    //false,  // CanChangePriorityLines
+    // Change this to true for me:
+    true,  // CanChangePriorityLines
     false,  // SixBitPri
     true,   // SupportsPenCommands
     true,   // SupportsControlScreen

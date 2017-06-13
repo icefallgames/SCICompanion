@@ -101,6 +101,7 @@ RasterChange InsertCel(RasterComponent &raster, CelIndex celIndex, const Cel &ce
 RasterChange RemoveCel(RasterComponent &raster, CelIndex celIndex);
 RasterChange MakeMirrorOf(RasterComponent &raster, int nLoop, int nOriginal);
 void SyncCelMirrorState(Cel &celMirror, const Cel &celOrig);
+RasterChangeHint ShrinkWrapCel(RasterComponent &raster, CelIndex celIndex);
 
 // These don't adhere to any persisted format. Use only at runtime.
 void SerializeCelRuntime(sci::ostream &out, const Cel &cel);
