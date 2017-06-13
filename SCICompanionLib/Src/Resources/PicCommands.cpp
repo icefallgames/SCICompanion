@@ -506,6 +506,7 @@ bool Command_Adjust(size16 size, PicCommand *pCommand, const PICCOMMAND_ADJUST *
         fRet = Coord_Adjust(size, &pCommand->fill.x, &pCommand->fill.y, pAdjust);
         break;
     }
+
     return fRet;
 }
 
@@ -515,19 +516,16 @@ bool Command_Adjust(size16 size, PicCommand *pCommand, const PICCOMMAND_ADJUST *
 //
 void PastedCommands_Adjust(size16 size, std::vector<PicCommand> &commandsIn, const PICCOMMAND_ADJUST *pAdjust)
 {
+    std::vector<PicCommand> commandsTemp;
     for (size_t i = 0; i < commandsIn.size(); i++)
     {
         if (Command_Adjust(size, &commandsIn[i], pAdjust))
         {
             // We're good
-        }
-        else
-        {
-            // This was out of bounds - remove it.
-            //commandsIn.erase(&commandsIn[i]);
-			commandsIn.erase(commandsIn.begin() + i);
+            commandsTemp.push_back(commandsIn[i]);
         }
     }
+    commandsIn = commandsTemp;
 }
 
 HGLOBAL CopiedCommands_AllocAndFillMemory(const PicCommand *pCommands, size_t cCommands)
