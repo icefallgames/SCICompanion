@@ -331,6 +331,28 @@ void CreateThreadA
 }
 
 template<typename _TParser>
+void CreateDelegateA
+(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Need to start a class.
+        CreateClassA<true>(match, pParser, pContext, stream);
+
+        // We don't know its name yet. But we know the superclass.
+        pContext->ClassPtr->SetSuperClass("Code");
+
+        // Add a method
+        pContext->CreateMethod();
+        pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
+        pContext->FunctionPtr->SetScript(&pContext->Script());
+        pContext->FunctionPtr->SetName("doit"); // And we know the function name.
+        pContext->FunctionPtr->SetIsThread(false);
+        pContext->FunctionPtr->SetPosition(stream.GetPosition());
+    }
+}
+
+template<typename _TParser>
 void ThreadCloseA
 (MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {

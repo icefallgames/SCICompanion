@@ -127,6 +127,7 @@ vector<string> SCIKeywords =
     "file#"         // Procedure forward declarations
     "thread"
     "yield"
+    "delegate"
 };
 
 template<typename _It, typename _TContext>
@@ -1073,6 +1074,9 @@ void SCISyntaxParser::Load()
 
     thread_decl = keyword_p("thread")[CreateThreadA] >> thread_base[{ThreadCloseA, ParseAutoCompleteContext::Block}];
 
+    // Like thread, but can't contain yields, and extends Code:doit instead of Thread:step
+    delegate_decl = keyword_p("delegate")[CreateDelegateA] >> thread_base[{ThreadCloseA, ParseAutoCompleteContext::Block}];
+
 
     // Unsupported (unneeded) methods forward declaration
     // (methods
@@ -1165,6 +1169,7 @@ void SCISyntaxParser::Load()
         | class_decl[FinishClassA]
         | procedure_decl[FinishProcedureA]
         | thread_decl[FinishClassA]
+        | delegate_decl[FinishClassA]
         | synonyms
         | exports
         | scriptNum

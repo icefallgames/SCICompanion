@@ -369,6 +369,7 @@ std::vector<std::string> topLevelKeywordsSCI =
     _T("synonyms"),
     _T("text#"),
     _T("thread"),
+    _T("delegate"),
     _T("use"),
 };
 

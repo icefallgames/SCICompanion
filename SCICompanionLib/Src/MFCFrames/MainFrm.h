@@ -229,6 +229,7 @@ private:
     afx_msg void OnUpdateClassBrowser(CCmdUI *pCmdUI);
     afx_msg void OnRunPlugin(UINT nID);
     afx_msg void OnValidateAllSaids();
+    afx_msg void OnValidateSelectors();
     afx_msg void OnUpdateValidateAllSaids(CCmdUI *pCmdUI);
     afx_msg void ExtractAllScriptStrings();
 

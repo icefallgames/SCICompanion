@@ -64,7 +64,9 @@
 #include "DependencyTracker.h"
 #include "MessageSource.h"
 #include "ValidateSaid.h"
+#include "ValidateSelectors.h"
 #include "OutputScriptStrings.h"
+#include "CompiledScript.h"
 #include <filesystem>
 #include <regex>
 
@@ -398,6 +400,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_STOPDEBUG, OnUpdateStopDebugging)
 
     ON_COMMAND(ID_SCRIPT_VALIDATEALLSAIDS, OnValidateAllSaids)
+    ON_COMMAND(ID_SCRIPT_VALIDATESELECTORS, OnValidateSelectors)
+    
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_VALIDATEALLSAIDS, OnUpdateValidateAllSaids)
 
     ON_COMMAND(ID_SCRIPT_EXTRACTALLSCRIPTSTRINGS, ExtractAllScriptStrings)
@@ -2826,6 +2830,15 @@ void CMainFrame::OnValidateAllSaids()
         appState->OutputResults(OutputPaneType::Compile, log.Results());
     }
 }
+
+void CMainFrame::OnValidateSelectors()
+{
+    SelectorTable &selectors = appState->GetResourceMap().GetCompiledScriptLookups()->GetSelectorTable();
+    CompileLog log;
+    ValidateSelectors(log, selectors);
+    appState->OutputResults(OutputPaneType::Compile, log.Results());
+}
+
 
 void CMainFrame::ExtractAllScriptStrings()
 {

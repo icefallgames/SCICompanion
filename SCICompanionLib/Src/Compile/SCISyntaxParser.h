@@ -61,6 +61,7 @@ private:
     ParserSCI method_base;
     ParserSCI thread_decl;
     ParserSCI thread_base;
+    ParserSCI delegate_decl;
 
     // Statements
     ParserSCI statement;
