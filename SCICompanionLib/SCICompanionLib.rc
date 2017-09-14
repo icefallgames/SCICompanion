@@ -821,7 +821,7 @@ IDR_MENUVOCAB MENU
 BEGIN
     POPUP "Vocab"
     BEGIN
-        MENUITEM "Number",                      ID_VOCAB_NUMBER
+        MENUITEM "Hidden",                      ID_VOCAB_NUMBER
         MENUITEM "Preposition",                 ID_VOCAB_PREPOSITION
         MENUITEM "Article",                     ID_VOCAB_ARTICLE
         MENUITEM "Qualifying Adjective",        ID_VOCAB_QUALIFYINGADJECTIVE
