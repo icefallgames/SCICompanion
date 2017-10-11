@@ -258,6 +258,41 @@ void _ApplyPolygonToVarDecl(VariableDecl &varDecl, const SCIPolygon &poly)
 
 void _ApplyPolygonsToScript(int picNumber, Script &script, const vector<SCIPolygon> &polygons)
 {
+    map<string, vector<SCIPolygon>> polygonsByName;
+
+    // Group them by name
+    // Normally it's just the default polygons that have the same name as each other, but we also support
+    // it for other ones.
+    for (const SCIPolygon &poly : polygons)
+    {
+        polygonsByName[poly.Name].push_back(poly);
+    }
+
+    for (const pair<string, vector<SCIPolygon>> &nameAndPolys : polygonsByName)
+    {
+        string polyName = nameAndPolys.first;
+        if (polyName.empty())
+        {
+            // It's the default polygons
+            // e.g. P_110
+            polyName = fmt::format("{0}{1}", c_szDefaultPolyName, picNumber);
+        }
+        unique_ptr<VariableDecl> polyVarDecl = make_unique<VariableDecl>();
+        polyVarDecl->SetName(polyName);
+
+        // The count
+        polyVarDecl->AddSimpleInitializer(PropertyValue((uint16_t)nameAndPolys.second.size()));
+        for (const SCIPolygon &poly : nameAndPolys.second)
+        {
+            _ApplyPolygonToVarDecl(*polyVarDecl, poly);
+        }
+        polyVarDecl->SetSize((uint16_t)polyVarDecl->GetStatements().size());
+        script.AddVariable(move(polyVarDecl));
+    }
+}
+
+void _ApplyPolygonsToScriptOld(int picNumber, Script &script, const vector<SCIPolygon> &polygons)
+{
     // Start with the defaut polygons
     vector<SCIPolygon> defaultPolygons;
     copy_if(polygons.begin(), polygons.end(), back_inserter(defaultPolygons),
