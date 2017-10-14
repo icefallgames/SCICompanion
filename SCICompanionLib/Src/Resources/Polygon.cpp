@@ -291,43 +291,6 @@ void _ApplyPolygonsToScript(int picNumber, Script &script, const vector<SCIPolyg
     }
 }
 
-void _ApplyPolygonsToScriptOld(int picNumber, Script &script, const vector<SCIPolygon> &polygons)
-{
-    // Start with the defaut polygons
-    vector<SCIPolygon> defaultPolygons;
-    copy_if(polygons.begin(), polygons.end(), back_inserter(defaultPolygons),
-        [](const SCIPolygon &poly){ return poly.Name.empty(); }
-        );
-
-    // e.g. P_110
-    string defaultPolyVarName = fmt::format("{0}{1}", c_szDefaultPolyName, picNumber);
-    unique_ptr<VariableDecl> defaultPolyVarDecl = make_unique<VariableDecl>();
-    defaultPolyVarDecl->SetName(defaultPolyVarName);
-
-    // The count
-    defaultPolyVarDecl->AddSimpleInitializer(PropertyValue((uint16_t)defaultPolygons.size()));
-    for (const SCIPolygon &poly : defaultPolygons)
-    {
-        _ApplyPolygonToVarDecl(*defaultPolyVarDecl, poly);
-    }
-    defaultPolyVarDecl->SetSize((uint16_t)defaultPolyVarDecl->GetStatements().size());
-    script.AddVariable(move(defaultPolyVarDecl));
-
-    // Now the named ones
-    for (const SCIPolygon &poly : polygons)
-    {
-        if (!poly.Name.empty())
-        {
-            unique_ptr<VariableDecl> namedPolyVarDecl = make_unique<VariableDecl>();
-            namedPolyVarDecl->SetName(poly.Name);
-            namedPolyVarDecl->AddSimpleInitializer(PropertyValue(1));   // 1: single polygon
-            _ApplyPolygonToVarDecl(*namedPolyVarDecl, poly);
-            namedPolyVarDecl->SetSize((uint16_t)namedPolyVarDecl->GetStatements().size());
-            script.AddVariable(move(namedPolyVarDecl));
-        }
-    }
-}
-
 void PolygonComponent::Commit(int picNumber)
 {
     _picNumber = picNumber;
