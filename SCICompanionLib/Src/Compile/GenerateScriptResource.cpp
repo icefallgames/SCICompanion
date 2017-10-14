@@ -770,6 +770,74 @@ void _Section8_RelocationTable(CompileContext &context, vector<BYTE> &output)
     for_each(relocations.begin(), relocations.end(), WordToByteThingy(output));
 }
 
+class MoveExitStatementToMethod : public IExploreNode
+{
+public:
+    MoveExitStatementToMethod(CompileContext &context) : _context(context), _class(nullptr) {}
+
+private:
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state)
+    {
+        ClassDefinition *maybeClass = SafeSyntaxNode<ClassDefinition>(&node);
+        MethodDefinition *maybeMethod = SafeSyntaxNode<MethodDefinition>(&node);
+        ExitStatement *maybeExit = SafeSyntaxNode<ExitStatement>(&node);
+        if (state == ExploreNodeState::Pre)
+        {
+            if (maybeClass && (maybeClass->GetSuperClass() == "Thread"))
+            {
+                _class = maybeClass;
+            }
+            if (_class && maybeMethod && (maybeMethod->GetName() == "step"))
+            {
+                _method = maybeMethod;
+            }
+            if (_class && _method && maybeExit)
+            {
+                _exitStatement = maybeExit;
+            }
+        }
+        else
+        {
+            if (maybeClass)
+            {
+                if (_exitStatement)
+                {
+                    // This is the one whose statements we will steal
+                    std::unique_ptr<sci::SyntaxNode> statementsNode = std::move(_exitStatement->GetStatement1Internal());
+
+                    // And we'll make a method out of it.
+                    std::unique_ptr<MethodDefinition> pOnExit = std::make_unique<MethodDefinition>();
+                    pOnExit->SetName("onExit");
+                    {
+                        unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
+                        signature->SetDataType("void");
+                        pOnExit->AddSignature(move(signature));
+                    }
+
+                    // Just slam the code block in
+                    pOnExit->AddStatement(std::move(statementsNode));
+                    pOnExit->SetOwnerClass(_class);
+
+                    _class->AddMethod(std::move(pOnExit));
+
+                    _exitStatement = nullptr;
+                }
+
+                _class = nullptr;
+            }
+            if (maybeMethod)
+            {
+                _method = nullptr;
+            }
+        }
+    }
+
+    MethodDefinition *_method;
+    ClassDefinition *_class;
+    ExitStatement *_exitStatement;
+    CompileContext &_context;
+};
+
 class FixCaseStatements : public IExploreNode
 {
 public:
@@ -1217,6 +1285,9 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
         FixCaseStatements hack(context);
         script.Traverse(hack);
     }
+
+    MoveExitStatementToMethod moveExitStatements(context);
+    script.Traverse(moveExitStatements);
 }
 
 bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)

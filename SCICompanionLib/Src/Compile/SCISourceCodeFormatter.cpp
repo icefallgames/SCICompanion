@@ -1483,6 +1483,8 @@ public:
 
     void Visit(const RestoreStatement &yieldStatement) override {}
 
+    void Visit(const ExitStatement &yieldStatement) override {}
+
     void Visit(const ContinueStatement &breakStatement) override
     {
         _MaybeNewLineIndent();

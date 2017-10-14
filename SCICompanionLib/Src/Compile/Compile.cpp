@@ -913,6 +913,10 @@ bool _PreScanPropertyTokenToNumber(CompileContext &context, SyntaxNode *pNode, c
 
 void YieldStatement::PreScan(CompileContext &context) {}
 void RestoreStatement::PreScan(CompileContext &context) {}
+void ExitStatement::PreScan(CompileContext &context)
+{
+    // REVIEW: maybe we should indicate that we can't access params or temps?
+}
 
 void Define::PreScan(CompileContext &context)
 {
@@ -1844,6 +1848,16 @@ CodeResult ConditionalExpression::OutputByteCode(CompileContext &context) const
         }
     }
     return 0; // void
+}
+
+CodeResult ExitStatement::OutputByteCode(CompileContext &context) const
+{
+    if (_statement1)
+    {
+        context.ReportError(this, "exit statements can only be used in a thread.");
+    }
+    // else we transfered it somewhere.
+    return 0; // Does nothing.
 }
 
 CodeResult YieldStatement::OutputByteCode(CompileContext &context) const

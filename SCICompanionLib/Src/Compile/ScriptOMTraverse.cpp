@@ -159,6 +159,11 @@ void ForLoop::Traverse(IExploreNode &en)
     _looper->Traverse(en);
 	ForwardTraverse2(_segments, en);
 }
+void ExitStatement::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+    _statement1->Traverse(en);
+}
 void WhileLoop::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);

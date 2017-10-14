@@ -91,6 +91,7 @@ private:
     ParserSCI continue_statement;
     ParserSCI contif_statement;
     ParserSCI repeat_statement;
+    ParserSCI exit_statement;
     ParserSCI procedure_call;
     ParserSCI send_call;
     ParserSCI send_param_call;

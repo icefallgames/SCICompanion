@@ -219,11 +219,27 @@ namespace sci
 
     class YieldStatement : public SyntaxNode
     {
-        DECLARE_NODE_TYPE(NodeTypeReturn)
+        DECLARE_NODE_TYPE(NodeTypeReturn) // REVIEW: Shouldn't this be NodeTypeYield????
     public:
         YieldStatement() {}
         YieldStatement(const YieldStatement &src) = delete;
         YieldStatement& operator=(const YieldStatement& src) = delete;
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+    };
+
+    class ExitStatement : public SyntaxNode, public OneStatementNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeExit)
+    public:
+        ExitStatement() : OneStatementNode() {}
+        ExitStatement(const ExitStatement &src) = delete;
+        ExitStatement& operator=(const ExitStatement& src) = delete;
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;

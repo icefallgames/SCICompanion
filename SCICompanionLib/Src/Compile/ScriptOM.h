@@ -126,6 +126,7 @@ namespace sci
     class ProcedureCall;
     class ReturnStatement;
     class YieldStatement;
+    class ExitStatement;
     class RestoreStatement;
     class ForLoop;
     class WhileLoop;
@@ -175,6 +176,7 @@ namespace sci
         virtual void Visit(const ProcedureCall &procCall) = 0;
         virtual void Visit(const ReturnStatement &ret) = 0;
         virtual void Visit(const YieldStatement &ret) = 0;
+        virtual void Visit(const ExitStatement &ret) = 0;
         virtual void Visit(const RestoreStatement &ret) = 0;
         virtual void Visit(const ForLoop &forLoop) = 0;
         virtual void Visit(const WhileLoop &whileLoop) = 0;

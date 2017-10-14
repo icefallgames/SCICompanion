@@ -415,6 +415,7 @@ public:
     void Visit(const DoLoop &doLoop) override {}
     void Visit(const BreakStatement &breakStatement) override {}
     void Visit(const YieldStatement &yieldStatement) override {}
+    void Visit(const ExitStatement &yieldStatement) override {}
     void Visit(const RestoreStatement &restoreStatement) override {}
     void Visit(const ContinueStatement &breakStatement) override {}
     void Visit(const CaseStatement &caseStatement) override {}
@@ -524,6 +525,7 @@ public:
     void Visit(const DoLoop &doLoop) override {}
     void Visit(const BreakStatement &breakStatement) override {}
     void Visit(const YieldStatement &yieldStatement) override {}
+    void Visit(const ExitStatement &yieldStatement) override {}
     void Visit(const RestoreStatement &restoreStatement) override {}
     void Visit(const ContinueStatement &breakStatement) override {}
     void Visit(const CaseStatement &caseStatement) override {}

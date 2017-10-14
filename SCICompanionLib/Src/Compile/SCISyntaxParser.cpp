@@ -128,6 +128,7 @@ vector<string> SCIKeywords =
     "thread"
     "yield"
     "delegate"
+    "exit"
 };
 
 template<typename _It, typename _TContext>
@@ -821,6 +822,10 @@ void SCISyntaxParser::Load()
         keyword_p("repeat")[SetRepeatStatementA]
         >> *statement[AddStatementA<WhileLoop>];
 
+    exit_statement =
+        keyword_p("exit")[SetStatementA<ExitStatement>]
+        >> bare_code_block[{StatementBindTo1stA<ExitStatement, errThen>, acElseAddin }]; // REVIEW the autocomplete sutff.
+
     return_statement =
         keyword_p("return")[SetStatementA<ReturnStatement>]
         >> -statement[StatementBindTo1stA<ReturnStatement, nullptr>];
@@ -1017,6 +1022,7 @@ void SCISyntaxParser::Load()
         narycompare_operation |
         return_statement |
         yield_statement |
+        exit_statement |
         if_statement |
         while_loop |
         for_loop |

@@ -548,6 +548,12 @@ public:
         DebugLine line(out);
         out.out << "yield";
     }
+    void Visit(const ExitStatement &breakStatement) override
+    {
+        out.SyncComments(breakStatement);
+        DebugLine line(out);
+        out.out << "exit - NYI";
+    }
     void Visit(const RestoreStatement &breakStatement) override {}
 
     void Visit(const ContinueStatement &breakStatement) override

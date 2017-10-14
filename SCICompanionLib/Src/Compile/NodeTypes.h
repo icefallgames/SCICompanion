@@ -66,6 +66,7 @@ namespace sci
         NodeTypeExtern,
         NodeTypeSelector,
         NodeTypeYield,
-        NodeTypeRestore
+        NodeTypeRestore,
+        NodeTypeExit,
     };
 }
