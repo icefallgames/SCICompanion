@@ -162,7 +162,11 @@ void ForLoop::Traverse(IExploreNode &en)
 void ExitStatement::Traverse(IExploreNode &en)
 {
     ExploreNodeBlock enb(en, *this);
-    _statement1->Traverse(en);
+    if (_statement1)
+    {
+        // Could have been removed...
+        _statement1->Traverse(en);
+    }
 }
 void WhileLoop::Traverse(IExploreNode &en)
 {

@@ -1254,6 +1254,12 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
     context.SetScriptNumber();
     results.SetScriptNumber(context.GetScriptNumber());
 
+    // Do this before prescan?
+    {
+        MoveExitStatementToMethod moveExitStatements(context);
+        script.Traverse(moveExitStatements);
+    }
+
     // Process the defines before doing a TrackArraySizes and PreScane
     for (auto &theDefine : script.GetDefines())
     {
@@ -1285,9 +1291,6 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
         FixCaseStatements hack(context);
         script.Traverse(hack);
     }
-
-    MoveExitStatementToMethod moveExitStatements(context);
-    script.Traverse(moveExitStatements);
 }
 
 bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)
