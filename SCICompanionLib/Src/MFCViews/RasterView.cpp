@@ -47,6 +47,11 @@ using namespace std;
 
 CExtBitmap g_AffectAllBitmap;
 
+COLORREF _ToGreenCOLORREF(byte sciColor)
+{
+    return RGB(0, sciColor, 0);
+}
+
 //
 // Makes a rect bounded by the two points, no matter where the points are in relation
 // to each other.
@@ -478,6 +483,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_DITHER, OnUpdateDither)
     ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateDelete)
     ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateEGAOnly)
+    //ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_GREYSCALE, OnUpdateEGAOnly)
     ON_UPDATE_COMMAND_UI(ID_VIEW_EDITPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
@@ -1188,7 +1194,7 @@ void CRasterView::_PrepareCelOffsets(const CPoint &ptMain1, const CPoint &ptMain
 
 void CRasterView::_DrawCaptureTool(CDC *pDC)
 {
-    CSCIDrawHelper helper(pDC, _GetMainViewData(), SizeToCSize(_sizeView), _palette, _paletteCount);
+    CSCIDrawHelper helper(pDC, _GetMainViewData(), SizeToCSize(_sizeView), g_continuousPriorityColors, _paletteCount);
     _DrawCaptureToolHelper(&helper.dc, _ptStartCapture, _ptCurrentHover);
 }
 
@@ -1199,7 +1205,7 @@ void CRasterView::_ApplyCaptureTool()
     _PrepareCelOffsets(ptStart, ptEnd);
     for (int i = 0; i < _cWorkingCels; i++)
     {
-        CSCIDrawHelper helper(nullptr, _celData[i].GetDataPtr(), SizeToCSize(_celData[i].GetSize()), _palette, _paletteCount);
+        CSCIDrawHelper helper(nullptr, _celData[i].GetDataPtr(), SizeToCSize(_celData[i].GetSize()), g_continuousPriorityColors, _paletteCount);
         _DrawCaptureToolHelper(&helper.dc, _celData[i]._point1, _celData[i]._point2);
     }
 }
@@ -1239,7 +1245,8 @@ void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
     LOGBRUSH logbrush = { 0 };
 
     // Herein lies the issue.
-    logbrush.lbColor = _SCIColorToCOLORREF(_fAux ? _color : _alternateColor);
+    //logbrush.lbColor = _SCIColorToCOLORREF(_fAux ? _color : _alternateColor);
+    logbrush.lbColor = _ToGreenCOLORREF(_fAux ? _color : _alternateColor);
     logbrush.lbStyle = BS_SOLID;
 
     // For dithered stuff:
@@ -1250,8 +1257,8 @@ void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
     if (_fDithered)
     {
         pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logBrushDither, 0, nullptr);
-        crTextOld = pDC->SetTextColor(_SCIColorToCOLORREF(_color));
-        crBkOld = pDC->SetBkColor(_SCIColorToCOLORREF(_alternateColor));
+        crTextOld = pDC->SetTextColor(_ToGreenCOLORREF(_color));
+        crBkOld = pDC->SetBkColor(_ToGreenCOLORREF(_alternateColor));
     }
     else
     {
@@ -1266,7 +1273,7 @@ void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
     brushHollow.CreateBrushIndirect(&logBrush);
 
     CBrush brushSolid;
-    brushSolid.CreateSolidBrush(_SCIColorToCOLORREF(_fAux ? _color : _alternateColor));
+    brushSolid.CreateSolidBrush(_ToGreenCOLORREF(_fAux ? _color : _alternateColor));
 
     switch (_currentTool)
     {
@@ -1947,8 +1954,8 @@ void CRasterView::_DrawDitheredPen(CDC *pDC, CPoint point)
 {
     LOGBRUSH logBrushDither = { BS_PATTERN, 0, (ULONG_PTR)(HBITMAP)_bitmapBrush };
     CPen pen(PS_GEOMETRIC, _GetPenWidth(), &logBrushDither, 0, NULL);
-    int crTextOld = pDC->SetTextColor(_SCIColorToCOLORREF(_color));
-    int crBkOld = pDC->SetBkColor(_SCIColorToCOLORREF(_alternateColor));
+    int crTextOld = pDC->SetTextColor(_ToGreenCOLORREF(_color));
+    int crBkOld = pDC->SetBkColor(_ToGreenCOLORREF(_alternateColor));
     HGDIOBJ hOldPen = pDC->SelectObject(&pen);
     pDC->MoveTo(point);
     pDC->LineTo(point);
@@ -1985,7 +1992,7 @@ void CRasterView::_DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t altern
     if (_EnsurePenBitmap())
     {
         int penWidth = penStyle.bPatternSize * 2 + 1;
-        int crTextOld = pDC->SetTextColor(_SCIColorToCOLORREF(fUseForeground ? color : alternateColor));
+        int crTextOld = pDC->SetTextColor(_ToGreenCOLORREF(fUseForeground ? color : alternateColor));
         CDC dcMem;
         dcMem.CreateCompatibleDC(pDC);
         HGDIOBJ hOldBitmap = dcMem.SelectObject(_penBitmap);
@@ -2012,7 +2019,7 @@ void CRasterView::_OnReplaceTool(CPoint point, BOOL fReplaceAll, bool fLeftClick
             // Fill mask buffer with 0 before we start drawing into it.
             FillMemory(_pBitsScratch1.get(), CX_ACTUAL(_sizeScratch1.cx) * _sizeScratch1.cy, 0);
             {
-                CSCIDrawHelper helper(nullptr, _pBitsScratch1.get(), SizeToCSize(_sizeScratch1), _palette, _paletteCount);
+                CSCIDrawHelper helper(nullptr, _pBitsScratch1.get(), SizeToCSize(_sizeScratch1), g_continuousPriorityColors, _paletteCount);
 
                 uint8_t white = 0xf;
                 _DrawPen(&helper.dc, _celData[i]._point1, white, 0, TRUE);
@@ -2049,7 +2056,7 @@ void CRasterView::_OnPenClick(CPoint point, bool fUseForeground)
             _PrepareCelOffsets(point, point);
             for (int i = 0; i < _cWorkingCels; i++)
             {
-                CSCIDrawHelper helper(NULL, _celData[i].GetDataPtr(), _celData[i].GetSize(), _palette, _paletteCount);
+                CSCIDrawHelper helper(NULL, _celData[i].GetDataPtr(), _celData[i].GetSize(), g_continuousPriorityColors, _paletteCount);
                 if (_fDithered)
                 {
                     _DrawDitheredPen(&helper.dc, _celData[i]._point1);
@@ -3069,6 +3076,7 @@ void CRasterView::OnInvert()
 {
     // TODO: Use effect area, instead of all.
     _GrabSourceData();
+
     for (int i = 0; i < _cWorkingCels; i++)
     {
         CSize sizeCel = _celData[i].GetCSize();
@@ -3079,6 +3087,7 @@ void CRasterView::OnInvert()
             {
                 assert(pLine[x] <= 0xf);
                 pLine[x] = 0xf - pLine[x];
+                //pLine[x] = (uint8_t)(rand() % 256);
             }
         }
     }
