@@ -678,6 +678,7 @@ BEGIN
     BEGIN
         MENUITEM "&Import image sequence",      33001
         MENUITEM "Import image",                ID_IMPORT_IMAGE
+        MENUITEM "Import image seq as looping", ID_VIEW_IMPORTIMAGESEQASLOOPING
         MENUITEM SEPARATOR
         MENUITEM "Paste special\tCtrl+B",       ID_VIEW_PASTESPECIAL
         MENUITEM SEPARATOR

@@ -820,6 +820,9 @@ RasterChange RotateGroup(RasterComponent &raster, int cCels, CelIndex *rgdwIndex
         int cx = xMax - xMin;
         int cy = yMax - yMin;
         SetSize(raster, rgdwIndex[i], size16((uint16_t)cx, (uint16_t)cy), RasterResizeFlags::Normal);
+        // In case it was too big:
+        cx = raster.GetCel(rgdwIndex[i]).size.cx;
+        cy = raster.GetCel(rgdwIndex[i]).size.cy;
 
         // Now invert the transformation, and copy the bits over.
         sinTheta = -sinTheta;
