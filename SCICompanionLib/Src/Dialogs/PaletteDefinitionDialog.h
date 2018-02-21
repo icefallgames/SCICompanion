@@ -98,6 +98,8 @@ protected:
 
     HACCEL _hAccel;
 
+    RGBQUAD _usedIndices[256]; // only used for rgbReserved to indicate if index is in use
+
 public:
     afx_msg void OnBnClickedButtonadjust();
 };
