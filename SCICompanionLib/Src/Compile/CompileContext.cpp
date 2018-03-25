@@ -1111,9 +1111,9 @@ vector<uint16_t> CompileContext::GetRelocations()
     {
         // For codesinks in games where lofsa is relative, we don't want to add these to
         // relocations.
-        if (_version.lofsaOpcodeIsAbsolute || (_codeSinks.find(pair.second) == _codeSinks.end()))
+        if (_version.lofsaOpcodeIsAbsolute || (_codeSinks.find(pair.second.offset) == _codeSinks.end()))
         {
-            relocs.push_back(pair.second);
+            relocs.push_back(pair.second.offset);
         }
     }
     // Not sure if sorting seems necessary, but Sierra has them sorted.
@@ -1298,10 +1298,10 @@ void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged)
 
 
 
-void CompileContext::WroteSink(uint16_t tempToken, uint16_t offset)
+void CompileContext::WroteSink(uint16_t tempToken, uint16_t offset, ResourceType resType)
 {
     assert((tempToken < _nextTempToken) && (tempToken >= TempTokenBase));
-    _tokenToSinkOffsets.insert(std::make_pair(tempToken, offset));
+    _tokenToSinkOffsets.insert(std::make_pair(tempToken, SinkOffset(offset, resType)));
 }
 bool CompileContext::_WasSinkWritten(uint16_t tempToken)
 {
@@ -1318,7 +1318,7 @@ void CompileContext::WroteCodeSink(uint16_t tempToken, uint16_t offset)
 
 void CompileContext::WroteScrSink(uint16_t tempToken, uint16_t offset)
 {
-    WroteSink(tempToken, offset);
+    WroteSink(tempToken, offset, ResourceType::Script);
     assert(_scrSinks.find(offset) == _scrSinks.end());
     _scrSinks.insert(offset);
 }
@@ -1343,8 +1343,7 @@ void CompileContext::WriteOutOffsetsOfHepPointersInHep(std::vector<uint8_t> &hep
     uint16_t count = 0;
     for (auto &pair : _tokenToSinkOffsets)
     {
-        uint16_t offset = pair.second;
-        if (_scrSinks.find(offset) == _scrSinks.end())
+        if (pair.second.resType == ResourceType::Heap)
         {
             count++;
         }
@@ -1353,10 +1352,9 @@ void CompileContext::WriteOutOffsetsOfHepPointersInHep(std::vector<uint8_t> &hep
     push_word(hepResource, count);
     for (auto &pair : _tokenToSinkOffsets)
     {
-        uint16_t offset = pair.second;
-        if (_scrSinks.find(offset) == _scrSinks.end())
+        if (pair.second.resType == ResourceType::Heap)
         {
-            push_word(hepResource, offset);
+            push_word(hepResource, pair.second.offset);
         }
     }
 }
@@ -1365,13 +1363,13 @@ void CompileContext::FixupSinksAndSources(std::vector<uint8_t> &scriptResource, 
 {
     for (auto &pair : _tokenToSinkOffsets)
     {
-        uint16_t sinkOffset = pair.second;
+        uint16_t sinkOffset = pair.second.offset;
         uint16_t token = pair.first;
         auto itFind = _tokenToSourceOffset.find(token);
         assert(itFind != _tokenToSourceOffset.end());
         uint16_t sourceOffset = itFind->second;
 
-        bool isSinkInHeap = _scrSinks.find(sinkOffset) == _scrSinks.end(); // Not found in scr sinks, so it's a heap offset.
+        bool isSinkInHeap = pair.second.resType == ResourceType::Heap;
         std::vector<uint8_t> &resourceToUse = isSinkInHeap ? heapOrScrResource : scriptResource;
 
         if (!_version.lofsaOpcodeIsAbsolute && (_codeSinks.find(sinkOffset) != _codeSinks.end()))

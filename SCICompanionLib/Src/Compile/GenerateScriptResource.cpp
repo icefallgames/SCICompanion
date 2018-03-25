@@ -290,7 +290,7 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
         WORD wValue = objectProperty.GetValue();
         if (objectProperty.NeedsReloc())
         {
-            pContext->WroteSink(wValue, (uint16_t)output.size());
+            pContext->WroteSink(wValue, (uint16_t)output.size(), ResourceType::Heap);
         }
         push_word(output, wValue);
     }
@@ -467,23 +467,44 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
                     pValue = SafeSyntaxNode<ComplexPropertyValue>(value.get());
                     assert(SafeSyntaxNode<ComplexPropertyValue>(value.get())->GetIndexer() == nullptr);
                 }
-                assert(pValue); // Must be a property value.
 
-                switch (pValue->GetType())
+                if (pValue)
                 {
-                    case ValueType::Said:
-                    case ValueType::String:
-                    case ValueType::ResourceString:
-                        context.WroteSink(context.GetTempToken(pValue->GetType(), pValue->GetStringValue()), (uint16_t)output.size());
-                        break;
-                    case ValueType::Number:
-                        // We're good.
-                        break;
-                    default: // Token, etc...
-                        context.ReportError(pValue, "%s is not a valid token for an array initializer.", pValue->GetStringValue().c_str());
-                        break;
+                    uint16_t autoTextNum;
+                    if ((pValue->GetType() == ValueType::ResourceString) && context.IsAutoText(autoTextNum))
+                    {
+                        // Add ourselves as a resource tuple, and get the number.
+                        uint16_t wNumber = context.AddStringResourceTuple(pValue->GetStringValue());
+                        push_word(output, autoTextNum);
+                        push_word(output, wNumber);
+                        size++; // An additional...
+                    }
+                    else
+                    {
+                        switch (pValue->GetType())
+                        {
+                        case ValueType::ResourceString:
+                        case ValueType::Said:
+                        case ValueType::String:
+                            context.WroteSink(context.GetTempToken(pValue->GetType(), pValue->GetStringValue()), (uint16_t)output.size(), ResourceType::Heap);
+                            break;
+                        case ValueType::Number:
+                            // We're good.
+                            break;
+                        default: // Token, etc...
+                            context.ReportError(pValue, "%s is not a valid token for an array initializer.", pValue->GetStringValue().c_str());
+                            break;
+                        }
+
+                        push_word(output, pValue->GetNumberValue());
+                    }
+
+
                 }
-                push_word(output, pValue->GetNumberValue());
+                else
+                {
+                    context.ReportError(value.get(), "Array initializers must only contain constant expressions.");
+                }
                 size++;
             }
             if ((int)var->GetSize() < size)
@@ -1182,6 +1203,8 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
 		}
 	}
 
+    script.TrackGenText(context);
+
     // Some stuff needs to be done even before this
     // Note: TrackArraySizes has to do some PreScan too, since an array could use
     // a define as its size.
@@ -1358,7 +1381,7 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uin
 
         if (prop.NeedsReloc())
         {
-            context.WroteSink(value, (uint16_t)outputHeap.size());
+            context.WroteSink(value, (uint16_t)outputHeap.size(), ResourceType::Heap);
             // Add this to the string offsets we're tracking.
         }
         push_word(outputHeap, value);

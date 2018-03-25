@@ -170,6 +170,10 @@ void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &bu
         [&fakeEgo](sci::istream &data)
     {
         fakeEgo = std::make_unique<FakeEgo>();
+        size_t count;
+        data >> count;
+        assert(count >= 1);
+        // We only care about the first one:
         data >> *fakeEgo;
     }
         );

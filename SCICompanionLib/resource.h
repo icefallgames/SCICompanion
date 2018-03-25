@@ -1223,6 +1223,16 @@
 #define ID_ROTATE_ARBITRARY             33345
 #define ID_PIC_PICCLIPS                 33350
 #define ID_PICCLIPS                     33351
+#define ID_MAIN_APPENDCOPY              33353
+#define ID_EGO_APPENDCOPY               33354
+#define ID_MAIN_PASTECOORD              33355
+#define ID_MAIN_PASTE                   33356
+#define ID_PASTE_X                      33357
+#define ID_PASTE_APPROACHX              33358
+#define ID_SCRIPT_PASTECOORD            33359
+#define ID_SCRIPT_X                     33360
+#define ID_SCRIPT_PASTE_APPROACHX       33361
+#define ID_SCRIPT_PASTE_X               33362
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1231,7 +1241,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        411
-#define _APS_NEXT_COMMAND_VALUE         33353
+#define _APS_NEXT_COMMAND_VALUE         33363
 #define _APS_NEXT_CONTROL_VALUE         1406
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

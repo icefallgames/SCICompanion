@@ -776,6 +776,13 @@ BEGIN
         MENUITEM "Paste",                       ID_EDIT_PASTE
         MENUITEM "Delete",                      ID_EDIT_DELETE
         MENUITEM SEPARATOR
+        MENUITEM "Paste coord",                 ID_SCRIPT_PASTECOORD
+        POPUP "Paste"
+        BEGIN
+            MENUITEM "x, y",                        ID_SCRIPT_PASTE_X
+            MENUITEM "approachX, Y",                ID_SCRIPT_PASTE_APPROACHX
+        END
+        MENUITEM SEPARATOR
         POPUP "Insert Object"
         BEGIN
             MENUITEM "Custom ...",                  ID_INSERTOBJECTAT
@@ -864,6 +871,7 @@ BEGIN
     BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Copy",                        ID_EGO_COPY
+        MENUITEM "Append copy",                 ID_EGO_APPENDCOPY
         MENUITEM SEPARATOR
         MENUITEM "Observe control lines",       ID_OBSERVECONTROLLINES
         MENUITEM "Observe polygons",            ID_OBSERVEPOLYGONS

@@ -63,6 +63,18 @@ typedef std::unordered_map<std::string, sci::Define*> defines_map;
 typedef std::multimap<std::string, code_pos> ref_multimap;
 typedef std::pair<code_pos, WORD> call_pair;
 
+enum class ResourceType;
+
+namespace sci
+{
+    struct SinkOffset
+    {
+        SinkOffset(uint16_t theOffset, ResourceType theResType) : offset(theOffset), resType(theResType) {}
+        uint16_t offset;
+        ResourceType resType;
+    };
+}
+
 //
 // Maintains a set of pre-compiled headers across compilations
 // For each script that is comiled, call Update.  That will ensure the defines
@@ -141,7 +153,7 @@ public:
     void WroteSource(uint16_t tempToken, uint16_t offset);      // Can only be one per token.
 
     // Called to specify the position in the heap (or script) resource at which a string, said or object is referenced.
-    void WroteSink(uint16_t tempToken, uint16_t offset);        // Can be many per token. For sinks in hep resources (or scr in SCI0)
+    void WroteSink(uint16_t tempToken, uint16_t offset, ResourceType resType);        // Can be many per token. For sinks in hep resources (or scr in SCI0)
     void WroteCodeSink(uint16_t tempToken, uint16_t offset);    // Can be many per token. These are lofsa/lofss, so they may be relative.
     void WroteScrSink(uint16_t tempToken, uint16_t offset);     // Can be many per token. For sinks in scr resources.
 
@@ -176,7 +188,7 @@ private:
     //  - Code sinks (lofsa/lofss) are .scr
     //  - Export table sinks are .scr
     std::map<uint16_t, uint16_t> _tokenToSourceOffset;
-    std::multimap<uint16_t, uint16_t> _tokenToSinkOffsets;
+    std::multimap<uint16_t, sci::SinkOffset> _tokenToSinkOffsets;
     std::set<uint16_t> _codeSinks;
     std::set<uint16_t> _scrSinks;
 

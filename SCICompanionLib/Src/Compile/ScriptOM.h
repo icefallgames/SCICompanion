@@ -1173,6 +1173,8 @@ namespace sci
         void PreScan(CompileContext &context);
         void Traverse(IExploreNode &en);
 
+        void TrackGenText(CompileContext &context);
+
         void AddUse(const std::string &use) { _uses.push_back(use); }
         void AddInclude(const std::string &include) { _includes.push_back(include); }
 		void AddSynonym(std::unique_ptr<Synonym> pSynonym) { _synonyms.push_back(std::move(pSynonym)); }

@@ -44,6 +44,8 @@
 #include "SyntaxContext.h"
 #include "ParserCommon.h"
 #include "ParserActions.h"
+#include "ClipboardUtil.h"
+#include "FakeEgo.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -103,6 +105,9 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_WM_DESTROY()
     ON_COMMAND(ID_INSERTOBJECT, OnInsertObject)
     ON_COMMAND(ID_INSERTOBJECTAT, OnInsertObjectAt)
+    ON_COMMAND(ID_SCRIPT_PASTECOORD, OnPasteCoord)
+    ON_COMMAND(ID_SCRIPT_PASTE_X, OnPasteXY)
+    ON_COMMAND(ID_SCRIPT_PASTE_APPROACHX, OnPasteApproachXY)
     ON_COMMAND_RANGE(ID_INSERTMETHODAT1, ID_INSERTMETHODAT18, OnInsertMethodAtRange)
     ON_COMMAND_RANGE(ID_INSERTOBJECTAT1, ID_INSERTOBJECTAT18, OnInsertObjectAtRange)
     ON_COMMAND(ID_ADDAS_NOUN, OnAddAsNoun)
@@ -1617,6 +1622,64 @@ void CScriptView::OnInsertObject()
 void CScriptView::OnInsertObjectAt()
 {
     _OnInsertObject(true);
+}
+
+
+
+void CScriptView::OnPasteCoord()
+{
+    std::string text;
+    ProcessClipboardDataIfAvailable(appState->ViewAttributesClipboardFormat, AfxGetMainWnd(),
+        [&text](sci::istream &data)
+    {
+        size_t count;
+        data >> count;
+        assert(count >= 1);
+
+        for (size_t i = 0; i < count; i++)
+        {
+            FakeEgo fakeEgo;
+            data >> fakeEgo;
+            text += fmt::format(" {0} {1}", fakeEgo.Location.x, fakeEgo.Location.y);
+        }
+    }
+    );
+    if (!text.empty())
+    {
+        PasteTextAtCursor(text.c_str());
+    }
+}
+
+void CScriptView::_OnPasteXYHelper(const std::string &formatString)
+{
+    std::string text;
+    ProcessClipboardDataIfAvailable(appState->ViewAttributesClipboardFormat, AfxGetMainWnd(),
+        [&text, &formatString](sci::istream &data)
+    {
+        size_t count;
+        data >> count;
+        assert(count >= 1);
+
+        FakeEgo fakeEgo;
+        data >> fakeEgo;
+        text += fmt::format(formatString, fakeEgo.Location.x, fakeEgo.Location.y);
+    }
+    );
+    if (!text.empty())
+    {
+        PasteTextAtCursor(text.c_str());
+    }
+}
+
+void CScriptView::OnPasteXY()
+{
+    _OnPasteXYHelper("\r\n\t\tx {0}\r\n\t\ty {1}");
+}
+
+void CScriptView::OnPasteApproachXY()
+{
+    _OnPasteXYHelper("\r\n\t\tapproachX {0}\r\n\t\tapproachY {1}");
+
 }
 
 void CScriptView::OnInsertMethodAtRange(UINT nID)
