@@ -131,8 +131,8 @@ private:
     // Ensure the currently selected cel index is correct.
     void _ValidateCelIndex(bool wrap = false);
     void _UpdateHelper(RasterChange change);
-    void _InsertFiles(const std::vector<std::string> &files, bool replaceEntireLoop);
-    void _ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items, bool fixedPalette, int paletteSize, bool replaceEntireLoop);
+    void _InsertFiles(const std::vector<std::string> &files, bool replaceEntireLoop, bool loopImages);
+    void _ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items, bool fixedPalette, int paletteSize, bool replaceEntireLoop, bool loopImages);
     std::list<ResourceEntity*>::iterator _GetLastUndoFrame();
     bool _GetColors(const RasterComponent &raster, const PaletteComponent *optionalNewPalette,
         const uint8_t **paletteMapping,
@@ -146,9 +146,12 @@ private:
         return GetResource()->GetComponent<_T>();
     }
     
+    void _OnImportImageSequence(bool loopImages);
+
     DECLARE_MESSAGE_MAP()
     afx_msg void OnAnimate();
     afx_msg void OnImportImageSequence();
+    afx_msg void OnImportImageSequenceAndLoop();
     afx_msg void OnImportImage();
     afx_msg void OnExportCelAsImage();
     afx_msg void OnExportLoopAsImage();

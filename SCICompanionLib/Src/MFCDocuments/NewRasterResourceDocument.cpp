@@ -44,6 +44,7 @@ BEGIN_MESSAGE_MAP(CNewRasterResourceDocument, TCLASS_2(CUndoResource, CResourceD
     ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTASBITMAP, OnUpdateEGA)
     ON_COMMAND(ID_ANIMATE, OnAnimate)
     ON_COMMAND(ID_IMPORT_IMAGESEQUENCE, OnImportImageSequence)
+    ON_COMMAND(ID_VIEW_IMPORTIMAGESEQASLOOPING, OnImportImageSequenceAndLoop)
     ON_COMMAND(ID_IMPORT_IMAGE, OnImportImage)
     ON_COMMAND(ID_MAKEFONT, MakeFont)
     ON_COMMAND(ID_VIEW_EXPORTASGIF, ExportAsGif)
@@ -350,7 +351,116 @@ struct ImageSequenceItem
 
 const float IdealAspectRatio = 1.7f;
 
-unique_ptr<Bitmap> _DrawImageSequenceToLargeBitmap(vector<ImageSequenceItem> &items, vector<CRect> &rectsOut)
+
+float lerp(float a, float b, float progress)
+{
+    return a * (1.0f - progress) + b * progress;
+}
+RGBQUAD Blend(RGBQUAD color1, RGBQUAD color2, float progress)
+{
+    RGBQUAD colorRet;
+    float a1 = (float)color1.rgbReserved / 255.0f;
+    float r1 = (float)color1.rgbRed / 255.0f * a1;
+    float g1 = (float)color1.rgbGreen / 255.0f * a1;
+    float b1 = (float)color1.rgbBlue / 255.0f * a1;
+    float a2 = (float)color2.rgbReserved / 255.0f;
+    float r2 = (float)color2.rgbRed / 255.0f * a2;
+    float g2 = (float)color2.rgbGreen / 255.0f * a2;
+    float b2 = (float)color2.rgbBlue / 255.0f * a2;
+
+    // Now its premultiplied.
+    float r = lerp(r1, r2, progress);
+    float g = lerp(g1, g2, progress);
+    float b = lerp(b1, b2, progress);
+    float a = lerp(a1, a2, progress);
+
+    // Back to non-premultiplied
+    if (a > 0)
+    {
+        r = min(r / a, 1.0f);
+        g = min(g / a, 1.0f);
+        b = min(b / a, 1.0f);
+    }
+
+    colorRet.rgbBlue = (BYTE)(b * 255.0f);
+    colorRet.rgbRed = (BYTE)(r * 255.0f);
+    colorRet.rgbGreen = (BYTE)(g * 255.0f);
+    colorRet.rgbReserved = (BYTE)(a * 255.0f);
+    return colorRet;
+}
+
+RGBQUAD RGBQUADFromCOLORREF2(COLORREF color)
+{
+    RGBQUAD quad;
+    quad.rgbBlue = GetBValue(color);
+    quad.rgbRed = GetRValue(color);
+    quad.rgbGreen = GetGValue(color);
+    quad.rgbReserved = (LOBYTE((color) >> 24));
+    return quad;
+}
+
+#define SET_COLOR_A(color, a) color = (DWORD(color) & 0x00FFFFFF) | ((DWORD(a) & 0xFF) << 24)
+#define GetAValue(rgb)      (LOBYTE((rgb)>>24))
+void _LoopImages(vector<unique_ptr<Bitmap>> &bitmaps)
+{
+    vector<unique_ptr<Bitmap>> copies;
+    for (unique_ptr<Bitmap> &bitmap : bitmaps)
+    {
+        copies.push_back(std::unique_ptr<Bitmap>(bitmap->Clone(0, 0, bitmap->GetWidth(), bitmap->GetHeight(), PixelFormat32bppARGB)));
+    }
+
+    int index = 0;
+    int offset = bitmaps.size() / 2;
+    for (unique_ptr<Bitmap> &bitmap : bitmaps)
+    {
+        UINT cx = bitmap->GetWidth();
+        UINT cy = bitmap->GetHeight();
+
+        // What's our progress?
+        // We want it to go from 1 to 0 and back to 1
+        float progress = (float)index / (float)bitmaps.size(); // 0 to 1
+        progress = abs(progress - 0.5f) * 2.0f; // -> 1 to 0 to 1
+        //progress = 1.0f - progress;
+
+        unique_ptr<Bitmap> &other = copies[(index + offset) % copies.size()];
+        if (cx == other->GetWidth() && cy == other->GetHeight())
+        {
+            Gdiplus::Rect rect(0, 0, cx, cy);
+            Gdiplus::BitmapData bitmapData;
+            if (Ok == bitmap->LockBits(&rect, ImageLockModeRead | ImageLockModeWrite, PixelFormat32bppARGB, &bitmapData))
+            {
+                Gdiplus::BitmapData otherBitmapData;
+                if (Ok == other->LockBits(&rect, ImageLockModeRead | ImageLockModeWrite, PixelFormat32bppARGB, &otherBitmapData))
+                {
+                    int nCCGreen = 0;
+                    int nCCRed = 0;
+                    int nCCBlue = 0;
+                    for (UINT y = 0; y < cy; y++)
+                    {
+                        COLORREF *pLineMain = ((COLORREF*)bitmapData.Scan0) + y * bitmapData.Width;
+                        COLORREF *pLineOther = ((COLORREF*)otherBitmapData.Scan0) + y * otherBitmapData.Width;
+                        for (UINT x = 0; x < cx; x++, pLineMain++, pLineOther++)
+                        {
+                            RGBQUAD crMain = RGBQUADFromCOLORREF2(*pLineMain);
+                            RGBQUAD crOther = RGBQUADFromCOLORREF2(*pLineOther);
+
+                            RGBQUAD crFinal = Blend(crMain, crOther, progress);
+                            COLORREF crNew = RGB_TO_COLORREF(crFinal);
+                            SET_COLOR_A(crNew, crFinal.rgbReserved);
+                            *pLineMain = crNew;
+                        }
+                    }
+                    other->UnlockBits(&otherBitmapData);
+                }
+                bitmap->UnlockBits(&bitmapData);
+            }
+        }
+        index++;
+    }
+}
+
+
+unique_ptr<Bitmap> _DrawImageSequenceToLargeBitmap(vector<ImageSequenceItem> &items, vector<CRect> &rectsOut, bool loopImages)
 {
     // Rules:
     // 1) If we have any Bitmaps, then we'll lose the palette.
@@ -389,6 +499,12 @@ unique_ptr<Bitmap> _DrawImageSequenceToLargeBitmap(vector<ImageSequenceItem> &it
             }
         }
     }
+
+    if (loopImages)
+    {
+        _LoopImages(bitmaps);
+    }
+
 
     // Use the average aspect ratio to determine how to lay things out. This should really be handled
     // by the UI, but we're compiling all the images into a single bitmap prior to sending it to the dialog.
@@ -454,12 +570,18 @@ unique_ptr<Bitmap> _DrawImageSequenceToLargeBitmap(vector<ImageSequenceItem> &it
         {
             CRect &rect = rectsOut[index];
             bitmap->SetResolution(horizontalDPI, verticalDPI);
-            int result = g.DrawImage(bitmap.get(), rect.left, rect.top, 0, 0, bitmap->GetWidth(), bitmap->GetHeight(), UnitPixel);
+            // bitmap, long, long ,long ,long, long ,long Untiy,m attri
+
+            Rect destRect(rect.left, rect.top, rect.Width(), rect.Height());
+            int result = g.DrawImage(bitmap.get(), destRect, 0, 0, bitmap->GetWidth(), bitmap->GetHeight(), UnitPixel);
+
             index++;
         }
     }
     return bigBitmap;
 }
+
+bool g_loop = true;
 
 bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const PaletteComponent *optionalNewPalette,
     const uint8_t **paletteMapping,
@@ -509,10 +631,10 @@ bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const
     return isEGA16;
 }
 
-void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *currentPalette, std::vector<ImageSequenceItem> &items, bool fixedPalette, int paletteSize, bool replaceEntireLoop)
+void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *currentPalette, std::vector<ImageSequenceItem> &items, bool fixedPalette, int paletteSize, bool replaceEntireLoop, bool loopImages)
 {
     vector<CRect> bitmapRects;
-    unique_ptr<Bitmap> bigBitmap = _DrawImageSequenceToLargeBitmap(items, bitmapRects);
+    unique_ptr<Bitmap> bigBitmap = _DrawImageSequenceToLargeBitmap(items, bitmapRects, loopImages);
     size16 size((uint16_t)bigBitmap->GetWidth(), (uint16_t)bigBitmap->GetHeight());
     CBitmapToVGADialog dialog(
         move(bigBitmap),
@@ -621,7 +743,7 @@ void CNewRasterResourceDocument::PrepareEGAOrVGAPalette(PaletteComponent &egaPal
     }
 }
 
-void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool replaceEntireLoop)
+void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool replaceEntireLoop, bool loopImages)
 {
     assert(replaceEntireLoop || (files.size() == 1));
     const RasterComponent &raster = GetComponent<RasterComponent>();
@@ -686,7 +808,7 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool 
         int colorCount;
         bool fixedPalette;
         PrepareEGAOrVGAPalette(tempPalette, colorCount, fixedPalette);
-        _ApplyImageSequenceNew(transparentColor, &tempPalette, imageSequenceItems, fixedPalette, colorCount, replaceEntireLoop);
+        _ApplyImageSequenceNew(transparentColor, &tempPalette, imageSequenceItems, fixedPalette, colorCount, replaceEntireLoop, loopImages);
     }
 
     // Reset the selection.
@@ -702,11 +824,22 @@ void CNewRasterResourceDocument::OnImportImage()
     if (IDOK == fileDialog.DoModal())
     {
         vector<string> fileList = { (PCSTR)fileDialog.GetPathName() };
-        _InsertFiles(fileList, false);
+        _InsertFiles(fileList, false, false);
     }
 }
 
 void CNewRasterResourceDocument::OnImportImageSequence()
+{
+    _OnImportImageSequence(false);
+}
+
+void CNewRasterResourceDocument::OnImportImageSequenceAndLoop()
+{
+    _OnImportImageSequence(true);
+}
+
+
+void CNewRasterResourceDocument::_OnImportImageSequence(bool loopImages)
 {
     // Create a file dialog.
     CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR, g_szGdiplusFilter);
@@ -727,7 +860,7 @@ void CNewRasterResourceDocument::OnImportImageSequence()
             fileList.push_back((PCTSTR)fileDialog.GetNextPathName(pos));
         }
         sort(fileList.begin(), fileList.end());
-        _InsertFiles(fileList, true);
+        _InsertFiles(fileList, true, loopImages);
     }
 }
 

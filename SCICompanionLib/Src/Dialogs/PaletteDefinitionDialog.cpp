@@ -34,6 +34,8 @@ CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback
     _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPALETTE));
 
     std::fill(std::begin(_multiSelection), std::end(_multiSelection), false);
+    std::fill(std::begin(_usedIndices), std::end(_usedIndices), RGBQUAD());
+    
 
     // Store the current palette state by processing all pallet commands up to position.
     for (ptrdiff_t i = 0; i < _position; i++)
@@ -117,13 +119,12 @@ void CPaletteDefinitionDialog::DoDataExchange(CDataExchange* pDX)
     picDraw.RefreshAllScreens(PicScreenFlags::All, PicPositionFlags::Final);
     const uint8_t *indicesBits = picDraw.GetPicBits(PicScreen::Index, PicPosition::Final, _pic.Size);
     size_t count = _pic.Size.cx * _pic.Size.cy;
-    RGBQUAD usedIndices[256] = {};
     for (size_t i = 0; i < count; i++)
     {
-        usedIndices[indicesBits[i]].rgbReserved = 0x1;
+        _usedIndices[indicesBits[i]].rgbReserved = 0x1;
     }
 
-    m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(usedIndices), usedIndices);
+    m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(_usedIndices), _usedIndices);
 
     m_wndStaticPalette.OnPaletteUpdated();
 }
@@ -149,7 +150,7 @@ void CPaletteDefinitionDialog::OnUpdateCopyPaste(CCmdUI* pCmdUI)
 void CPaletteDefinitionDialog::OnTabChange(NMHDR *pnmhdr, LRESULT *ples)
 {
     _iCurPalette = m_wndTab.GetCurSel();
-    m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);
+    m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(_usedIndices), _usedIndices);
     m_wndStaticPalette.OnPaletteUpdated();
 
     // Also update the selections in the colors list

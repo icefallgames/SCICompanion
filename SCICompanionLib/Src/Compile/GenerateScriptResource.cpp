@@ -290,7 +290,7 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
         WORD wValue = objectProperty.GetValue();
         if (objectProperty.NeedsReloc())
         {
-            pContext->WroteSink(wValue, (uint16_t)output.size());
+            pContext->WroteSink(wValue, (uint16_t)output.size(), ResourceType::Heap);
         }
         push_word(output, wValue);
     }
@@ -485,7 +485,7 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
                         case ValueType::ResourceString:
                         case ValueType::Said:
                         case ValueType::String:
-                            context.WroteSink(context.GetTempToken(pValue->GetType(), pValue->GetStringValue()), (uint16_t)output.size());
+                            context.WroteSink(context.GetTempToken(pValue->GetType(), pValue->GetStringValue()), (uint16_t)output.size(), ResourceType::Heap);
                             break;
                         case ValueType::Number:
                             // We're good.
@@ -1452,7 +1452,7 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uin
 
         if (prop.NeedsReloc())
         {
-            context.WroteSink(value, (uint16_t)outputHeap.size());
+            context.WroteSink(value, (uint16_t)outputHeap.size(), ResourceType::Heap);
             // Add this to the string offsets we're tracking.
         }
         push_word(outputHeap, value);
