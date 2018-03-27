@@ -210,6 +210,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_RADIO1, m_wndRadio1);
         DDX_Control(pDX, IDC_RADIO2, m_wndRadio2);
         DDX_Control(pDX, IDC_RADIO3, m_wndRadio3);
+        DDX_Control(pDX, IDC_RADIO6, m_wndRadio6);
         DDX_Control(pDX, IDC_CHECKINSERT, m_wndCheckInsert);
         DDX_Control(pDX, IDC_CHECKOVERLAY, m_wndCheckOverlay);
         DDX_Control(pDX, IDC_CHECKDITHER, m_wndDither);
@@ -274,7 +275,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
     }
     else
     {
-        m_wndCheckGlobalPalette.SetWindowTextA(format("Use {0} global palette entries", (_paletteSize - _numUnusedPaletteEntriesInGlobalPalette)).c_str());
+        m_wndCheckGlobalPalette.SetWindowTextA(format("Use {0} global entries", (_paletteSize - _numUnusedPaletteEntriesInGlobalPalette)).c_str());
     }
 
     DDX_Control(pDX, IDC_EDITSTATUS, m_wndEditStatus);
@@ -680,6 +681,7 @@ void CBitmapToVGADialog::_Update()
             }
         }
         break;
+
     case PaletteAlgorithm::UseImported:
         // Use imported palette... no mods allowed, so use _pbmpOrig, _originalPalette
         // This should only be enabled if _originalPalette is set.
@@ -701,7 +703,51 @@ void CBitmapToVGADialog::_Update()
             }
         }
         break;
+
+    case PaletteAlgorithm::UseGreyScale:
+        // Just like match existing, except we match to a greyscale?
+        if (_pbmpCurrent)
+        {
+            bool usableColors[MaxPaletteColors];
+            RGBQUAD greyScaleColors[MaxPaletteColors];
+            uint8_t colorMapping[MaxPaletteColors];
+            for (int i = 0; i < MaxPaletteColors; i++)
+            {
+                usableColors[i] = true;
+                colorMapping[i] = (uint8_t)i;
+                greyScaleColors[i].rgbBlue = (uint8_t)i;
+                greyScaleColors[i].rgbGreen = (uint8_t)i;
+                greyScaleColors[i].rgbRed = (uint8_t)i;
+                greyScaleColors[i].rgbReserved = 1;
+            }
+
+            BitmapConvertStatus convertStatus = BitmapConvertStatus::None;
+            _finalResult = GdiPlusBitmapToCel(
+                *_pbmpCurrent,
+                performDither,
+                gammaCorrected,
+                alphaDither,
+                _colorMatching,
+                _alphaThreshold,
+                _transparentColor,
+                false, // don't exclude tx from palette
+                _paletteSize,
+                usableColors,
+                greyScaleColors,
+                colorMapping,
+                convertStatus
+            );
+
+            if (_finalResult)
+            {
+                // Yep, we'll keep the current palette, because that's what it'll look like.
+                _finalResultPalette = make_unique<PaletteComponent>(*_targetCurrentPalette);
+            }
+        }
+        break;
     }
+
+
 
     // Now given the Cel, generate a bitmap from it.
     if (_finalResult)
@@ -776,6 +822,7 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_CHECKGLOBALPALETTE, &CBitmapToVGADialog::OnBnClickedCheckglobalpalette)
     ON_BN_CLICKED(IDC_RADIO1, &CBitmapToVGADialog::OnBnClickedRadio1)
     ON_BN_CLICKED(IDC_RADIO3, &CBitmapToVGADialog::OnBnClickedRadio3)
+    ON_BN_CLICKED(IDC_RADIO6, &CBitmapToVGADialog::OnBnClickedRadio6)
     ON_BN_CLICKED(IDC_CHECKINSERT, &CBitmapToVGADialog::OnBnClickedCheckinsert)
     ON_EN_KILLFOCUS(IDC_EDITTRANSPARENTCOLOR, &CBitmapToVGADialog::OnEnKillfocusEdittransparentcolor)
     ON_BN_CLICKED(IDC_BUTTONREFRESH, &CBitmapToVGADialog::OnBnClickedButtonrefresh)
@@ -934,6 +981,22 @@ void CBitmapToVGADialog::OnBnClickedRadio2()
 void CBitmapToVGADialog::OnBnClickedRadio3()
 {
     _paletteAlgorithm = PaletteAlgorithm::UseImported;
+    if (!_manuallyModifiedColors)
+    {
+        assert(_honorGlobalPalette != BST_INDETERMINATE);
+        _honorGlobalPalette = BST_UNCHECKED;
+        m_wndCheckGlobalPalette.SetCheck(_honorGlobalPalette);
+        _PushPaletteSelection();
+    }
+    _SyncControlState();
+    _Update();
+}
+
+
+void CBitmapToVGADialog::OnBnClickedRadio6()
+{
+    // TODO
+    _paletteAlgorithm = PaletteAlgorithm::UseGreyScale;
     if (!_manuallyModifiedColors)
     {
         assert(_honorGlobalPalette != BST_INDETERMINATE);

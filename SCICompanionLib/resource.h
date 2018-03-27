@@ -440,6 +440,7 @@
 #define IDC_SLIDERNUMCOLORS             1092
 #define IDC_CHECKDITHER2                1092
 #define IDC_CHECKDITHERALPHA            1092
+#define IDC_RADIO6                      1092
 #define IDC_RADIO5                      1093
 #define IDC_RADIOHALFTONE               1094
 #define IDC_RADIOSOLID                  1095
@@ -1260,7 +1261,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        414
+#define _APS_NEXT_RESOURCE_VALUE        415
 #define _APS_NEXT_COMMAND_VALUE         33365
 #define _APS_NEXT_CONTROL_VALUE         1416
 #define _APS_NEXT_SYMED_VALUE           105
