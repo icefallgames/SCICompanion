@@ -89,9 +89,9 @@ void RenderLetter(RasterComponent &raster, int nCel, CDC *pDC, int scale, char c
                 // Black is our 'on'.
                 COLORREF colorTextOld = pDC->SetTextColor(RGB(0, 0, 0));
                 COLORREF colorOld = pDC->SetBkColor(RGB(255, 255, 255));
-                //int iBkMode = pDC->SetBkMode(OPAQUE);
-                int iBkMode = pDC->SetBkMode(TRANSPARENT);
-                if (pDC->DrawText(&ch, 1, &rectScaled, DT_NOPREFIX | DT_SINGLELINE))
+                int iBkMode = pDC->SetBkMode(OPAQUE);
+                //int iBkMode = pDC->SetBkMode(TRANSPARENT);
+                if (pDC->DrawText(&ch, 1, &rectScaled, DT_NOPREFIX | DT_SINGLELINE | DT_RIGHT)) // dt left and top are dumb
                 {
                     // Now that we've drawn it, scale it down
                     if (scale != 1)
@@ -216,6 +216,11 @@ void InitFontFromLOGFONT(RasterComponent &raster, FontComponent &fontComponent, 
         logFontLocal.lfHeight *= scale;
         logFontLocal.lfWidth *= scale;
     }
+
+
+
+    // Chevy Bird seed I know this looks good?
+    logFontLocal.lfHeight = -14;
 
     CDC dc;
     if (dc.CreateCompatibleDC(NULL))

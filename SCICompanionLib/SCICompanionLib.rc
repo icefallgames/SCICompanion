@@ -664,6 +664,7 @@ BEGIN
             MENUITEM "Up\tCtrl-Up",                 ID_SHIFTPIXELS_UP
             MENUITEM "Down\tCtrl-Down",             ID_SHIFTPIXELS_DOWN
         END
+        MENUITEM "&Import image sequence",      33001
     END
     POPUP "&Message"
     BEGIN

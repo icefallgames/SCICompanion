@@ -239,7 +239,7 @@ RGBQUAD g_greyScale16[16] = {
 
 RasterTraits fontRasterTraits =
 {
-    RasterCaps::Resize,
+    RasterCaps::Resize | RasterCaps::FixedSeries,
     OriginStyle::None,
     127,
     127,

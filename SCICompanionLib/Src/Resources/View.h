@@ -85,6 +85,7 @@ enum class RasterCaps : uint16_t
     Animate = 0x0020,
     SCI0CursorPlacement = 0x0040,
     EightBitPlacement = 0x0080,
+    FixedSeries = 0x0100,
 };
 DEFINE_ENUM_FLAGS(RasterCaps, uint16_t)
 

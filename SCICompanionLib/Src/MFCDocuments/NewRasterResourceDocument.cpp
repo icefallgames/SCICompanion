@@ -685,7 +685,17 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
             [replaceEntireLoop, nLoop, nCel, &finalCels](RasterComponent &raster)
         {
             RasterChange chnage;
-            if (replaceEntireLoop)
+            if ((raster.Traits.Caps & RasterCaps::FixedSeries) != RasterCaps::None)
+            {
+                // This is a font. Start at 33 for now.
+                int index = 33;
+                for (const Cel &cel : finalCels)
+                {
+                    chnage = ReplaceCel(raster, CelIndex(0, index), cel);
+                    index++;
+                }
+            }
+            else if (replaceEntireLoop)
             {
                 chnage = ApplyCelsToLoop(raster, nLoop, finalCels);
             }
@@ -859,7 +869,16 @@ void CNewRasterResourceDocument::_OnImportImageSequence(bool loopImages)
         {
             fileList.push_back((PCTSTR)fileDialog.GetNextPathName(pos));
         }
-        sort(fileList.begin(), fileList.end());
+
+        if ((GetComponent<RasterComponent>().Traits.Caps & RasterCaps::FixedSeries) != RasterCaps::None)
+        {
+            // Total hack for now. Take them as they come. This is for fonts.
+        }
+        else
+        {
+            sort(fileList.begin(), fileList.end());
+        }
+
         _InsertFiles(fileList, true, loopImages);
     }
 }
@@ -919,7 +938,7 @@ void CNewRasterResourceDocument::OnUpdateImportImage(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable(
         !appState->_fNoGdiPlus &&
-        ((GetComponent<RasterComponent>().Traits.Caps & RasterCaps::Animate) != RasterCaps::None)
+        ((GetComponent<RasterComponent>().Traits.Caps & (RasterCaps::Animate | RasterCaps::FixedSeries)) != RasterCaps::None)
         );
 }
 
@@ -1043,7 +1062,17 @@ void CNewRasterResourceDocument::MakeFont(bool dialog, bool antiAlias, bool scal
         // NOTE: Anti-aliasing may not work if fonts are small enough (common for SCI use cases)
         // Clear-type we don't want, because that's colored.
         currentLogFont.lfQuality = antiAlias ? ANTIALIASED_QUALITY : NONANTIALIASED_QUALITY;
+        //currentLogFont.lfQuality = antiAlias ? ANTIALIASED_QUALITY : PROOF_QUALITY;
         currentLogFont.lfOutPrecision = antiAlias ? OUT_DEFAULT_PRECIS : OUT_RASTER_PRECIS;
+
+        // me override
+        currentLogFont.lfCharSet = 1;
+        currentLogFont.lfUnderline = 0;
+        //currentLogFont.lfOutPrecision = 4; // OUT_TT_PRECIS?, ACtually, this might be 0
+        currentLogFont.lfOutPrecision = 0;
+        currentLogFont.lfClipPrecision = 0;
+        currentLogFont.lfQuality = 0;
+        currentLogFont.lfPitchAndFamily = 0;
 
         ApplyChanges<RasterComponent, FontComponent>(
             [&](RasterComponent &raster, FontComponent &font)
