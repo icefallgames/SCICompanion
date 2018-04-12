@@ -26,6 +26,7 @@ enum class PaletteAlgorithm
     Quantize = 0,
     MatchExisting = 1,
     UseImported = 2,
+    UseGreyScale = 3,
 };
 
 enum class DefaultPaletteUsage
@@ -117,6 +118,7 @@ private:
     CExtRadioButton m_wndRadio1;    // palette options
     CExtRadioButton m_wndRadio2;
     CExtRadioButton m_wndRadio3;
+    CExtRadioButton m_wndRadio6;
     PaletteAlgorithm _paletteAlgorithm;
     DefaultPaletteUsage _defaultColorUsage;
     const char *_pszTitle;
@@ -168,6 +170,7 @@ private:
     afx_msg void OnBnClickedCheckglobalpalette();
     afx_msg void OnBnClickedRadio1();
     afx_msg void OnBnClickedRadio3();
+    afx_msg void OnBnClickedRadio6();
 public:
     afx_msg void OnBnClickedCheckinsert();
     afx_msg void OnEnKillfocusEdittransparentcolor();
