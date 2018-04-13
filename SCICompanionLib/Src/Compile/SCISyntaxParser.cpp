@@ -1284,6 +1284,7 @@ void SCISyntaxParser::Load()
 unique_ptr<CaseStatement> _MakeVerbHandlerElse()
 {
     unique_ptr<CaseStatement> theCase = make_unique<CaseStatement>();
+    theCase->SetDefault(true);
 
     // (super doVerb: verb item &rest)
     unique_ptr<SendCall> theSend = make_unique<SendCall>();
@@ -1302,9 +1303,38 @@ unique_ptr<CaseStatement> _MakeVerbHandlerElse()
     return theCase;
 }
 
+const std::string IsOneOfCall = "IsOneOf";
+const std::string NoItem = "nNothing";
+
+unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const PropertyValueVector &values)
+{
+    if (values.size() > 1)
+    {
+        // (IsOneItem item valbahbla fwef)
+        unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(IsOneOfCall);
+        procCall->AddStatement(make_unique<PropertyValue>(itemOrVerb, ValueType::Token));
+        for (auto value : values)
+        {
+            procCall->AddStatement(make_unique<PropertyValue>(value));
+        }
+        return unique_ptr<SyntaxNode>(move(procCall));
+    }
+    else
+    {
+        // (== item qwfwefwe)
+        unique_ptr<BinaryOp> equalStatement = make_unique<BinaryOp>(BinaryOperator::Equal);
+        equalStatement->SetStatement1(make_unique<PropertyValue>(itemOrVerb, ValueType::Token));
+        equalStatement->SetStatement2(make_unique<PropertyValue>(values[0]));
+        return unique_ptr<SyntaxNode>(move(equalStatement));
+    }
+}
+
 // TODO THIS IS STILL CORRUPTING THINGS
 void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler)
 {
+    PropertyValueVector nothing;
+    nothing.push_back(PropertyValue(NoItem, ValueType::Token));
+
     const ClassDefinition *theClassConst = verbHandler.GetOwnerClass();
     //auto it = find(script.GetClassesNC().begin(), script.GetClassesNC().end(), theClassConst);
     //if (it != script.GetClassesNC().end())
@@ -1315,6 +1345,7 @@ void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler)
         // Make a doVerb method with params verb and item
         unique_ptr<MethodDefinition> method = make_unique<MethodDefinition>();
         method->SetName("doVerb");
+        method->SetOwnerClass(theClassConst);
         unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
         signature->AddParam("verb");
         signature->AddParam("item");
@@ -1323,20 +1354,32 @@ void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler)
         // Now create a cond
         unique_ptr<CondStatement> cond = make_unique<CondStatement>();
 
-        /*
         for (auto &statement : verbHandler.GetStatements())
         {
+            assert(statement->GetNodeType() == NodeTypeVerbClause);
+            VerbClauseStatement &verbClause = static_cast<VerbClauseStatement&>(*statement);
             unique_ptr<CaseStatement> theCase = make_unique<CaseStatement>();
 
-            // The else is a case too, but we need to SetDefault
-            //theCase->
-            // TODO THIS PART
-            // This is where we construction (and (IsOneOf verb vWhatever) (== item nLantern))
-            // And then also dump the statements in.
+            // put them in an and
+            unique_ptr<BinaryOp> andStatement = make_unique<BinaryOp>(BinaryOperator::LogicalAnd);
+            andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs));
+            if (verbClause.Items.empty())
+            {
+                andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing));
+            }
+            else
+            {
+                andStatement->SetStatement2(_MakeVerbOrNounComparison("item", verbClause.Items));
+            }
+            theCase->SetStatement1(move(andStatement));
+
+            // Give all the code to the case statement
+            swap(theCase->GetStatements(), verbClause.GetStatements());
 
             cond->AddCase(move(theCase));
-        }*/
+        }
 
+        // Add a final super call
         cond->AddCase(_MakeVerbHandlerElse());
 
         method->AddStatement(move(cond));
