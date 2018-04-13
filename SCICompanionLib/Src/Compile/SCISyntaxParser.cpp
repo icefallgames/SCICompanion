@@ -10,18 +10,32 @@
 using namespace sci;
 using namespace std;
 
-void SyntaxContext::CreateVerbHandler()
-{
-    FunctionPtr = std::make_unique<sci::VerbHandlerDefinition>(); FunctionPtr->AddSignature(std::move(std::make_unique<sci::FunctionSignature>()));
-}
-
-
 void NoCaseE(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (!match.Result())
     {
         pContext->ReportError("Expected case value or 'else' keyword.", stream);
     }
+}
+
+unique_ptr<FunctionSignature> _CreateVerbHandlerSignature()
+{
+    unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
+    signature->AddParam("verb");
+    signature->AddParam("item");
+    return signature;
+}
+unique_ptr<FunctionSignature> _CreateIsVerbHandlerSignature()
+{
+    unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
+    signature->AddParam("verb");
+    return signature;
+}
+
+void SyntaxContext::CreateVerbHandler()
+{
+    FunctionPtr = std::make_unique<sci::VerbHandlerDefinition>();
+    FunctionPtr->AddSignature(_CreateVerbHandlerSignature());
 }
 
 
@@ -379,13 +393,14 @@ void SetCaseA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pCont
 
 
 
-
+template<bool isNear>
 void CreateVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
         pContext->CreateVerbHandler();
         pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
+        static_cast<VerbHandlerDefinition*>(pContext->FunctionPtr.get())->SetNear(isNear);
     }
 }
 void FinishVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -1154,13 +1169,17 @@ void SCISyntaxParser::Load()
     verb_clause =
         alwaysmatch_p[StartStatementA]
         >> (oppar[SetStatementA<VerbClauseStatement>]
-        >> (alphanumNK_p[VerbClauseVerbA] % comma[GeneralE]) // comma separated verbs - must have at least one verb though.
-        >> -(keyword_p("->") >> (alphanumNK_p[VerbClauseItemA] % comma[GeneralE])) // optional items after ->
+        >> (alphanumNK_p[{VerbClauseVerbA, ParseAutoCompleteContext::DefineValue}] % comma[GeneralE]) // comma separated verbs - must have at least one verb though.
+        >> -(keyword_p("->") >> (alphanumNK_p[{VerbClauseItemA, ParseAutoCompleteContext::DefineValue}] % comma[GeneralE])) // optional items after ->
         >> *statement[AddStatementA<VerbClauseStatement>] // then code
         >> clpar[GeneralE])[FinishStatementA];
 
     // here - first just get nearVerbs working, then do an OR for the thing
-    verb_handler_decl = keyword_p("nearVerbs")[{CreateVerbHandlerA, ParseAutoCompleteContext::ClassLevelKeyword}]
+    verb_handler_decl =
+        (
+            keyword_p("nearVerbs")[{CreateVerbHandlerA<true>, ParseAutoCompleteContext::ClassLevelKeyword}] |
+            keyword_p("farVerbs")[{CreateVerbHandlerA<false>, ParseAutoCompleteContext::ClassLevelKeyword}]
+        )
         // >> // Todo, allow for temp vars I guess. Not sure how though.
         >> *verb_clause[FunctionStatementA];
 
@@ -1329,62 +1348,88 @@ unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const
     }
 }
 
-// TODO THIS IS STILL CORRUPTING THINGS
-void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler)
+void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler, CondStatement **pCondWeak)
 {
+    unordered_set<string> usedVerbs;
+
     PropertyValueVector nothing;
     nothing.push_back(PropertyValue(NoItem, ValueType::Token));
 
     const ClassDefinition *theClassConst = verbHandler.GetOwnerClass();
-    //auto it = find(script.GetClassesNC().begin(), script.GetClassesNC().end(), theClassConst);
-    //if (it != script.GetClassesNC().end())
+    ClassDefinition *theClass = const_cast<ClassDefinition*>(theClassConst); // TODO: deal with this
+
+    // Make a doVerb method with params verb and item - but only do this once.
+    unique_ptr<MethodDefinition> doVerbMethod;
+
+    // Now create a cond
+    unique_ptr<CondStatement> cond;
+    if (!*pCondWeak)
     {
-        //ClassDefinition *theClass = it->get();
-        ClassDefinition *theClass = const_cast<ClassDefinition*>(theClassConst); // TODO: deal with this
+        cond = make_unique<CondStatement>();
+        *pCondWeak = cond.get();
 
-        // Make a doVerb method with params verb and item
-        unique_ptr<MethodDefinition> method = make_unique<MethodDefinition>();
-        method->SetName("doVerb");
-        method->SetOwnerClass(theClassConst);
-        unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
-        signature->AddParam("verb");
-        signature->AddParam("item");
-        method->AddSignature(move(signature));
+        doVerbMethod = make_unique<MethodDefinition>();
+        doVerbMethod->SetName("doVerb");
+        doVerbMethod->SetOwnerClass(theClassConst);
+        doVerbMethod->AddSignature(_CreateVerbHandlerSignature());
+    }
 
-        // Now create a cond
-        unique_ptr<CondStatement> cond = make_unique<CondStatement>();
+    for (auto &statement : verbHandler.GetStatements())
+    {
+        assert(statement->GetNodeType() == NodeTypeVerbClause);
+        VerbClauseStatement &verbClause = static_cast<VerbClauseStatement&>(*statement);
+        unique_ptr<CaseStatement> theCase = make_unique<CaseStatement>();
 
-        for (auto &statement : verbHandler.GetStatements())
+        for (const PropertyValue &verb : verbClause.Verbs)
         {
-            assert(statement->GetNodeType() == NodeTypeVerbClause);
-            VerbClauseStatement &verbClause = static_cast<VerbClauseStatement&>(*statement);
-            unique_ptr<CaseStatement> theCase = make_unique<CaseStatement>();
-
-            // put them in an and
-            unique_ptr<BinaryOp> andStatement = make_unique<BinaryOp>(BinaryOperator::LogicalAnd);
-            andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs));
-            if (verbClause.Items.empty())
-            {
-                andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing));
-            }
-            else
-            {
-                andStatement->SetStatement2(_MakeVerbOrNounComparison("item", verbClause.Items));
-            }
-            theCase->SetStatement1(move(andStatement));
-
-            // Give all the code to the case statement
-            swap(theCase->GetStatements(), verbClause.GetStatements());
-
-            cond->AddCase(move(theCase));
+            usedVerbs.insert(verb.GetStringValue());
         }
 
-        // Add a final super call
-        cond->AddCase(_MakeVerbHandlerElse());
+        // put them in an and
+        unique_ptr<BinaryOp> andStatement = make_unique<BinaryOp>(BinaryOperator::LogicalAnd);
+        andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs));
+        if (verbClause.Items.empty())
+        {
+            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing));
+        }
+        else
+        {
+            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", verbClause.Items));
+        }
+        theCase->SetStatement1(move(andStatement));
 
-        method->AddStatement(move(cond));
-        theClass->AddMethod(move(method));
+        // Give all the code to the case statement
+        swap(theCase->GetStatements(), verbClause.GetStatements());
+
+        (*pCondWeak)->AddCase(move(theCase));
     }
+
+    if (cond)
+    {
+        doVerbMethod->AddStatement(move(cond));
+        theClass->AddMethod(move(doVerbMethod));
+    } // but not if we only had a weak ptr.
+
+
+
+    // Now prepare a method for determine which verbs are handled.
+    // (method (_isNearVerb verb)
+    //  (return (IsOneOf verb blah blahb blabh blah))
+    //
+    unique_ptr<MethodDefinition> isXXXVerbMethod = make_unique<MethodDefinition>();
+    isXXXVerbMethod->SetName(verbHandler.GetNear() ? "_isNearVerb" : "_isFarVerb");
+    isXXXVerbMethod->SetOwnerClass(theClassConst);
+    isXXXVerbMethod->AddSignature(_CreateIsVerbHandlerSignature());
+    unique_ptr<ReturnStatement> returnStatement = make_unique<ReturnStatement>();
+    unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(IsOneOfCall);
+    procCall->AddStatement(make_unique<PropertyValue>("verb", ValueType::Token));
+    for (auto &usedVerb : usedVerbs)
+    {
+        procCall->AddStatement(make_unique<PropertyValue>(usedVerb, ValueType::Token));
+    }
+    returnStatement->SetStatement1(move(procCall));
+    isXXXVerbMethod->AddStatement(move(returnStatement));
+    theClass->AddMethod(move(isXXXVerbMethod));
 }
 
 
@@ -1415,12 +1460,18 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
         );
 
     // Process nearVerbs and farVerbs. Do this before cond's, because that's how we implement them.
+    CondStatement *doVerbCondWeak = nullptr;
     EnumScriptElements<VerbHandlerDefinition>(script,
-        [&script](VerbHandlerDefinition &verbHandler)
+        [&script, &doVerbCondWeak](VerbHandlerDefinition &verbHandler)
     {
-        _ProcessVerbHandler(script, verbHandler);
+        _ProcessVerbHandler(script, verbHandler, &doVerbCondWeak);
     }
     );
+    if (doVerbCondWeak)
+    {
+        // It means we added one. Put in the default handler:
+        doVerbCondWeak->AddCase(_MakeVerbHandlerElse());
+    }
 
     // Re-work conds into if-elses.
     EnumScriptElements<CondStatement>(script,

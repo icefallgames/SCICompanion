@@ -465,6 +465,7 @@ namespace sci
 
     class VerbHandlerDefinition : public FunctionBase
     {
+        DECLARE_NODE_TYPE(NodeTypeVerbHandler)
     public:
         VerbHandlerDefinition() {}
         VerbHandlerDefinition(VerbHandlerDefinition &src) = delete;
