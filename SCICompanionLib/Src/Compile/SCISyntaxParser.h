@@ -113,6 +113,10 @@ private:
     ParserSCI cond_statement;
     ParserSCI size_of;
     ParserSCI entire_header;
+    ParserSCI verb_clause;
+    ParserSCI verb_handler_decl;
+    ParserSCI verb_clause_verbs;
+    ParserSCI verb_clause_nouns;
 
     // Non-code parsers:
     ParserSCI classdef_file;

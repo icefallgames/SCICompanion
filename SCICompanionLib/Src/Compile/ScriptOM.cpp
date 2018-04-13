@@ -538,6 +538,12 @@ StatementsNode::StatementsNode(SyntaxNodeVector statements) : _segments(std::mov
 
 }
 
+void ClassDefinition::AddVerbHandler(std::unique_ptr<VerbHandlerDefinition> verbHandler)
+{
+    _verbHandlers.push_back(std::move(verbHandler));
+}
+
+
 void SourceCodeWriter::IndentToCommentColumn()
 {
     ptrdiff_t origPosition = (ptrdiff_t)out.tellp();
@@ -661,3 +667,5 @@ void ClassDefDeclaration::Accept(ISyntaxNodeVisitor &visitor) const { visitor.En
 void SelectorDeclaration::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
 void GlobalDeclaration::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
 void ExternDeclaration::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void VerbHandlerDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void VerbClauseStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }

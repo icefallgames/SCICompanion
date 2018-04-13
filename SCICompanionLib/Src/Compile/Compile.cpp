@@ -3050,6 +3050,13 @@ CodeResult ContinueStatement::OutputByteCode(CompileContext &context) const
     return 0; // void
 }
 
+CodeResult VerbClauseStatement::OutputByteCode(CompileContext &context) const
+{
+    // Should never be called.
+    return CodeResult(0, DataTypeAny);
+}
+
+
 CodeResult AsmBlock::OutputByteCode(CompileContext &context) const
 {
     for (auto &statement : _segments)

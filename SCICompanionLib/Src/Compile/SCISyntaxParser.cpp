@@ -10,6 +10,12 @@
 using namespace sci;
 using namespace std;
 
+void SyntaxContext::CreateVerbHandler()
+{
+    FunctionPtr = std::make_unique<sci::VerbHandlerDefinition>(); FunctionPtr->AddSignature(std::move(std::make_unique<sci::FunctionSignature>()));
+}
+
+
 void NoCaseE(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (!match.Result())
@@ -129,6 +135,9 @@ vector<string> SCIKeywords =
     "yield"
     "delegate"
     "exit"
+
+    "nearVerbs",
+    "farVerbs",
 };
 
 template<typename _It, typename _TContext>
@@ -367,6 +376,46 @@ void SetCaseA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pCont
         pContext->GetSyntaxNode<_T>()->AddCase(pContext->StealStatementReturn<CaseStatement>());
     }
 }
+
+
+
+
+void CreateVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateVerbHandler();
+        pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
+    }
+}
+void FinishVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ClassPtr->AddVerbHandler(move(std::unique_ptr<sci::VerbHandlerDefinition>(static_cast<sci::VerbHandlerDefinition*>(pContext->FunctionPtr.release()))));
+    }
+    else
+    {
+        pContext->ReportError("Expected verb handler declaration.", stream);
+    }
+}
+
+void VerbClauseVerbA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<VerbClauseStatement>()->Verbs.push_back(PropertyValue(pContext->ScratchString(), ValueType::Token));
+    }
+}
+void VerbClauseItemA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<VerbClauseStatement>()->Items.push_back(PropertyValue(pContext->ScratchString(), ValueType::Token));
+    }
+}
+
+
 
 void InitEnumStartA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -1102,6 +1151,19 @@ void SCISyntaxParser::Load()
 
     method_decl = keyword_p("method")[{CreateMethodA, ParseAutoCompleteContext::ClassLevelKeyword}] >> method_base[FunctionCloseA];
 
+    verb_clause =
+        alwaysmatch_p[StartStatementA]
+        >> (oppar[SetStatementA<VerbClauseStatement>]
+        >> (alphanumNK_p[VerbClauseVerbA] % comma[GeneralE]) // comma separated verbs - must have at least one verb though.
+        >> -(keyword_p("->") >> (alphanumNK_p[VerbClauseItemA] % comma[GeneralE])) // optional items after ->
+        >> *statement[AddStatementA<VerbClauseStatement>] // then code
+        >> clpar[GeneralE])[FinishStatementA];
+
+    // here - first just get nearVerbs working, then do an OR for the thing
+    verb_handler_decl = keyword_p("nearVerbs")[{CreateVerbHandlerA, ParseAutoCompleteContext::ClassLevelKeyword}]
+        // >> // Todo, allow for temp vars I guess. Not sure how though.
+        >> *verb_clause[FunctionStatementA];
+
     // The properties thing in a class or instance
     properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *property_decl >> clpar;
     
@@ -1114,6 +1176,7 @@ void SCISyntaxParser::Load()
             (
             methods_fwd |
             method_decl[FinishClassMethodA] |
+            verb_handler_decl[FinishVerbHandlerA] |
             procedure_decl[FinishClassProcedureA]) >> clpar);
 
     instance_decl = keyword_p("instance")[CreateClassA<true>] >> classbase_decl[ClassCloseA];
@@ -1218,6 +1281,70 @@ void SCISyntaxParser::Load()
 
 }
 
+unique_ptr<CaseStatement> _MakeVerbHandlerElse()
+{
+    unique_ptr<CaseStatement> theCase = make_unique<CaseStatement>();
+
+    // (super doVerb: verb item &rest)
+    unique_ptr<SendCall> theSend = make_unique<SendCall>();
+    theSend->SetName("super");
+
+    // Create the send param to add to the send call
+    unique_ptr<SendParam> param = std::make_unique<SendParam>();
+    param->SetName("doVerb");
+    param->SetIsMethod(true);
+    param->AddStatement(make_unique<PropertyValue>("verb", ValueType::Token));
+    param->AddStatement(make_unique<PropertyValue>("item", ValueType::Token));
+    param->AddStatement(make_unique<RestStatement>());
+    theSend->AddSendParam(move(param));
+
+    theCase->AddStatement(move(theSend));
+    return theCase;
+}
+
+// TODO THIS IS STILL CORRUPTING THINGS
+void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler)
+{
+    const ClassDefinition *theClassConst = verbHandler.GetOwnerClass();
+    //auto it = find(script.GetClassesNC().begin(), script.GetClassesNC().end(), theClassConst);
+    //if (it != script.GetClassesNC().end())
+    {
+        //ClassDefinition *theClass = it->get();
+        ClassDefinition *theClass = const_cast<ClassDefinition*>(theClassConst); // TODO: deal with this
+
+        // Make a doVerb method with params verb and item
+        unique_ptr<MethodDefinition> method = make_unique<MethodDefinition>();
+        method->SetName("doVerb");
+        unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
+        signature->AddParam("verb");
+        signature->AddParam("item");
+        method->AddSignature(move(signature));
+
+        // Now create a cond
+        unique_ptr<CondStatement> cond = make_unique<CondStatement>();
+
+        /*
+        for (auto &statement : verbHandler.GetStatements())
+        {
+            unique_ptr<CaseStatement> theCase = make_unique<CaseStatement>();
+
+            // The else is a case too, but we need to SetDefault
+            //theCase->
+            // TODO THIS PART
+            // This is where we construction (and (IsOneOf verb vWhatever) (== item nLantern))
+            // And then also dump the statements in.
+
+            cond->AddCase(move(theCase));
+        }*/
+
+        cond->AddCase(_MakeVerbHandlerElse());
+
+        method->AddStatement(move(cond));
+        theClass->AddMethod(move(method));
+    }
+}
+
+
 // 
 // Fix up scripts so that they conform to standards. Differences in the SCI syntax make
 // it difficult to get the script OM in its final state just in the parsing phase.
@@ -1243,6 +1370,14 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
         instance.SetPublic(script.IsExport(instance.GetName()));
     }
         );
+
+    // Process nearVerbs and farVerbs. Do this before cond's, because that's how we implement them.
+    EnumScriptElements<VerbHandlerDefinition>(script,
+        [&script](VerbHandlerDefinition &verbHandler)
+    {
+        _ProcessVerbHandler(script, verbHandler);
+    }
+    );
 
     // Re-work conds into if-elses.
     EnumScriptElements<CondStatement>(script,
@@ -1325,6 +1460,7 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
         }
     }
         );
+
 
     // Report warnings if any un-implemented constructs are used.
     std::vector<std::string> unimplementedWarnings;

@@ -68,5 +68,7 @@ namespace sci
         NodeTypeYield,
         NodeTypeRestore,
         NodeTypeExit,
+        NodeTypeVerbClause,
+        NodeTypeVerbHandler
     };
 }

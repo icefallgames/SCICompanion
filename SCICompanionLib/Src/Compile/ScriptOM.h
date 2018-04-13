@@ -149,6 +149,8 @@ namespace sci
     class SelectorDeclaration;
     class GlobalDeclaration;
     class ExternDeclaration;
+    class VerbHandlerDefinition;
+    class VerbClauseStatement;
 
     class ISyntaxNodeVisitor
     {
@@ -199,6 +201,8 @@ namespace sci
         virtual void Visit(const SelectorDeclaration &selectorDef) = 0;
         virtual void Visit(const GlobalDeclaration &globalDecl) = 0;
         virtual void Visit(const ExternDeclaration &externDecl) = 0;
+        virtual void Visit(const VerbHandlerDefinition &globalDecl) = 0;
+        virtual void Visit(const VerbClauseStatement &externDecl) = 0;
 
         virtual void Enter(const SyntaxNode &node) = 0;
         virtual void Leave(const SyntaxNode &node) = 0;
@@ -960,6 +964,7 @@ namespace sci
         void AddProperty(std::unique_ptr<ClassProperty> classProp) { _properties.push_back(move(classProp)); }
         void AddProperty(const std::string &name, uint16_t value);
 		void AddMethod(std::unique_ptr<MethodDefinition> method) { _methods.push_back(std::move(method)); }
+        void AddVerbHandler(std::unique_ptr<VerbHandlerDefinition> verbHandler);
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
@@ -982,6 +987,7 @@ namespace sci
         bool _fInstance; // Instance or class.
         ClassPropertyVector _properties;
         MethodVector _methods;
+        std::vector<std::unique_ptr<VerbHandlerDefinition>> _verbHandlers;
     };
 
     typedef ClassDefinition* ClassPtr;

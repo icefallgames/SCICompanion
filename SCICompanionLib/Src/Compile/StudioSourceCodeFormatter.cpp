@@ -812,6 +812,8 @@ public:
     void Visit(const GlobalDeclaration &global) override {}
     void Visit(const ExternDeclaration &theExtern) override {}
     void Visit(const SelectorDeclaration &selector) override {}
+    void Visit(const VerbClauseStatement &vc) override {}
+    void Visit(const VerbHandlerDefinition &vc) override {}
 
     void Enter(const SyntaxNode &node) override {}
     void Leave(const SyntaxNode &node) override {}

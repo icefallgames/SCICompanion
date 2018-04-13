@@ -413,6 +413,8 @@ void CreateMethodA(MatchResult &match, const _TParser *pParser, SyntaxContext *p
     }
 }
 
+
+
 template<typename _TParser>
 void ProcedurePublicA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {

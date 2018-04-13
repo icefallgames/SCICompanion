@@ -1916,6 +1916,14 @@ public:
         out.out << selector.GetName() << " " << selector.Index;
     }
 
+    void Visit(const VerbClauseStatement &vc)
+    {
+        out.out << "VerbClauseStatement";
+    }
+    void Visit(const VerbHandlerDefinition &vc)
+    {
+        out.out << "VerbHandlerDefinition";
+    }
 
     // Measure the size of code output in a first pass, so we can better
 

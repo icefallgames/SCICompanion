@@ -439,6 +439,47 @@ namespace sci
         CondStatement& operator=(const CondStatement& src) = delete;
     };
 
+    class VerbClauseStatement : public SyntaxNode, public StatementsNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeVerbClause)
+    public:
+        VerbClauseStatement() {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context) {}
+        void Traverse(IExploreNode &en) {}
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        const SyntaxNodeVector &GetCodeSegments() const { return _segments; }
+        SyntaxNodeVector &GetCodeSegments() { return _segments; }
+
+        PropertyValueVector Verbs;
+        PropertyValueVector Items; // Empty, or could have *?
+
+    private:
+        VerbClauseStatement(const VerbClauseStatement &src) = delete;
+        VerbClauseStatement& operator=(const VerbClauseStatement& src) = delete;
+    };
+
+    class VerbHandlerDefinition : public FunctionBase
+    {
+    public:
+        VerbHandlerDefinition() {}
+        VerbHandlerDefinition(VerbHandlerDefinition &src) = delete;
+        VerbHandlerDefinition& operator=(VerbHandlerDefinition& src) = delete;
+
+        void SetNear(bool f) { _fNear = f; }
+        bool GetNear() const { return _fNear; }
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        void OutputSourceCode(SourceCodeWriter &out) const {}
+
+    private:
+        bool _fNear;
+    };
 
     //
     // Assignment statement (e.g. += foo 1)
