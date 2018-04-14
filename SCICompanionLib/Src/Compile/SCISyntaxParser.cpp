@@ -1348,15 +1348,12 @@ unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const
     }
 }
 
-void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler, CondStatement **pCondWeak)
+void _ProcessVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbHandler, CondStatement **pCondWeak)
 {
     unordered_set<string> usedVerbs;
 
     PropertyValueVector nothing;
     nothing.push_back(PropertyValue(NoItem, ValueType::Token));
-
-    const ClassDefinition *theClassConst = verbHandler.GetOwnerClass();
-    ClassDefinition *theClass = const_cast<ClassDefinition*>(theClassConst); // TODO: deal with this
 
     // Make a doVerb method with params verb and item - but only do this once.
     unique_ptr<MethodDefinition> doVerbMethod;
@@ -1370,7 +1367,7 @@ void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler, Con
 
         doVerbMethod = make_unique<MethodDefinition>();
         doVerbMethod->SetName("doVerb");
-        doVerbMethod->SetOwnerClass(theClassConst);
+        doVerbMethod->SetOwnerClass(&theClass);
         doVerbMethod->AddSignature(_CreateVerbHandlerSignature());
     }
 
@@ -1407,7 +1404,7 @@ void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler, Con
     if (cond)
     {
         doVerbMethod->AddStatement(move(cond));
-        theClass->AddMethod(move(doVerbMethod));
+        theClass.AddMethod(move(doVerbMethod));
     } // but not if we only had a weak ptr.
 
 
@@ -1418,7 +1415,7 @@ void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler, Con
     //
     unique_ptr<MethodDefinition> isXXXVerbMethod = make_unique<MethodDefinition>();
     isXXXVerbMethod->SetName(verbHandler.GetNear() ? "_isNearVerb" : "_isFarVerb");
-    isXXXVerbMethod->SetOwnerClass(theClassConst);
+    isXXXVerbMethod->SetOwnerClass(&theClass);
     isXXXVerbMethod->AddSignature(_CreateIsVerbHandlerSignature());
     unique_ptr<ReturnStatement> returnStatement = make_unique<ReturnStatement>();
     unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(IsOneOfCall);
@@ -1429,9 +1426,23 @@ void _ProcessVerbHandler(Script &script, VerbHandlerDefinition &verbHandler, Con
     }
     returnStatement->SetStatement1(move(procCall));
     isXXXVerbMethod->AddStatement(move(returnStatement));
-    theClass->AddMethod(move(isXXXVerbMethod));
+    theClass.AddMethod(move(isXXXVerbMethod));
 }
 
+void _ProcessClassForVerbHandlers(Script &script, ClassDefinition &theClass)
+{
+    CondStatement *pCondWeak = nullptr;
+    for (auto &verbHandler : theClass.GetVerbHandlers())
+    {
+        _ProcessVerbHandler(theClass, *verbHandler, &pCondWeak);
+    }
+
+    if (pCondWeak)
+    {
+        // It means we added one. Put in the default handler:
+        pCondWeak->AddCase(_MakeVerbHandlerElse());
+    }
+}
 
 // 
 // Fix up scripts so that they conform to standards. Differences in the SCI syntax make
@@ -1456,22 +1467,10 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
     {
         // This could be a class too (not just instance). The main game class is public.
         instance.SetPublic(script.IsExport(instance.GetName()));
+        _ProcessClassForVerbHandlers(script, instance);
     }
         );
 
-    // Process nearVerbs and farVerbs. Do this before cond's, because that's how we implement them.
-    CondStatement *doVerbCondWeak = nullptr;
-    EnumScriptElements<VerbHandlerDefinition>(script,
-        [&script, &doVerbCondWeak](VerbHandlerDefinition &verbHandler)
-    {
-        _ProcessVerbHandler(script, verbHandler, &doVerbCondWeak);
-    }
-    );
-    if (doVerbCondWeak)
-    {
-        // It means we added one. Put in the default handler:
-        doVerbCondWeak->AddCase(_MakeVerbHandlerElse());
-    }
 
     // Re-work conds into if-elses.
     EnumScriptElements<CondStatement>(script,

@@ -946,6 +946,7 @@ namespace sci
         ClassPropertyVector &GetPropertiesNC() { return _properties; }
         const MethodVector &GetMethods() const { return _methods; }
         MethodVector &GetMethodsNC() { return _methods; }
+        std::vector<std::unique_ptr<VerbHandlerDefinition>> &GetVerbHandlers() { return _verbHandlers; }
 
         bool GetPropertyConst(PCTSTR pszName, PropertyValue &value) const;
 
