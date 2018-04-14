@@ -443,7 +443,7 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeVerbClause)
     public:
-        VerbClauseStatement() {}
+        VerbClauseStatement() : AnyItem(false) {}
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
@@ -457,6 +457,7 @@ namespace sci
 
         PropertyValueVector Verbs;
         PropertyValueVector Items; // Empty, or could have *?
+        bool AnyItem;
 
     private:
         VerbClauseStatement(const VerbClauseStatement &src) = delete;
@@ -467,7 +468,7 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeVerbHandler)
     public:
-        VerbHandlerDefinition() {}
+        VerbHandlerDefinition() : _fNear(false) {}
         VerbHandlerDefinition(VerbHandlerDefinition &src) = delete;
         VerbHandlerDefinition& operator=(VerbHandlerDefinition& src) = delete;
 

@@ -429,6 +429,13 @@ void VerbClauseItemA(MatchResult &match, const ParserSCI *pParser, SyntaxContext
         pContext->GetSyntaxNode<VerbClauseStatement>()->Items.push_back(PropertyValue(pContext->ScratchString(), ValueType::Token));
     }
 }
+void VerbClauseAnyItemA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<VerbClauseStatement>()->AnyItem = true;
+    }
+}
 
 
 
@@ -1170,7 +1177,7 @@ void SCISyntaxParser::Load()
         alwaysmatch_p[StartStatementA]
         >> (oppar[SetStatementA<VerbClauseStatement>]
         >> (alphanumNK_p[{VerbClauseVerbA, ParseAutoCompleteContext::DefineValue}] % comma[GeneralE]) // comma separated verbs - must have at least one verb though.
-        >> -(keyword_p("->") >> (alphanumNK_p[{VerbClauseItemA, ParseAutoCompleteContext::DefineValue}] % comma[GeneralE])) // optional items after ->
+        >> -(keyword_p("->") >> ((alphanumNK_p[{VerbClauseItemA, ParseAutoCompleteContext::DefineValue}] % comma[GeneralE]) | char_p("*")[VerbClauseAnyItemA])) // optional items after ->
         >> *statement[AddStatementA<VerbClauseStatement>] // then code
         >> clpar[GeneralE])[FinishStatementA];
 
@@ -1325,6 +1332,15 @@ unique_ptr<CaseStatement> _MakeVerbHandlerElse()
 const std::string IsOneOfCall = "IsOneOf";
 const std::string NoItem = "nNothing";
 
+unique_ptr<SyntaxNode> _MakeVerbOrNounComparisonNotEqual(const string &itemOrVerb, const string &value)
+{
+    // e.g. (!= item nNothing)
+    unique_ptr<BinaryOp> equalStatement = make_unique<BinaryOp>(BinaryOperator::NotEqual);
+    equalStatement->SetStatement1(make_unique<PropertyValue>(itemOrVerb, ValueType::Token));
+    equalStatement->SetStatement2(make_unique<PropertyValue>(value, ValueType::Token));
+    return unique_ptr<SyntaxNode>(move(equalStatement));
+}
+
 unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const PropertyValueVector &values)
 {
     if (values.size() > 1)
@@ -1385,7 +1401,11 @@ void _ProcessVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbH
         // put them in an and
         unique_ptr<BinaryOp> andStatement = make_unique<BinaryOp>(BinaryOperator::LogicalAnd);
         andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs));
-        if (verbClause.Items.empty())
+        if (verbClause.AnyItem)
+        {
+            andStatement->SetStatement2(_MakeVerbOrNounComparisonNotEqual("item", NoItem));
+        }
+        else if (verbClause.Items.empty())
         {
             andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing));
         }
