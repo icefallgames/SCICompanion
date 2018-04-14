@@ -1329,6 +1329,21 @@ unique_ptr<CaseStatement> _MakeVerbHandlerElse()
     return theCase;
 }
 
+unique_ptr<SendCall> _MakeSuperCallTo(const std::string &selectorName, const std::string &paramName)
+{
+    // (super _isNearVerb:  &rest)
+    unique_ptr<SendCall> theSend = make_unique<SendCall>();
+    theSend->SetName("super");
+
+    // Create the send param to add to the send call
+    unique_ptr<SendParam> param = std::make_unique<SendParam>();
+    param->SetName(selectorName);
+    param->SetIsMethod(true);
+    param->AddStatement(make_unique<PropertyValue>(paramName, ValueType::Token));
+    theSend->AddSendParam(move(param));
+    return theSend;
+}
+
 const std::string IsOneOfCall = "IsOneOf";
 const std::string NoItem = "nNothing";
 
@@ -1433,18 +1448,24 @@ void _ProcessVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbH
     // (method (_isNearVerb verb)
     //  (return (IsOneOf verb blah blahb blabh blah))
     //
+
+    //_MakeSuperCallTo
+    std::string methodName = verbHandler.GetNear() ? "_isNearVerb" : "_isFarVerb";
     unique_ptr<MethodDefinition> isXXXVerbMethod = make_unique<MethodDefinition>();
-    isXXXVerbMethod->SetName(verbHandler.GetNear() ? "_isNearVerb" : "_isFarVerb");
+    isXXXVerbMethod->SetName(methodName);
     isXXXVerbMethod->SetOwnerClass(&theClass);
     isXXXVerbMethod->AddSignature(_CreateIsVerbHandlerSignature());
     unique_ptr<ReturnStatement> returnStatement = make_unique<ReturnStatement>();
+    unique_ptr<BinaryOp> orStatement = make_unique<BinaryOp>(BinaryOperator::LogicalOr);
     unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(IsOneOfCall);
     procCall->AddStatement(make_unique<PropertyValue>("verb", ValueType::Token));
     for (auto &usedVerb : usedVerbs)
     {
         procCall->AddStatement(make_unique<PropertyValue>(usedVerb, ValueType::Token));
     }
-    returnStatement->SetStatement1(move(procCall));
+    orStatement->SetStatement1(move(procCall));
+    orStatement->SetStatement2(_MakeSuperCallTo(methodName, "verb"));
+    returnStatement->SetStatement1(move(orStatement));
     isXXXVerbMethod->AddStatement(move(returnStatement));
     theClass.AddMethod(move(isXXXVerbMethod));
 }
