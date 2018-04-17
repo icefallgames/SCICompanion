@@ -482,8 +482,8 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_EDIT_SELECT_ALL, OnUpdateSelectAll)
     ON_UPDATE_COMMAND_UI(ID_DITHER, OnUpdateDither)
     ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateDelete)
-    ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateEGAOnly)
-    //ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateIsVGA)
+    //ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateEGAOnly)
+    ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_GREYSCALE, OnUpdateEGAOnly)
     ON_UPDATE_COMMAND_UI(ID_VIEW_EDITPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
@@ -3072,22 +3072,69 @@ void CRasterView::OnFlipVert()
     _CommitSourceData();
 }
 
+
+
 void CRasterView::OnInvert()
 {
     // TODO: Use effect area, instead of all.
     _GrabSourceData();
 
-    for (int i = 0; i < _cWorkingCels; i++)
+    const RasterComponent *raster = _GetRaster();
+    if (raster->Traits.PaletteType != PaletteType::VGA_256)
     {
-        CSize sizeCel = _celData[i].GetCSize();
-        for (int y = 0; y < sizeCel.cy; y++)
+        for (int i = 0; i < _cWorkingCels; i++)
         {
-            uint8_t *pLine = _ViewOffset(i, y);
-            for (int x = 0; x < sizeCel.cx; x++)
+            CSize sizeCel = _celData[i].GetCSize();
+            for (int y = 0; y < sizeCel.cy; y++)
             {
-                assert(pLine[x] <= 0xf);
-                pLine[x] = 0xf - pLine[x];
-                //pLine[x] = (uint8_t)(rand() % 256);
+                uint8_t *pLine = _ViewOffset(i, y);
+                for (int x = 0; x < sizeCel.cx; x++)
+                {
+                    assert(pLine[x] <= 0xf);
+                    pLine[x] = 0xf - pLine[x];
+                    //pLine[x] = (uint8_t)(rand() % 256);
+                }
+            }
+        }
+    }
+    else
+    {
+        // For VGA, we'll do a gradient.
+        CNewRasterResourceDocument *pDoc = GetDoc();
+        const PaletteComponent *paletteComponent = pDoc->GetCurrentPaletteComponent();
+        if (pDoc && paletteComponent)
+        {
+            _color = pDoc->GetViewColor();
+            _alternateColor = pDoc->GetAlternateViewColor();
+            RGBQUAD start = paletteComponent->Colors[_color];
+            RGBQUAD end = paletteComponent->Colors[_alternateColor];
+            for (int i = 0; i < _cWorkingCels; i++)
+            {
+                CSize sizeCel = _celData[i].GetCSize();
+                if (sizeCel.cx > 1)
+                {
+                    for (int x = 0; x < sizeCel.cx; x++)
+                    {
+                        float ef = (float)x / (float)(sizeCel.cx - 1);
+                        float sf = 1.0f - ef;
+                        float r = (float)start.rgbRed * sf + (float)end.rgbRed * ef;
+                        float g = (float)start.rgbGreen * sf + (float)end.rgbGreen * ef;
+                        float b = (float)start.rgbBlue * sf + (float)end.rgbBlue * ef;
+                        RGBQUAD color = start;
+                        color.rgbRed = (uint8_t)(r);
+                        color.rgbGreen = (uint8_t)(g);
+                        color.rgbBlue = (uint8_t)(b);
+                        uint8_t paletteIndex = FindBestPaletteIndex(*paletteComponent, color);
+
+                        for (int y = 0; y < sizeCel.cy; y++)
+                        {
+                            uint8_t *pLine = _ViewOffset(i, y);
+                            assert(pLine[x] <= 0xf);
+                            pLine[x] = paletteIndex;
+                        }
+                    }
+                }
+
             }
         }
     }
