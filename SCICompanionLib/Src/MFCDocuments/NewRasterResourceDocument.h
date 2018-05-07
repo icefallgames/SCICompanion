@@ -119,6 +119,8 @@ public:
 
     void OnCloseDocument() override;
 
+	void PostSuccessfulSave(const ResourceEntity *pResource) override;
+
 private:
     void _OnExportAsImageWorker(CelIndex celIndex);
 

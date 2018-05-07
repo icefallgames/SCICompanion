@@ -794,8 +794,8 @@ BOOL CBitmapToPicDialog::s_ConvertToPic(HWND hwnd, HANDLE hEvent, std::vector<Pi
     commands.push_back(PicCommand::CreateSetPalette(0, palette));
 
     // An array of EGACOLOR arrays, each of which is cColors long
-    EGACOLOR *rgOrderedColorsPerLine[190];
-    int rgNumberOfColorsPerLine[190]; // From 1 to cColors
+    EGACOLOR *rgOrderedColorsPerLine[200];
+    int rgNumberOfColorsPerLine[200]; // From 1 to cColors
     ZeroMemory(rgOrderedColorsPerLine, sizeof(rgOrderedColorsPerLine));
     // Allocate one big blob for all the sub-arrays.  We'll point the members of
     // rgOrderedColorsPerLine in the next for loop.
@@ -913,7 +913,9 @@ BOOL CBitmapToPicDialog::s_ConvertToPic(HWND hwnd, HANDLE hEvent, std::vector<Pi
 
         // Algorithm:
         // 1) Have a number for each line, that represents where we are in the ordered array of colors for that line:
-        int rgCurrentColorPosPerLine[190];
+
+        int rgCurrentColorPosPerLine[200];
+
         ZeroMemory(rgCurrentColorPosPerLine, sizeof(rgCurrentColorPosPerLine));
         // 2) Have a number that indicates, in general, what are we drawing right now.
         int currentColorPosWereDrawing = 0;

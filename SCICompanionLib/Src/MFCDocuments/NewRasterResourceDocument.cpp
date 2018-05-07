@@ -1008,6 +1008,42 @@ void CNewRasterResourceDocument::ExportAsGif()
     }
 }
 
+// Any custom functionality a document requires after a resource is saved.
+void CNewRasterResourceDocument::PostSuccessfulSave(const ResourceEntity *pResource)
+{
+    /*
+    const RasterComponent &raster = GetComponent<RasterComponent>();
+
+    int colorCount;
+    const RGBQUAD *colors;
+    const uint8_t *paletteMapping;
+    if (_currentPaletteComponent)
+    {
+        colorCount = ARRAYSIZE(_currentPaletteComponent->Colors);
+        colors = _currentPaletteComponent->Colors;
+        paletteMapping = _currentPaletteComponent->Mapping;
+    }
+    else
+    {
+        _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
+    }
+
+    // TODO: delete all files that are under view_{0:04d} // TODO: only do this if checkbox enabled.
+    for (int loop = 0; loop < raster.LoopCount(); loop++)
+    {
+        for (int cel = 0; cel < raster.CelCount(loop); cel++)
+        {
+            CResourceMap &map = appState->GetResourceMap();
+            std::string fileSpec = fmt::format("view_{0:04d}_{1:02d}_{2:02d}.gif", pResource->ResourceNumber, loop, cel);
+            std::vector<Cel> cels;
+            cels.push_back(raster.Loops[loop].Cels[cel]); // REVIEW perf making a copy
+            std::string fileName = map.Helper().GameFolder + "\\..\\Assets\\Views\\" + fileSpec;
+            SaveCelsAndPaletteToGIFFile(fileName.c_str(), cels, colorCount, colors, paletteMapping, cels[0].TransparentColor);
+        }
+    }
+    */
+}
+
 void CNewRasterResourceDocument::MakeFont()
 {
     LOGFONT logFontDummy = {};
