@@ -35,6 +35,7 @@
 #include "CustomMessageBox.h"
 #include "OnionSkinSettingsDialog.h"
 #include "RotateArbitraryDialog.h"
+#include "NearestColors.h"
 
 using namespace std;
 
@@ -2899,6 +2900,8 @@ void CRasterView::OnIndicatorPixelColor(CCmdUI *pCmdUI)
             }
 
             StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("Color: %02x (R=%d, G=%d, B=%d)"), color, rgb.rgbRed, rgb.rgbGreen, rgb.rgbBlue);
+
+            g_nearestColorSource = color;
         }
     }
 

@@ -203,7 +203,7 @@ void CChooseColorStatic::_DrawItem(CDC *pDC, int cx, int cy)
 
 
             _DrawIndex(pDC, (BYTE)iPaletteIndex);
-            _DrawSourceIndex(pDC, _pPalette[iPaletteIndex].ToByte());
+            _DrawSourceIndex(pDC, (BYTE)iPaletteIndex, _pPalette[iPaletteIndex].ToByte());
 
             if (_fSelectionNumbers && (!_fShowAuxSel || (_bSelectedColorIndex != _bAuxSelectedColorIndex)))
             {
@@ -509,14 +509,13 @@ void CChooseColorStatic::_DrawIndex(CDC *pDC, BYTE bIndex)
         _DrawTextAtIndex(pDC, bIndex, szBuf);
     }
 }
-void CChooseColorStatic::_DrawSourceIndex(CDC *pDC, BYTE bIndex)
+void CChooseColorStatic::_DrawSourceIndex(CDC *pDC, BYTE positionIndex, BYTE bIndex)
 {
     if (_fShowSourceIndices)
     {
         TCHAR szBuf[3];
-        //StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%02x"), bIndex);
-        StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("XX"), bIndex);
-        _DrawTextAtIndex(pDC, bIndex, szBuf);
+        StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%02x"), bIndex);
+        _DrawTextAtIndex(pDC, positionIndex, szBuf);
     }
 }
 

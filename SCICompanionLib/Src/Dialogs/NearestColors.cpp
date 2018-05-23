@@ -81,6 +81,8 @@ void NearestColorsDialog::_SyncColor()
         _myPaletteRGB[paletteIndex] = g_egaColorsMixed[g_nearestColorSource];
     }
     int index = 0;
+    std::set<COLORREF> used; // Used for de-duping
+
     while (paletteIndex < 16)
     {
         bool added = false;
@@ -88,9 +90,15 @@ void NearestColorsDialog::_SyncColor()
         {
             if (distance[index].distance > 0) 
             {
-                _myPalette[paletteIndex] = EGAColorFromByte((uint8_t)distance[index].index);
-                _myPaletteRGB[paletteIndex] = g_egaColorsMixed[(uint8_t)distance[index].index];
-                added = true;
+                RGBQUAD rgb = g_egaColorsMixed[(uint8_t)distance[index].index];
+                COLORREF cref = _ColorRefFromRGBQuad(rgb);
+                if (!contains(used, cref))
+                {
+                    used.insert(cref);
+                    _myPalette[paletteIndex] = EGAColorFromByte((uint8_t)distance[index].index);
+                    _myPaletteRGB[paletteIndex] = rgb;
+                    added = true;
+                }
             }
             index++;
         }

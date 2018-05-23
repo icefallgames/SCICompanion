@@ -74,7 +74,7 @@ protected:
     void _Draw0x3Colors(CDC *pDC);
     void _DrawUnused(CDC *pDC);
 
-    void _DrawSourceIndex(CDC *pDC, BYTE bIndex);
+    void _DrawSourceIndex(CDC *pDC, BYTE positionIndex, BYTE bIndex);
 
 protected:
     uint16_t _bHoverIndex;
