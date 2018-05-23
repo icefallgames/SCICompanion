@@ -226,6 +226,7 @@ private:
     afx_msg void OnGoBack();
     afx_msg void OnClassBrowser();
     afx_msg void OnManageDecompilation();
+    afx_msg void OnShowNearestColors();
     afx_msg void OnUpdateClassBrowser(CCmdUI *pCmdUI);
     afx_msg void OnRunPlugin(UINT nID);
     afx_msg void OnValidateAllSaids();

@@ -810,6 +810,9 @@
     <ClCompile Include="Src\Compile\ValidateSelectors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\NearestColors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1740,6 +1743,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\ValidateSelectors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\NearestColors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

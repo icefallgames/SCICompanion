@@ -316,6 +316,7 @@
 #define IDI_STAMP                       404
 #define IDD_PICCOMMANDS_EGAPOLY         404
 #define IDD_DIALOGCELVIEW3              405
+#define IDD_DIALOGNEARESTCOLORS         406
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -844,6 +845,7 @@
 #define IDC_CHECKANTIALIAS              1412
 #define IDC_CHECKRENDERUP               1413
 #define IDC_CHECKRENDERUP2              1415
+#define IDC_DITHERCHECK                 1416
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1255,6 +1257,9 @@
 #define ID_VIEW_SHRINKWRAPCEL           33363
 #define ID_SCRIPT_VALIDATESELECTORS     33364
 #define ID_VIEW_IMPORTIMAGESEQASLOOPING 33365
+#define ID_PIC_NEARESTCOLORS            33366
+#define ID_MAIN_SHOWNEARESTCOLORS       33367
+#define ID_VIEW_NEARESTCOLORS           33368
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1263,8 +1268,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        415
-#define _APS_NEXT_COMMAND_VALUE         33366
-#define _APS_NEXT_CONTROL_VALUE         1416
+#define _APS_NEXT_COMMAND_VALUE         33369
+#define _APS_NEXT_CONTROL_VALUE         1417
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -41,6 +41,7 @@
 #include "EditCelDataDialog.h"
 #include "ClipboardUtil.h"
 #include "PicClipsDialog.h"
+#include "NearestColors.h" // for  g_nearestColorSource
 
 const int PicGutter = 5;
 using namespace Gdiplus;
@@ -1642,6 +1643,8 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
                 StringCchPrintf(szText, ARRAYSIZE(szText), "Color: %2x (%x + %x), Idx: %d", bColor, bColor & 0xf, (bColor >> 4), index);
             }
         }
+
+        g_nearestColorSource = bColor;
     }
 
     pCmdUI->SetText(szText);

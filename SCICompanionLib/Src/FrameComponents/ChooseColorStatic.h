@@ -44,6 +44,7 @@ public:
     void SetAuxSelection(BYTE bIndex);
     void SetAutoHandleSelection(bool autoHandle) { _autoHandleSelection = autoHandle; }
     void ShowIndices(BOOL fShowIndices) { _fShowIndices = fShowIndices; }
+    void ShowSourceIndices(bool fShowIndices) { _fShowSourceIndices = fShowIndices; }
     void OnPaletteUpdated();
     void ShowUnused(bool showUnused) { _showUnused = showUnused; }
     void SetShowTransparentIndex(bool showTransparent) { _showTransparent = showTransparent; }
@@ -73,6 +74,8 @@ protected:
     void _Draw0x3Colors(CDC *pDC);
     void _DrawUnused(CDC *pDC);
 
+    void _DrawSourceIndex(CDC *pDC, BYTE bIndex);
+
 protected:
     uint16_t _bHoverIndex;
     int _cRows;
@@ -80,6 +83,7 @@ protected:
     BOOL _fPrintIndex;
     BOOL _fShowSelection;
     BOOL _fShowIndices;
+    bool _fShowSourceIndices;
     BYTE _bSelectedColorIndex;
     BYTE _bAuxSelectedColorIndex;
     BOOL _fSelectionNumbers;

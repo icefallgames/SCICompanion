@@ -44,13 +44,6 @@ BOOL IsValidResourceNumber(int iResourceNum)
 
 typedef struct
 {
-    double h;
-    double s;
-    double l;
-} HSL;
-
-typedef struct
-{
     double r;
     double g;
     double b;

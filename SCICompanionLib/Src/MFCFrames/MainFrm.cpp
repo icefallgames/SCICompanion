@@ -69,6 +69,7 @@
 #include "CompiledScript.h"
 #include <filesystem>
 #include <regex>
+#include "NearestColors.h"
 
 using namespace std::tr2::sys;
 
@@ -389,6 +390,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_FORWARD, OnGoForward)
     ON_COMMAND(ID_CLASSBROWSER, OnClassBrowser)
     ON_COMMAND(ID_SCRIPT_MANAGEDECOMPILATION, OnManageDecompilation)
+    ON_COMMAND(ID_MAIN_SHOWNEARESTCOLORS, OnShowNearestColors)
     ON_UPDATE_COMMAND_UI(ID_CLASSBROWSER, OnUpdateClassBrowser)
     ON_UPDATE_COMMAND_UI(ID_BACK, OnUpdateBackForward)
     ON_UPDATE_COMMAND_UI(ID_FORWARD, OnUpdateBackForward)
@@ -2792,6 +2794,22 @@ void CMainFrame::OnGenerateDocs()
     _docsDialog->ShowWindow(SW_SHOW);
 }
 #endif
+
+BOOL createNearestColorsDialogResult = FALSE;
+NearestColorsDialog nearestColorsDialog;
+
+void CMainFrame::OnShowNearestColors()
+{
+    if (!createNearestColorsDialogResult)
+    {
+        createNearestColorsDialogResult = nearestColorsDialog.Create(NearestColorsDialog::IDD, this);
+    }
+    if (createNearestColorsDialogResult)
+    {
+        nearestColorsDialog.ShowWindow(SW_SHOW);
+    }
+}
+
 
 void CMainFrame::OnManageDecompilation()
 {

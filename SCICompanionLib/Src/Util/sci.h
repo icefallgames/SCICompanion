@@ -239,6 +239,15 @@ COLORREF _ColorRefFromRGBQuad(RGBQUAD color);
 RGBQUAD EgaColorToRGBQuad(EGACOLOR ega);
 extern const int VocabKernelNames;
 
+
+typedef struct
+{
+    double h;
+    double s;
+    double l;
+} HSL;
+extern HSL g_rgColorCombosHSLGamma[256];
+
 EGACOLOR g_egaColorChooserPalette[];
 
 EGACOLOR EGAColorFromByte(BYTE b);
