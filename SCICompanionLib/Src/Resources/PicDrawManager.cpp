@@ -246,6 +246,16 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
     size16 size = _GetPicSize();
     _EnsureBufferPool(size);
     ViewPort state(_bPaletteNumber);
+
+    // Phil, hack for my stuff
+    if (size.cy == 200)
+    {
+        for (uint16_t &priLine : state.bPriorityLines)
+        {
+            priLine += 10;
+        }
+    }
+
     if (pState == nullptr)
     {
         pState = &state;
