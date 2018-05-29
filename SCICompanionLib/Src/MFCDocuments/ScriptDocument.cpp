@@ -248,12 +248,14 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
             {
                 if (GenerateGrammarResource(appState->GetVersion(), *pScript, headers, tables, results, appState->GetResourceMap().Helper().GetGenerateDebugInfo()))
                 {
-                    // For now, save to resource 899? So we don't overwrite and we can compare.
                     std::vector<BYTE> &output = results.GetScriptResource();
                     const GameFolderHelper &helper = appState->GetResourceMap().Helper();
-                    uint16_t resourceNumber = 899;
+                    // vocab resource is 900 or 901, depending on where vocab000 is.
+                    uint16_t resourceNumber = (appState->GetVersion().MainVocabResource == 900) ? 901 : 900;
                     appState->GetResourceMap().AppendResource(ResourceBlob(helper, nullptr, ResourceType::Vocab, output, helper.Version.DefaultVolumeFile, resourceNumber, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
-
+                    log.ReportResult(
+                        CompileResult(fmt::format("Wrote vocab grammar resource {0}", resourceNumber),
+                            CompileResult::CompileResultType::CRT_Message));
                     fRet = true;
                 }
             }
