@@ -100,6 +100,7 @@ private:
     afx_msg void OnViewSyntaxTree();
     afx_msg void OnConvertScript();
     afx_msg void OnUpdateIsScript(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateCanCompile(CCmdUI *pCmdUI);
     afx_msg void OnUpdateConvertScript(CCmdUI *pCmdUI);
     afx_msg void OnUpdateLineCount(CCmdUI *pCmdUI);
 

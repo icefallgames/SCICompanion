@@ -69,6 +69,9 @@ namespace sci
         NodeTypeRestore,
         NodeTypeExit,
         NodeTypeVerbClause,
-        NodeTypeVerbHandler
+        NodeTypeVerbHandler,
+
+        NodeTypeGrammarRule,
+        NodeTypeGrammarPart
     };
 }

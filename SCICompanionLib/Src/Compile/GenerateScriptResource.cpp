@@ -1250,9 +1250,13 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
 {
     // Load the include files
     context.LoadIncludes();
-    // Set the script number now (might have relied on defines)
-    context.SetScriptNumber();
-    results.SetScriptNumber(context.GetScriptNumber());
+
+    if (!script.GetScriptId().IsGrammarFile()) // yikes
+    {
+        // Set the script number now (might have relied on defines)
+        context.SetScriptNumber();
+        results.SetScriptNumber(context.GetScriptNumber());
+    }
 
     // Do this before prescan?
     {
@@ -1631,4 +1635,66 @@ bool GenerateScriptResource(SCIVersion version, sci::Script &script, Precompiled
     {
         return GenerateScriptResource_SCI0(script, headers, tables, results, generateDebugInfo);
     }
+}
+
+
+void PushGrammarWord(vector<BYTE> &output, const PropertyValue &value, CompileContext &context)
+{
+    if (value.GetType() == ValueType::Number)
+    {
+        push_word(output, value.GetNumberValue());
+    }
+    else
+    {
+        push_word(output, 0);
+        context.ReportError(&value, "%s is not a valid token for a grammar rule. Must resolve to integer.", value.GetStringValue().c_str());
+    }
+}
+
+bool GenerateGrammarResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)
+{
+    vector<BYTE> &output = results.GetScriptResource();
+    // Create our "CompileContext", which holds state during the compilation.
+    CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog(), generateDebugInfo);
+    // This should resolve defines.
+    CommonScriptPrep(script, context, results);
+
+    // Rows of 10.
+    // Rule, 4 * (a,b), NULL
+    for (const auto &rule : script.GrammarRules)
+    {
+        PushGrammarWord(output, rule->Rule, context);
+
+        int index = 0;
+        for (const auto &statement : rule->GetStatements())
+        {
+            if (index >= 4)
+            {
+                context.ReportError(statement.get(), "Too many grammar rule parts.");
+            }
+
+            GrammarPart *part = SafeSyntaxNode<GrammarPart>(statement.get());
+            // If it's null, it's an internal error...
+            PushGrammarWord(output, part->A, context);
+            PushGrammarWord(output, part->B, context);
+            index++;
+        }
+
+        for (int i = index; i < 4; i++)
+        {
+            // Fill in the rest with null
+            push_word(output, 0);
+            push_word(output, 0);
+        }
+
+        push_word(output, 0);
+    }
+
+    // Final one:
+    for (int i = 0; i < 10; i++)
+    {
+        push_word(output, 0);
+    }
+
+    return !context.HasErrors();
 }

@@ -1924,6 +1924,14 @@ public:
     {
         out.out << "VerbHandlerDefinition";
     }
+    void Visit(const GrammarPart &vc)
+    {
+        out.out << "GrammarPart";
+    }
+    void Visit(const GrammarRule &vc)
+    {
+        out.out << "GrammarRule";
+    }
 
     // Measure the size of code output in a first pass, so we can better
 

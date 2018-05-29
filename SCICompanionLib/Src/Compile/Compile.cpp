@@ -3667,6 +3667,8 @@ void Script::PreScan(CompileContext &context)
     ForwardPreScan2(Selectors, context);
     ForwardPreScan2(ClassDefs, context);
 
+    ForwardPreScan2(GrammarRules, context);
+
     std::set<int> slots;
     for (auto &theExport : _exports)
     {
@@ -3845,6 +3847,20 @@ CodeResult WeakSyntaxNode::OutputByteCode(CompileContext &context) const
 {
     if (WeakNode) { return WeakNode->OutputByteCode(context); }
     return 0;
+}
+
+CodeResult GrammarRule::OutputByteCode(CompileContext &context) const { return 0; }
+CodeResult GrammarPart::OutputByteCode(CompileContext &context) const { return 0; }
+
+void GrammarRule::PreScan(CompileContext &context)
+{
+    Rule.PreScan(context);
+    ForwardPreScan2(_segments, context);
+}
+void GrammarPart::PreScan(CompileContext &context)
+{
+    A.PreScan(context);
+    B.PreScan(context);
 }
 
 // Converts a flat list of statements and andOrs into a tree of binary operations.

@@ -736,6 +736,11 @@ bool ScriptId::IsHeader() const
         //(strcmp(TEXT(".shp"), pszExt) == 0);
 }
 
+bool ScriptId::IsGrammarFile() const
+{
+    return (lstrcmpi(TEXT("grammar.txt"), _strFileName.c_str()) == 0);
+}
+
 void ScriptId::_Init(PCTSTR pszFullFileName, WORD wScriptNum)
 {
     _wScriptNum = wScriptNum;

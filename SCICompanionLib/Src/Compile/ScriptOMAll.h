@@ -759,6 +759,48 @@ namespace sci
         uint16_t Index;
     };
 
+    class GrammarPart : public SyntaxNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeGrammarPart)
+    public:
+        GrammarPart() {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en) {}
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        PropertyValue A;
+        PropertyValue B;
+
+    private:
+        GrammarPart(const GrammarPart &src) = delete;
+        GrammarPart& operator=(const GrammarPart& src) = delete;
+    };
+
+    // Its statements are GrammarParts.
+    class GrammarRule : public SyntaxNode, public StatementsNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeGrammarRule)
+    public:
+        GrammarRule() {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en) {}
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        PropertyValue Rule;
+
+    private:
+        GrammarRule(const GrammarRule &src) = delete;
+        GrammarRule& operator=(const GrammarRule& src) = delete;
+    };
+
 }; //namespace sci
 
 void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector<bool> andOrs);

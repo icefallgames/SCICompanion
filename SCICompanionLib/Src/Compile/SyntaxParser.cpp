@@ -82,6 +82,10 @@ bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::
         {
             fRet = g_sci.ParseHeader(script, stream.begin(), preProcessorDefines, pLog, fParseComments);
         }
+        else if (script.IsGrammarFile())
+        {
+            fRet = g_sci.ParseGrammarFile(script, stream.begin(), preProcessorDefines, pLog, fParseComments);
+        }
         else
         {
             if (pContext)

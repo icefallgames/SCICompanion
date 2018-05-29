@@ -151,6 +151,8 @@ namespace sci
     class ExternDeclaration;
     class VerbHandlerDefinition;
     class VerbClauseStatement;
+    class GrammarPart;
+    class GrammarRule;
 
     class ISyntaxNodeVisitor
     {
@@ -203,6 +205,8 @@ namespace sci
         virtual void Visit(const ExternDeclaration &externDecl) = 0;
         virtual void Visit(const VerbHandlerDefinition &globalDecl) = 0;
         virtual void Visit(const VerbClauseStatement &externDecl) = 0;
+        virtual void Visit(const GrammarPart &globalDecl) = 0;
+        virtual void Visit(const GrammarRule &externDecl) = 0;
 
         virtual void Enter(const SyntaxNode &node) = 0;
         virtual void Leave(const SyntaxNode &node) = 0;
@@ -1205,6 +1209,7 @@ namespace sci
         void SetScriptId(ScriptId scriptId) { _scriptId = scriptId; }
         LangSyntax Language() const { return _scriptId.Language(); }
         bool IsHeader() const { return _scriptId.IsHeader(); }
+        bool IsGrammarFile() const { return _scriptId.IsGrammarFile(); }
 
         void OutputSourceCode(SourceCodeWriter &out) const;
 
@@ -1218,6 +1223,8 @@ namespace sci
         std::vector<std::unique_ptr<SelectorDeclaration>> Selectors;    // selector file
         std::vector<std::unique_ptr<ClassDefDeclaration>> ClassDefs;    // classdef file
         std::vector<std::string> ProcedureForwards;
+
+        std::vector<std::unique_ptr<GrammarRule>> GrammarRules;         // For grammar files.
 
     private:
         void _PreScanStringDeclaration(CompileContext &context, VariableDecl &stringDecl);

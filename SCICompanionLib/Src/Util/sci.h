@@ -458,6 +458,7 @@ public:
     // Is this a header, or a script file?
     bool IsHeader() const;
     LangSyntax Language() const;
+    bool IsGrammarFile() const;
 
     friend bool operator<(const ScriptId& script1, const ScriptId& script2);
 

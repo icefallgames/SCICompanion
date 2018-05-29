@@ -366,6 +366,8 @@ void QuickScriptsSidePane::_UpdateEntries()
 
     // Then the headers in the src directory.
     _AddFilesOfType(iItem, TEXT("\\*.sh"));
+    // And a grammar file
+    _AddFilesOfType(iItem, TEXT("\\grammar.txt"));
     _nFirstScript = iItem;
 
     std::vector<ScriptId> scripts;
