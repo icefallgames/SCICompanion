@@ -464,23 +464,30 @@ namespace sci
         VerbClauseStatement& operator=(const VerbClauseStatement& src) = delete;
     };
 
+    enum class VerbUsage
+    {
+        Far,
+        Near,
+        Inv,
+    };
+
     class VerbHandlerDefinition : public FunctionBase
     {
         DECLARE_NODE_TYPE(NodeTypeVerbHandler)
     public:
-        VerbHandlerDefinition() : _fNear(false) {}
+        VerbHandlerDefinition() : _verbUsage(VerbUsage::Far) {}
         VerbHandlerDefinition(VerbHandlerDefinition &src) = delete;
         VerbHandlerDefinition& operator=(VerbHandlerDefinition& src) = delete;
 
-        void SetNear(bool f) { _fNear = f; }
-        bool GetNear() const { return _fNear; }
+        void SetVerbUsage(VerbUsage f) { _verbUsage = f; }
+        VerbUsage GetVerbUsage() const { return _verbUsage; }
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
         void OutputSourceCode(SourceCodeWriter &out) const {}
 
     private:
-        bool _fNear;
+        VerbUsage _verbUsage;
     };
 
     //

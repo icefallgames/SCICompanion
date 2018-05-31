@@ -152,6 +152,7 @@ vector<string> SCIKeywords =
 
     "nearVerbs",
     "farVerbs",
+    "invVerbs",
 };
 
 template<typename _It, typename _TContext>
@@ -393,14 +394,14 @@ void SetCaseA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pCont
 
 
 
-template<bool isNear>
+template<VerbUsage verbUsage>
 void CreateVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
         pContext->CreateVerbHandler();
         pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
-        static_cast<VerbHandlerDefinition*>(pContext->FunctionPtr.get())->SetNear(isNear);
+        static_cast<VerbHandlerDefinition*>(pContext->FunctionPtr.get())->SetVerbUsage(verbUsage);
     }
 }
 void FinishVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -1212,8 +1213,9 @@ void SCISyntaxParser::Load()
     // here - first just get nearVerbs working, then do an OR for the thing
     verb_handler_decl =
         (
-            keyword_p("nearVerbs")[{CreateVerbHandlerA<true>, ParseAutoCompleteContext::ClassLevelKeyword}] |
-            keyword_p("farVerbs")[{CreateVerbHandlerA<false>, ParseAutoCompleteContext::ClassLevelKeyword}]
+            keyword_p("nearVerbs")[{CreateVerbHandlerA<VerbUsage::Near>, ParseAutoCompleteContext::ClassLevelKeyword}] |
+            keyword_p("farVerbs")[{CreateVerbHandlerA<VerbUsage::Far>, ParseAutoCompleteContext::ClassLevelKeyword}] |
+            keyword_p("invVerbs")[{CreateVerbHandlerA<VerbUsage::Inv>, ParseAutoCompleteContext::ClassLevelKeyword}]
         )
         // >> // Todo, allow for temp vars I guess. Not sure how though.
         >> *verb_clause[FunctionStatementA];
@@ -1425,12 +1427,71 @@ unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const
     }
 }
 
+void _ProcessInventoryVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbHandler)
+{
+    PropertyValueVector nothing;
+    nothing.push_back(PropertyValue(NoItem, ValueType::Token));
+
+    // Make a doVerb method with params verb and item.
+    unique_ptr<MethodDefinition> invDoVerbMethod = make_unique<MethodDefinition>();
+    invDoVerbMethod->SetName("invDoVerb");
+    invDoVerbMethod->SetOwnerClass(&theClass);
+    invDoVerbMethod->AddSignature(_CreateVerbHandlerSignature());
+
+    // Now create a cond
+    unique_ptr<CondStatement> cond = make_unique<CondStatement>();
+
+    for (auto &statement : verbHandler.GetStatements())
+    {
+        assert(statement->GetNodeType() == NodeTypeVerbClause);
+        VerbClauseStatement &verbClause = static_cast<VerbClauseStatement&>(*statement);
+        unique_ptr<CaseStatement> theCase = make_unique<CaseStatement>();
+
+        // put them in an and
+        unique_ptr<BinaryOp> andStatement = make_unique<BinaryOp>(BinaryOperator::LogicalAnd);
+        andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs));
+        if (verbClause.AnyItem)
+        {
+            andStatement->SetStatement2(_MakeVerbOrNounComparisonNotEqual("item", NoItem));
+        }
+        else if (verbClause.Items.empty())
+        {
+            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing));
+        }
+        else
+        {
+            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", verbClause.Items));
+        }
+        theCase->SetStatement1(move(andStatement));
+
+        // Give all the code to the case statement
+        swap(theCase->GetStatements(), verbClause.GetStatements());
+
+        // Now add a "return true" (for handled)
+        unique_ptr<ReturnStatement> retValue = make_unique<ReturnStatement>();
+        retValue->SetStatement1(make_unique<PropertyValue>(1));
+        theCase->AddStatement(move(retValue));
+
+        cond->AddCase(move(theCase));
+    }
+
+    invDoVerbMethod->AddStatement(move(cond));
+
+    // Finally, a return false (for unhandled)
+    unique_ptr<ReturnStatement> retValue = make_unique<ReturnStatement>();
+    retValue->SetStatement1(make_unique<PropertyValue>(0));
+    invDoVerbMethod->AddStatement(move(retValue));
+
+    theClass.AddMethod(move(invDoVerbMethod));
+}
+
 void _ProcessVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbHandler, CondStatement **pCondWeak)
 {
     unordered_set<string> usedVerbs;
 
     PropertyValueVector nothing;
     nothing.push_back(PropertyValue(NoItem, ValueType::Token));
+
 
     // Make a doVerb method with params verb and item - but only do this once.
     unique_ptr<MethodDefinition> doVerbMethod;
@@ -1496,7 +1557,17 @@ void _ProcessVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbH
     //
 
     //_MakeSuperCallTo
-    std::string methodName = verbHandler.GetNear() ? "_isNearVerb" : "_isFarVerb";
+    std::string methodName = "INTERNAL_ERROR";
+    switch (verbHandler.GetVerbUsage())
+    {
+        case VerbUsage::Far:
+            methodName = "_isFarVerb";
+            break;
+        case VerbUsage::Near:
+            methodName = "_isNearVerb";
+            break;
+        // Not needed for inventory stuff.
+    }
     unique_ptr<MethodDefinition> isXXXVerbMethod = make_unique<MethodDefinition>();
     isXXXVerbMethod->SetName(methodName);
     isXXXVerbMethod->SetOwnerClass(&theClass);
@@ -1521,7 +1592,14 @@ void _ProcessClassForVerbHandlers(Script &script, ClassDefinition &theClass)
     CondStatement *pCondWeak = nullptr;
     for (auto &verbHandler : theClass.GetVerbHandlers())
     {
-        _ProcessVerbHandler(theClass, *verbHandler, &pCondWeak);
+        if (verbHandler->GetVerbUsage() == VerbUsage::Inv)
+        {
+            _ProcessInventoryVerbHandler(theClass, *verbHandler);
+        }
+        else
+        {
+            _ProcessVerbHandler(theClass, *verbHandler, &pCondWeak);
+        }
     }
 
     if (pCondWeak)
