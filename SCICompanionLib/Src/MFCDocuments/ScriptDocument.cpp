@@ -265,7 +265,7 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
                 {
                     std::vector<BYTE> &output = results.GetScriptResource();
                     const GameFolderHelper &helper = appState->GetResourceMap().Helper();
-                    uint16_t resourceNumber = 888; // Should be 999, but for testing purpsoes now
+                    uint16_t resourceNumber = 999;
                     appState->GetResourceMap().AppendResource(ResourceBlob(helper, nullptr, ResourceType::Vocab, output, helper.Version.DefaultVolumeFile, resourceNumber, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
                     log.ReportResult(
                         CompileResult(fmt::format("Wrote vocab kernel resource {0}", resourceNumber),
