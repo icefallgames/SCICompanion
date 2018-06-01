@@ -1210,6 +1210,7 @@ namespace sci
         LangSyntax Language() const { return _scriptId.Language(); }
         bool IsHeader() const { return _scriptId.IsHeader(); }
         bool IsGrammarFile() const { return _scriptId.IsGrammarFile(); }
+        bool IsKernelFile() const { return _scriptId.IsKernelFile(); }
 
         void OutputSourceCode(SourceCodeWriter &out) const;
 
@@ -1225,6 +1226,7 @@ namespace sci
         std::vector<std::string> ProcedureForwards;
 
         std::vector<std::unique_ptr<GrammarRule>> GrammarRules;         // For grammar files.
+        std::vector<std::string> KernelNames;                           // For kernel files. What a hack.
 
     private:
         void _PreScanStringDeclaration(CompileContext &context, VariableDecl &stringDecl);

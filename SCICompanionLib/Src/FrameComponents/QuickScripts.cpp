@@ -368,6 +368,7 @@ void QuickScriptsSidePane::_UpdateEntries()
     _AddFilesOfType(iItem, TEXT("\\*.sh"));
     // And a grammar file
     _AddFilesOfType(iItem, TEXT("\\grammar.txt"));
+    _AddFilesOfType(iItem, TEXT("\\kernel.txt"));
     _nFirstScript = iItem;
 
     std::vector<ScriptId> scripts;

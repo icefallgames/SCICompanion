@@ -64,7 +64,7 @@ void DependencyTracker::ProcessScript(sci::Script &script)
 void DependencyTracker::NotifyScriptFileChanged(const ScriptId &scriptId)
 {
     std::string key;
-    if (scriptId.IsHeader() || scriptId.IsGrammarFile())
+    if (scriptId.IsHeader() || scriptId.IsGrammarFile() || scriptId.IsKernelFile())
     {
         key = scriptId.GetFileName();
     }

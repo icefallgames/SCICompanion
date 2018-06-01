@@ -1251,7 +1251,7 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
     // Load the include files
     context.LoadIncludes();
 
-    if (!script.GetScriptId().IsGrammarFile()) // yikes
+    if (!script.GetScriptId().IsGrammarFile() && !script.GetScriptId().IsKernelFile()) // yikes
     {
         // Set the script number now (might have relied on defines)
         context.SetScriptNumber();
@@ -1694,6 +1694,40 @@ bool GenerateGrammarResource(SCIVersion version, sci::Script &script, Precompile
     for (int i = 0; i < 10; i++)
     {
         push_word(output, 0);
+    }
+
+    return !context.HasErrors();
+}
+
+
+bool GenerateKernelResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)
+{
+    vector<BYTE> &output = results.GetScriptResource();
+    // Create our "CompileContext", which holds state during the compilation.
+    CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog(), generateDebugInfo);
+
+    // This should resolve defines.
+    // No defines allowed in kernel files.
+    // CommonScriptPrep(script, context, results);
+
+    // Strings are run-length encoded, and there is an index with offsets at the front of the file.
+    uint16_t cItems = (uint16_t)script.KernelNames.size();
+    push_word(output, cItems);
+    // Then come the offsets - we can run through the strings to calculate these.
+    uint16_t wOffset = (uint16_t)output.size() + cItems * 2; // the strings will start after the offsets.
+
+    // The offset table
+    int index = 0;
+    for (const auto &kernelName : script.KernelNames)
+    {
+        push_word(output, wOffset);
+        wOffset += (uint16_t)(kernelName.length() + 2); // Increase by size of rle string.
+    }
+
+    // Now the strings
+    for (const auto &kernelName : script.KernelNames)
+    {
+        push_string_rle(output, kernelName);
     }
 
     return !context.HasErrors();

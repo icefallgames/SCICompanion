@@ -20,6 +20,7 @@ public:
     bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, SyntaxContext &context);
     bool ParseHeader(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool collectComments);
     bool ParseGrammarFile(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool collectComments);
+    bool ParseKernelFile(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool collectComments);
 
     void Load();
 
@@ -139,6 +140,9 @@ private:
     ParserSCI entire_grammar_file;
     ParserSCI grammar_rule;
     ParserSCI grammar_part;
+
+    // Kernel
+    ParserSCI entire_kernel_file;
 
     // Utility
     static ParserSCI char_p(const char *psz);

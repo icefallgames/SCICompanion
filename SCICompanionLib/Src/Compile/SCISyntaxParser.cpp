@@ -807,6 +807,19 @@ void FinishGrammarRuleA(MatchResult &match, const ParserSCI *pParser, SyntaxCont
         pContext->FinishStatement(false);
     }
 }
+void AddKernelNameA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->Script().KernelNames.push_back(pContext->ScratchString());
+    }
+    else
+    {
+        pContext->ReportError("Expected quoted string.", stream);
+    }
+}
+
+
 
 
 SCISyntaxParser::SCISyntaxParser() :
@@ -1353,6 +1366,12 @@ void SCISyntaxParser::Load()
             define[FinishDefineA]
             | grammar_rule)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
         >> clpar[GeneralE]);
+
+
+    entire_kernel_file = *
+        (oppar[GeneralE] >> quotedstring_p[AddKernelNameA] >> clpar[GeneralE]
+            );
+
 }
 
 unique_ptr<CaseStatement> _MakeVerbHandlerElse()
@@ -1873,6 +1892,24 @@ bool SCISyntaxParser::ParseGrammarFile(Script &script, streamIt &stream, std::un
 {
     SyntaxContext context(stream, script, preProcessorDefines, false, collectComments);
     bool fRet = entire_grammar_file.Match(&context, stream).Result() && (*stream == 0);
+    if (!fRet)
+    {
+        std::string strError = context.GetErrorText();
+        streamIt errorPos = context.GetErrorPosition();
+        ScriptId scriptId(script.GetPath().c_str());
+        if (pError)
+        {
+            pError->ReportResult(CompileResult(strError, scriptId, errorPos.GetLineNumber() + 1, errorPos.GetColumnNumber(), CompileResult::CRT_Error));
+        }
+    }
+    return fRet;
+}
+
+
+bool SCISyntaxParser::ParseKernelFile(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool collectComments)
+{
+    SyntaxContext context(stream, script, preProcessorDefines, false, collectComments);
+    bool fRet = entire_kernel_file.Match(&context, stream).Result() && (*stream == 0);
     if (!fRet)
     {
         std::string strError = context.GetErrorText();

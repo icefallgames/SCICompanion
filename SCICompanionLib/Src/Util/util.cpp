@@ -741,6 +741,17 @@ bool ScriptId::IsGrammarFile() const
     return (lstrcmpi(TEXT("grammar.txt"), _strFileName.c_str()) == 0);
 }
 
+bool ScriptId::IsKernelFile() const
+{
+    return (lstrcmpi(TEXT("kernel.txt"), _strFileName.c_str()) == 0);
+}
+
+bool ScriptId::IsCodeFile() const
+{
+    PCSTR pszExt = PathFindExtension(_strFileName.c_str());
+    return (strcmp(TEXT(".sc"), pszExt) == 0);
+}
+
 void ScriptId::_Init(PCTSTR pszFullFileName, WORD wScriptNum)
 {
     _wScriptNum = wScriptNum;

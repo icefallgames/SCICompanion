@@ -459,6 +459,8 @@ public:
     bool IsHeader() const;
     LangSyntax Language() const;
     bool IsGrammarFile() const;
+    bool IsKernelFile() const;
+    bool IsCodeFile() const;
 
     friend bool operator<(const ScriptId& script1, const ScriptId& script2);
 

@@ -119,7 +119,7 @@ CCrystalTextBuffer *CScriptDocument::GetTextBuffer()
 
 void CScriptDocument::OnUpdateIsScript(CCmdUI *pCmdUI)
 {
-    pCmdUI->Enable(!_scriptId.IsHeader() && !_scriptId.IsGrammarFile());
+    pCmdUI->Enable(_scriptId.IsCodeFile());
 }
 
 
@@ -255,6 +255,20 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
                     appState->GetResourceMap().AppendResource(ResourceBlob(helper, nullptr, ResourceType::Vocab, output, helper.Version.DefaultVolumeFile, resourceNumber, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
                     log.ReportResult(
                         CompileResult(fmt::format("Wrote vocab grammar resource {0}", resourceNumber),
+                            CompileResult::CompileResultType::CRT_Message));
+                    fRet = true;
+                }
+            }
+            else if (script.IsKernelFile())
+            {
+                if (GenerateKernelResource(appState->GetVersion(), *pScript, headers, tables, results, appState->GetResourceMap().Helper().GetGenerateDebugInfo()))
+                {
+                    std::vector<BYTE> &output = results.GetScriptResource();
+                    const GameFolderHelper &helper = appState->GetResourceMap().Helper();
+                    uint16_t resourceNumber = 888; // Should be 999, but for testing purpsoes now
+                    appState->GetResourceMap().AppendResource(ResourceBlob(helper, nullptr, ResourceType::Vocab, output, helper.Version.DefaultVolumeFile, resourceNumber, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
+                    log.ReportResult(
+                        CompileResult(fmt::format("Wrote vocab kernel resource {0}", resourceNumber),
                             CompileResult::CompileResultType::CRT_Message));
                     fRet = true;
                 }
@@ -427,7 +441,7 @@ std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, Gl
 
 void CScriptDocument::OnViewObjectFile()
 {
-    if (!_scriptId.IsHeader() && !_scriptId.IsGrammarFile())
+    if (_scriptId.IsCodeFile())
     {
         // Need the script name.
         string objectFileName = appState->GetResourceMap().Helper().GetScriptObjectFileName(_scriptId.GetTitle());
@@ -455,7 +469,7 @@ void CScriptDocument::OnViewObjectFile()
 }
 void CScriptDocument::OnViewScriptResource()
 {
-    if (!_scriptId.IsHeader() && !_scriptId.IsGrammarFile())
+    if (!_scriptId.IsHeader() && !_scriptId.IsGrammarFile() && !_scriptId.IsKernelFile())
     {
         WORD wScript;
         // Make the compiled script...
