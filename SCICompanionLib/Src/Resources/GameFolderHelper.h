@@ -49,6 +49,7 @@ public:
     std::string GetScriptObjectFileName(const std::string &title) const;
     std::string GetScriptObjectFileName(uint16_t wScript) const;
     std::string GetScriptDebugFileName(uint16_t wScript) const;
+    std::string GetScriptSymbolFileName(uint16_t wScript) const;
     std::string GameFolderHelper::GetSrcFolder(const std::string *prefix = nullptr) const;
     std::string GameFolderHelper::GetMsgFolder(const std::string *prefix = nullptr) const;
     std::string GameFolderHelper::GetPicClipsFolder() const;

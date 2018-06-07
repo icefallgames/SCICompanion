@@ -513,6 +513,7 @@ public:
     std::vector<uint8_t> &GetScriptResource() { return _outputScr; }
     std::vector<uint8_t> &GetHeapResource() { return _outputHep; }
     std::vector<uint8_t> &GetDebugInfo() { return _outputDebug; }
+    std::vector<uint8_t> &GetSymbolInfo() { return _outputSymbol; }
     CSCOFile &GetSCO() { return _sco; }
     WORD GetScriptNumber() const { return _wScriptNumber; }
     void SetScriptNumber(WORD wNum) { _wScriptNumber = wNum; }
@@ -526,6 +527,7 @@ private:
     std::vector<uint8_t> _outputScr;
     std::vector<uint8_t> _outputHep;
     std::vector<uint8_t> _outputDebug;
+    std::vector<uint8_t> _outputSymbol;
     WORD _wScriptNumber;
     CSCOFile _sco;
     ICompileLog &_log;

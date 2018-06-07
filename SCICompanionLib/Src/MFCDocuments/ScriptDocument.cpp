@@ -331,6 +331,16 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
                         scdFile.write((const char *)&results.GetDebugInfo()[0], (std::streamsize)results.GetDebugInfo().size());
                         scdFile.close();
                     }
+                    if (!results.GetSymbolInfo().empty())
+                    {
+                        // Save debug information.
+                        std::string scdFileName = helper.GetScriptSymbolFileName(script.GetResourceNumber());
+                        ofstream symFile(scdFileName.c_str(), ios::out | ios::binary);
+                        // REVIEW: yucky
+                        symFile.write((const char *)&results.GetSymbolInfo()[0], (std::streamsize)results.GetSymbolInfo().size());
+                        symFile.close();
+                    }
+
                     fRet = true;
                 }
             }
