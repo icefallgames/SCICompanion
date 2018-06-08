@@ -331,6 +331,7 @@ public:
     std::vector<call_pair> &GetCalls();
     std::vector<code_pos> &GetExports();
     std::vector<WORD> &GetPublicInstanceOffsets();
+    const std::map<std::string, code_pos> &GetProcs() const;
     void SetScriptNumber();
     WORD EnsureSpeciesTableEntry(WORD wIndexInScript);
     void LoadIncludes();

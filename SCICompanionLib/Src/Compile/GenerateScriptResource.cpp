@@ -575,6 +575,16 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
     context.code().write_code(context, output, context.GenerateDebugInfo ? &results.GetDebugInfo() : nullptr);
     zero_pad(output, fRoundUp);
 
+    if (context.GenerateDebugInfo)
+    {
+        push_word(results.GetSymbolInfo(), (uint16_t)context.GetProcs().size());
+        for (auto &nameAndPos : context.GetProcs())
+        {
+            push_string_nt(results.GetSymbolInfo(), nameAndPos.first);
+            push_word(results.GetSymbolInfo(), context.code().offset_of(nameAndPos.second) + wStartOfCode);
+        }
+    }
+
     uint16_t after = (uint16_t)output.size();
     if ((after - wStartOfCode) != codeSizeBase)
     {

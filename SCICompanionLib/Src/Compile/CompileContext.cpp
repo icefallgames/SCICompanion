@@ -1040,6 +1040,7 @@ bool CompileContext::ScanObjectMethod(const std::string &objectName, const std::
 vector<call_pair> &CompileContext::GetCalls() { return _calls; }
 vector<code_pos> &CompileContext::GetExports() { return _exports; }
 vector<WORD> &CompileContext::GetPublicInstanceOffsets() { return _publicInstances; }
+const std::map<std::string, code_pos> &CompileContext::GetProcs() const { return _localProcs; }
 
 void CompileResults::SetAutoTextNumber(uint16_t autoTextNumber)
 {
