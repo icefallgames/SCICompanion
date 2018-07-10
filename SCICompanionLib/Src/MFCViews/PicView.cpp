@@ -42,6 +42,7 @@
 #include "ClipboardUtil.h"
 #include "PicClipsDialog.h"
 #include "NearestColors.h" // for  g_nearestColorSource
+#include "Polygon.h"
 
 const int PicGutter = 5;
 using namespace Gdiplus;
@@ -755,10 +756,42 @@ void CPicView::ChangeDimensions()
         if ((IDOK == dialog.DoModal()) && (dialog.GetSize() != pic->Size))
         {
             size16 newSize = dialog.GetSize();
-            GetDocument()->ApplyChanges<PicComponent>(
-                [newSize](PicComponent &pic)
+            GetDocument()->ApplyChanges<PicComponent, PolygonComponent>(
+                [newSize](PicComponent &pic, PolygonComponent &poly)
             {
+                size16 oldSize = pic.Size;
+                int moveDown = newSize.cy - pic.Size.cy;
+
                 pic.Size = newSize;
+
+                if (moveDown > 0)
+                {
+                    // We need to move all the pic down.
+                    // Adjust the commands:
+                    PICCOMMAND_ADJUST adjust = { 0 };
+                    adjust.rcBounds.top = 0;
+                    adjust.rcBounds.left = 0;
+                    adjust.rcBounds.right = oldSize.cx;
+                    adjust.rcBounds.bottom = oldSize.cy;
+                    adjust.rcNew.top = moveDown;
+                    adjust.rcNew.left = 0;
+                    adjust.rcNew.right = oldSize.cx;
+                    adjust.rcNew.bottom = oldSize.cy + moveDown;
+
+                    PastedCommands_Adjust(newSize, pic.commands, &adjust);
+                }
+                // And we also need to move the polygons
+                for (size_t i = 0; i < poly.Polygons().size(); i++)
+                {
+                    SCIPolygon *polygon = poly.GetAt(i);
+                    for (size_t pointIndex = 0; pointIndex < polygon->Points().size(); pointIndex++)
+                    {
+                        point16 point = polygon->Points()[pointIndex];
+                        point.y += moveDown;
+                        polygon->SetPoint(pointIndex, point);
+                    }
+                }
+
                 return WrapHint(PicChangeHint::NewPic);
             }
             );
