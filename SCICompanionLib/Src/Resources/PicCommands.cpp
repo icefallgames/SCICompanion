@@ -425,11 +425,11 @@ bool Coord_Adjust(size16 size, int16_t *px, int16_t *py, const PICCOMMAND_ADJUST
     // Flip.
     if (pAdjust->fHFlip)
     {
-        x = pAdjust->rcBounds.right - (x - pAdjust->rcBounds.left); 
+        x = (pAdjust->rcBounds.right - 1) - (x - pAdjust->rcBounds.left); 
     }
     if (pAdjust->fVFlip)
     {
-        y = pAdjust->rcBounds.bottom - (y - pAdjust->rcBounds.top); 
+        y = (pAdjust->rcBounds.bottom - 1) - (y - pAdjust->rcBounds.top); 
     }
 
     int dx = x - pAdjust->rcBounds.left;
