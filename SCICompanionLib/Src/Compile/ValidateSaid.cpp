@@ -25,16 +25,6 @@
 using namespace sci;
 using namespace std;
 
-void FindAllSaidTokens(CompiledScript &script, std::set<uint16_t> &tokens)
-{
-    for (const auto &sequence : script.GetSaids())
-    {
-        std::copy_if(sequence.begin(), sequence.end(), std::inserter(tokens, tokens.begin()),
-            [](uint16_t token) { return ((token < 0x00f0) || (token > 0x00f9)); } // Copy in words, not specific tokens
-            );
-    }
-}
-
 CompileResult ProduceError(const Vocab000 &vocab000, int scriptNumber, uint16_t wordGroup, uint16_t mainWordGroup, const std::string &message)
 {
     return CompileResult(fmt::format("Script {0}: '{1}' is a synonym {2} and will be converted to '{3}' when evaluated.", scriptNumber, vocab000.GetGroupWordString(wordGroup), message, vocab000.GetGroupWordString(mainWordGroup)), CompileResult::CompileResultType::CRT_Error);

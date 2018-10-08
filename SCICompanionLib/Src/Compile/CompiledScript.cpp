@@ -150,7 +150,7 @@ bool CompiledScript::IsStringPointerSCI1_1(uint16_t value) const
     return find(_stringPointerOffsetsSCI1_1.begin(), _stringPointerOffsetsSCI1_1.end(), value) != _stringPointerOffsetsSCI1_1.end();
 }
 
-std::vector<std::vector<uint16_t>> CompiledScript::GetSaids() const
+std::vector<std::vector<tuple<uint16_t, bool>>> CompiledScript::GetSaids() const
 {
     return _saids; // A copy...
 }
@@ -1009,7 +1009,7 @@ bool CompiledScript::_ReadSaids(sci::istream &stream, uint16_t wDataSize)
     {
         // Store the actual position in the stream (this is how other parts of the script refer to it).
         uint16_t wBeginingOfSaid = static_cast<uint16_t>(stream.tellg());
-        vector<uint16_t> saidSequence;
+        vector<tuple<uint16_t, bool>> saidSequence;
         bool fDone = false;
         do
         {
@@ -1024,7 +1024,7 @@ bool CompiledScript::_ReadSaids(sci::istream &stream, uint16_t wDataSize)
                     if (b >= 0xf0)
                     {
                         // It's a operator.
-                        saidSequence.push_back((uint16_t)b);
+                        saidSequence.push_back({ (uint16_t)b, true });
                     }
                     else
                     {
@@ -1034,7 +1034,7 @@ bool CompiledScript::_ReadSaids(sci::istream &stream, uint16_t wDataSize)
                         //fRet = pStream->ReadByte(&b2);
                         if (stream.good())
                         {
-                            saidSequence.push_back((((uint16_t)b) << 8) | b2);
+                            saidSequence.push_back({ (((uint16_t)b) << 8) | b2, false });
                         }
                     }
                 }

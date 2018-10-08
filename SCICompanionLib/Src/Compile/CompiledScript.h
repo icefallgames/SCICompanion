@@ -231,7 +231,7 @@ public:
     bool IsStringPointerSCI1_1(uint16_t) const;
     std::string GetStringOrSaidFromOffset(uint16_t, sci::ValueType &type) const;
 
-    std::vector<std::vector<uint16_t>> GetSaids() const;
+    std::vector<std::vector<std::tuple<uint16_t, bool>>> GetSaids() const;
     std::unordered_map<uint16_t, std::vector<uint16_t>> GetSynonyms() const;
 
     // TODO: Make these have public names
@@ -242,7 +242,7 @@ public:
     std::vector<ScriptSection> _rawScriptSections;
     std::vector<uint16_t> _exportsTO;
     mutable std::vector<std::string> _saidStrings;
-    std::vector<std::vector<uint16_t> > _saids;
+    std::vector<std::vector<std::tuple<uint16_t, bool>> > _saids;
     std::vector<std::string> _strings;
     std::vector<uint16_t> _stringsOffset;
     std::vector<uint16_t> _saidsOffset;

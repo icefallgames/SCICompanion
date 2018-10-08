@@ -88,13 +88,13 @@ std::string _FindPreferredWord(const std::string &words)
     return word;
 }
 
-string SaidSequenceToString(vector<uint16_t> saidSequence, const Vocab000 *pWords)
+string SaidSequenceToString(vector<tuple<uint16_t, bool>> saidSequence, const Vocab000 *pWords)
 {
     string strRet = "";
     for (size_t i = 0; i < saidSequence.size(); i++)
     {
-        uint16_t wOp = saidSequence[i];
-        if ((wOp >= 0x00f0) && (wOp <= 0x00f9))
+        uint16_t wOp = std::get<0>(saidSequence[i]);
+        if (std::get<1>(saidSequence[i])) // It's an operation token
         {
             strRet += SaidArgs[wOp - 0xf0].Character;
         }
