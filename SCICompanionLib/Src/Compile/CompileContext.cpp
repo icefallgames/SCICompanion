@@ -169,7 +169,8 @@ CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHe
         _nextTempToken(TempTokenBase),
         _autoTextNumber(InvalidResourceNumber),
         FunctionBaseForPrescan(nullptr),
-        GenerateDebugInfo(generateDebugInfo)
+        GenerateDebugInfo(generateDebugInfo),
+        modNumSelector(0xffff)
 {
     _pErrorScript = &_script;
     _modifier = VM_None;
@@ -193,6 +194,9 @@ CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHe
 
     // We'll always have an accumulator stack context at the top, so just add it now
     PushOutputContext(OC_Accumulator);
+
+    // Optional...
+    tables.Selectors().ReverseLookup("modNum", modNumSelector);
 }
 
 // CompileContext

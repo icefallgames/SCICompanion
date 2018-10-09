@@ -975,8 +975,9 @@ void GenerateSCOVariables(CompileContext &context, const Script &script)
 // (does not include implicit properties: species, superclass, info, name (except when overridden)
 // Does not check the super class - this is just the (properties) declaration made in script.
 //
-std::vector<species_property> GetOverriddenProperties(CompileContext &context, const ClassPtr pClass)
+std::vector<species_property> GetOverriddenProperties(CompileContext &context, const ClassPtr pClass, bool &hasResourceStringTuple)
 {
+    hasResourceStringTuple = false;
     std::vector<species_property> propRet;
     for (auto &classProperty : pClass->GetProperties())
     {
@@ -1010,8 +1011,31 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
                 case ValueType::Number:
                     wValue = value->GetNumberValue();
                     break;
-                case ValueType::String: // For now, strings are ok in property lists
                 case ValueType::ResourceString: // For now, strings are ok in property lists
+                {
+                    uint16_t autoTextNum;
+                    if (context.IsAutoText(autoTextNum))
+                    {
+                        // Add ourselves as a resource tuple, and get the number.
+                        wValue = context.AddStringResourceTuple(value->GetStringValue());
+                        // push_word(output, autoTextNum);
+                        hasResourceStringTuple = true;
+
+                        // Can't do this for name selector
+                        if (selectorName == "name")
+                        {
+                            context.ReportError(value, "Can't use resource string for name selector: %s.", value->ToString().c_str());
+                        }
+                    }
+                    else
+                    {
+                        // It's just a regular string.
+                        wValue = context.GetTempToken(ValueType::String, value->GetStringValue());
+                        fTrackRelocation = true;
+                    }
+                }
+                    break;
+                case ValueType::String: // For now, strings are ok in property lists
                     wValue = context.GetTempToken(ValueType::String, value->GetStringValue());
                     fTrackRelocation = true;
                     break;
@@ -1078,6 +1102,7 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
 //
 void GenerateSCOObjects(CompileContext &context, const Script &script)
 {
+
     // First, ensure that we have an entry in the species table for each class that is defined.
     // We do it here (instead of sorted, below), because they should appear in the order that
     // they were defined in the script.
@@ -1159,7 +1184,8 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
         // Now get the properties for our super class
         property_vector speciesProps = context.GetSpeciesProperties(classDef->GetSuperClass());
         // And get the properties that we declared
-        property_vector newProps = GetOverriddenProperties(context, classDef.get());
+        bool hasResourceStringTuple;
+        property_vector newProps = GetOverriddenProperties(context, classDef.get(), hasResourceStringTuple);
 
         int nameIndex;
         // But first, provide some of our own overrides.
@@ -1186,6 +1212,8 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
             nameIndex = 3;
         }
 
+        bool classHasModNum = false;
+
         // Replace the species default values, with any that the user specified.
         int iIndex = 0;
         for (species_property &speciesProp : speciesProps)
@@ -1201,9 +1229,27 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
                 fTrackRelocation = overriddenIt->fTrackRelocation;
                 // We overrode it... class property syntax allows specifying a type.
             }
+
+            // This is the modNum property, set it now.
+            if (context.modNumSelector == speciesProp.wSelector)
+            {
+                classHasModNum = true;
+                // TODO: use text#
+                if (!context.IsAutoText(wValue)) // Sets wValue
+                {
+                    wValue = context.GetScriptNumber();
+                }
+            }
+
             scoProperties.push_back(CSCOObjectProperty(speciesProp.wSelector, wValue, fTrackRelocation));
             ++iIndex;
         }
+
+        if (hasResourceStringTuple && !classHasModNum)
+        {
+            context.ReportError(classDef.get(), "Object %s has resource strings, but no modNum property.", classDef->GetName().c_str());
+        }
+
         // Now scan the new props for any new properties!
         for (species_property &newProp : newProps)
         {
@@ -1234,6 +1280,7 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
                 }
             }
         }
+
         sco.SetProperties(scoProperties);
 
         // Now methods

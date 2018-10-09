@@ -344,6 +344,8 @@ public:
     std::string LookupSelectorName(WORD wIndex) const;
     std::vector<WORD> GetRelocations();
 
+    uint16_t modNumSelector;
+
 private:
     // Our code
     scicode _code;
