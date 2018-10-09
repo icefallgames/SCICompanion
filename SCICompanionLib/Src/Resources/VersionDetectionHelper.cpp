@@ -932,4 +932,6 @@ void SniffSCIVersion(GameFolderHelper &helper)
     helper.Version.UsesPolygons = helper.GetIniBool("Version", "UsesPolygons", helper.Version.UsesPolygons);
 
     helper.Version.Kernels = _DetectKernelSet(helper);
+
+    helper.Version.ObjectOffsetBy8 = !helper.GetIniBool("Version", "NoObjectOffset", helper.Version.SeparateHeapResources);
 }

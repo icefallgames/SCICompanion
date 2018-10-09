@@ -257,11 +257,22 @@ vector<ExportTableInfo> GetExportTableOrder(CompileContext *contextOptional, con
 //
 void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector<BYTE> &output, CompileContext *pContext)
 {
+    bool addWeirdOffset = pContext->GetVersion().ObjectOffsetBy8;
+
     size_t sizeBeforeOutput = output.size();
     // Section header and magic number
     push_word(output, fInstance ? 0x0001 : 0x0006); // 1 = instance, 6 = class
     size_t iPlaceToWriteSize = output.size();
     push_word(output, 0);   // A temporary value where we'll write the size
+
+    WORD wObjectPointer;
+    if (!addWeirdOffset)
+    {
+        wObjectPointer = (WORD)output.size();
+        // So tell that code to point here.
+        pContext->WroteSource(pContext->GetTempToken(ValueType::Token, object.GetName()), wObjectPointer);
+    }
+
     push_word(output, 0x1234);  // Magic value
 
     // WORD: local variable offset (filled in at runtime)
@@ -275,9 +286,13 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
     push_word(output, wNumProps);
 
     // This is where code that has offsets to this instance should point to (for some reason)
-    WORD wObjectPointer = (WORD)output.size();
-    // So tell that code to point here.
-    pContext->WroteSource(pContext->GetTempToken(ValueType::Token, object.GetName()), wObjectPointer);
+
+    if (addWeirdOffset)
+    {
+        wObjectPointer = (WORD)output.size();
+        // So tell that code to point here.
+        pContext->WroteSource(pContext->GetTempToken(ValueType::Token, object.GetName()), wObjectPointer);
+    }
     if (object.IsPublic())
     {
         // If it's public, we need to put this in the export table.
@@ -485,6 +500,7 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
                         case ValueType::ResourceString:
                         case ValueType::Said:
                         case ValueType::String:
+                        case ValueType::Token:
                             context.WroteSink(context.GetTempToken(pValue->GetType(), pValue->GetStringValue()), (uint16_t)output.size(), ResourceType::Heap);
                             break;
                         case ValueType::Number:

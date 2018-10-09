@@ -128,6 +128,7 @@ struct SCIVersion
 	bool IsZeroExportValid;
     bool UsesPolygons;
     bool FixedPalette;
+    bool ObjectOffsetBy8;
 
     bool operator==(const SCIVersion &src) const;
     bool operator!=(const SCIVersion &src) const;

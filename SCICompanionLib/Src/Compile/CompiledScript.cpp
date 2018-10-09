@@ -89,7 +89,7 @@ std::vector<uint16_t> CompiledScript::GetExports() const {
 
 CompiledObject *CompiledScript::GetObjectForExport(uint16_t exportPointer) const
 {
-    if (!_version.SeparateHeapResources)
+    if (_version.ObjectOffsetBy8)
     {
         exportPointer -= 8;
     }
@@ -692,7 +692,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
         assert(_objectsOffsetTO.size() == _objects.size());
         for (size_t i = 0; i < _objectsOffsetTO.size(); i++)
         {
-            uint16_t addToOffset = (this->_version.SeparateHeapResources ? 0 : 8);
+            uint16_t addToOffset = (this->_version.ObjectOffsetBy8 ? 8 : 0);
             _objects[i]->IsPublic =
                 (find(_exportsTO.begin(), _exportsTO.end(), _objectsOffsetTO[i] + addToOffset) != _exportsTO.end());
             if (_objects[i]->IsPublic)
@@ -1220,7 +1220,7 @@ bool CompiledScript::LookupObjectName(uint16_t wOffset, ObjectType &type, std::s
             // REVIEW: for some reason the offsets in the script point 8 bytes into the object.
             // Like, to the 4th selector... weird.  So add 8.
             // Hmm... in SCI1, they do not though (they point to the 0x1234). Or have I populated the _objectOffetsTO incorrectly?
-            uint16_t subtractFromOffset = (this->_version.SeparateHeapResources ? 0 : 8);
+            uint16_t subtractFromOffset = (this->_version.ObjectOffsetBy8 ? 8 : 0);
             offsetIndex = find(_objectsOffsetTO.begin(), _objectsOffsetTO.end(), wOffset - subtractFromOffset);
             if (offsetIndex != _objectsOffsetTO.end())
             {
