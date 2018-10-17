@@ -25,6 +25,7 @@
 #include "PaletteOperations.h"
 #include "ResourceContainer.h"
 #include "ResourceBlob.h"
+#include <format.h>
 
 using namespace sci;
 using namespace std;
@@ -276,7 +277,14 @@ CRoomExplorerWorkResult *CRoomExplorerWorkResult::CreateFromWorkItem(CRoomExplor
         unique_ptr<ResourceEntity> picEntity = CreateResourceFromResourceData(pWorkItem->blob);
         PicComponent &pic = picEntity->GetComponent<PicComponent>();
         PaletteComponent *palette = picEntity->TryGetComponent<PaletteComponent>();
-        PicDrawManager pdm(&pic, palette);
+        PaletteComponent egaPalette;
+        if (!pic.Traits->IsVGA)
+        {
+            //std::copy(std::begin(g_egaColorsMixed), std::end(g_egaColorsMixed), std::begin(egaPalette.Colors));
+            //palette = &egaPalette;
+        }
+        PicDrawManager pdm(&pic, palette, true);
+        //PicDrawManager pdm(&pic, palette, false); // Can't get it to use 256-color palette.
 		std::unique_ptr<BYTE[]> dataDisplay = std::make_unique<BYTE[]>(pic.Size.cx * pic.Size.cy);
         std::unique_ptr<BYTE[]> dataAux = std::make_unique<BYTE[]>(pic.Size.cx * pic.Size.cy);
         fOk = TRUE;
@@ -300,6 +308,7 @@ CRoomExplorerWorkResult *CRoomExplorerWorkResult::CreateFromWorkItem(CRoomExplor
             pResult->wScript = pWorkItem->wScript;
             // Result takes ownership:
             pResult->pBitmapData.swap(dataDisplay);
+            pResult->imageSize = pic.Size;
             // Make a copy of the palette so we can draw it correctly:
             if (palette)
             {
@@ -366,18 +375,19 @@ void CRoomExplorerNode::_ResizeBitmap(CSize size)
     {
         // Temporarily make a gdi+ wrapper for it.
         Gdiplus::Bitmap *pimg = NULL;
-        RGBQUAD *palette = g_egaColors;
-        int paletteCout = ARRAYSIZE(g_egaColors);
+        //RGBQUAD *palette = g_egaColors;
+        RGBQUAD *palette = g_egaColorsMixed;
+        int paletteCout = ARRAYSIZE(g_egaColorsMixed);
         if (optionalPalette)
         {
             palette = optionalPalette->Colors;
             paletteCout = ARRAYSIZE(optionalPalette->Colors);
         }
-        SCIBitmapInfo bmi(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT, palette, paletteCout);
+        SCIBitmapInfo bmi(imageSize.cx, imageSize.cy, palette, paletteCout);
         pimg = Gdiplus::Bitmap::FromBITMAPINFO(&bmi, pBitmapData.get());
         if (pimg)
         {
-            if ((size.cx == DEFAULT_PIC_WIDTH) && (size.cy == DEFAULT_PIC_HEIGHT))
+            if ((size.cx == imageSize.cx) && (size.cy == imageSize.cy))
             {
                 // Exact size.
                 pimg->GetHBITMAP(Color::Black, &BitmapScaled);
@@ -758,6 +768,70 @@ const CRect *CRoomExplorerView::CRoomExplorerGrid::GetBounds()
 {
     // Either calculate and store the bounds, or you know...
     return &_rcBounds;
+}
+
+std::string _CreateRoomNodeId(uint16_t num)
+{
+    return fmt::format("n_{:04x}", num);
+}
+
+std::string _CreateRoomGraphNode(CRoomExplorerNode *node)
+{
+    return fmt::format("\t{} [shape=\"box\", label=\"Room{}\"];\n", _CreateRoomNodeId(node->ScriptNum), node->ScriptNum);
+}
+
+std::string _CreateConnection(uint16_t from, uint16_t to, bool bidirectional)
+{
+    return fmt::format("\t{} {} {};\n", _CreateRoomNodeId(from), bidirectional ? "--" : "--",  _CreateRoomNodeId(to)); // for now alway bi
+}
+
+void CRoomExplorerView::CRoomExplorerGrid::OutputGraph()
+{
+    std::stringstream ss;
+    numToNode_t::iterator nodeIt = _nodes.begin();
+
+    ss << "strict graph code{\n";
+
+    std::map<uint16_t, uint16_t> fromTo;
+
+    while (nodeIt != _nodes.end())
+    {
+        CRoomExplorerNode *pNode = nodeIt->second.get();
+        uint16_t wScript = nodeIt->first;
+        CRect rect;
+        _GetRoomRect(pNode, rect);
+
+        HBITMAP image = pNode->BitmapScaled;
+
+        ss << _CreateRoomGraphNode(pNode);
+        if (pNode->East)
+        {
+            fromTo[pNode->ScriptNum] = pNode->East;
+        }
+        if (pNode->West)
+        {
+            fromTo[pNode->ScriptNum] = pNode->West;
+        }
+        if (pNode->North)
+        {
+            fromTo[pNode->ScriptNum] = pNode->North;
+        }
+        if (pNode->South)
+        {
+            fromTo[pNode->ScriptNum] = pNode->South;
+        }
+
+        ++nodeIt;
+    }
+
+    for (pair<uint16_t, uint16_t> pair : fromTo)
+    {
+        ss << _CreateConnection(pair.first, pair.second, (fromTo.end() == fromTo.find(pair.second)));
+    }
+
+    ss << "}\n";
+
+    ShowTextFile(ss.str().c_str(), "RoomExplorer.txt");
 }
 
 void CRoomExplorerView::CRoomExplorerGrid::DrawRooms(CDC *pDC, BOOL fHitTestOnly, CPoint pt, uint16_t *pwRoom)
@@ -1258,6 +1332,11 @@ void CRoomExplorerView::OnLButtonDblClk(UINT nFlags, CPoint point)
     {
         appState->OpenScript(wRoom);
     }
+    else
+
+    {
+        _grid.OutputGraph();
+    }
 }
 
 void CRoomExplorerView::InvalidateGridRect(LPRECT prc)
@@ -1368,6 +1447,7 @@ LRESULT CRoomExplorerView::_OnRoomBitmapReady(WPARAM wParam, LPARAM lParam)
         {
             // Transfer ownership
             pNode->pBitmapData.swap(pWorkResult->pBitmapData);
+            pNode->imageSize = pWorkResult->imageSize;
             pNode->optionalPalette.swap(pWorkResult->optionalPalette);
             if (pNode->pBitmapData)
             {

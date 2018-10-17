@@ -58,6 +58,7 @@ class CRoomExplorerWorkResult
 public:
     CRoomExplorerWorkResult() { wScript= 0; }
     std::unique_ptr<BYTE[]> pBitmapData;
+    size16 imageSize;
     uint16_t wScript;
     std::unique_ptr<PaletteComponent> optionalPalette;
 
@@ -162,6 +163,7 @@ public:
         ~CRoomExplorerGrid();
         const CRect *GetBounds();
         void DrawRooms(CDC *pDC, BOOL fHitTestOnly, CPoint pt, uint16_t *pwRoom);
+        void OutputGraph();
         const std::unordered_map<uint16_t, std::unique_ptr<ResourceBlob>> &GetPics() const { return _pics; }
         const std::unordered_map<uint16_t, std::unique_ptr<ResourceBlob>> &GetViews() const { return _views; }
         CRoomExplorerNode *GetNode(uint16_t wScript);
@@ -232,6 +234,7 @@ public:
     CPoint Position;
 
     std::unique_ptr<BYTE[]> pBitmapData;
+    size16 imageSize;
     std::unique_ptr<PaletteComponent> optionalPalette;
 
     HBITMAP BitmapScaled;
