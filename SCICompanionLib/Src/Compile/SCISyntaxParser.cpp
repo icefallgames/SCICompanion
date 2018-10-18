@@ -133,6 +133,7 @@ vector<string> SCIKeywords =
     "&tmp",
     "&rest",
     "&sizeof",
+    "&exists",
     "script#"
     // neg, send, case, do, default, export are also keywords, but for the Studio language.
 
@@ -392,7 +393,17 @@ void SetCaseA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pCont
     }
 }
 
-
+void ExistsA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Turn &exists foobar into:
+        // (> argc SOME_NUM_TO_BE_DETERMINED)
+        pContext->GetSyntaxNode<BinaryOp>()->Operator = BinaryOperator::GreaterThan;
+        pContext->GetSyntaxNode<BinaryOp>()->SetStatement1(make_unique<PropertyValue>("paramTotal", ValueType::Token)); // Does it need to be ComplexPropertyValue??
+        pContext->GetSyntaxNode<BinaryOp>()->SetStatement2(make_unique<PropertyValue>(pContext->ScratchString(), ValueType::ParameterIndex));
+    }
+}
 
 template<VerbUsage verbUsage>
 void CreateVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -908,6 +919,8 @@ void SCISyntaxParser::Load()
 
     size_of = keyword_p("&sizeof") >> alphanumNK_p[{nullptr, ParseAutoCompleteContext::PureValue}];
 
+    exists_statement = keyword_p("&exists")[SetStatementA<BinaryOp>] >> alphanumNK_p[{ExistsA, ParseAutoCompleteContext::PureValue}];
+
     pointer = atsign;
 
     export_entry = general_token[{nullptr, ParseAutoCompleteContext::Export}] >> integer_p[AddExportA];
@@ -1136,6 +1149,7 @@ void SCISyntaxParser::Load()
         return_statement |
         yield_statement |
         exit_statement |
+        exists_statement |
         if_statement |
         while_loop |
         for_loop |

@@ -977,6 +977,38 @@ void PropertyValueBase::PreScan(CompileContext &context)
         }
         break;
 
+    case ValueType::ParameterIndex:
+        {
+            bool found = false;
+            uint16_t index = 0;
+            if (context.FunctionBaseForPrescan)
+            {
+                for (const auto &signature : context.FunctionBaseForPrescan->GetSignatures())
+                {
+                    index = 0;
+                    for (const auto &param : signature->GetParams())
+                    {
+                        if (_stringValue == param->GetName())
+                        {
+                            found = true;
+                            break;
+                        }
+                        index++;
+                    }
+                }
+            }
+            if (!found)
+            {
+                context.ReportError(this, "Unknown parameter: '%s'.", _stringValue.c_str());
+            }
+            else
+            {
+                _type = ValueType::Number;
+                _numberValue = index;
+            }
+        }
+        break;
+
     case ValueType::ArraySize:
         {
             uint16_t arraySize = 1;
@@ -1859,6 +1891,8 @@ CodeResult ExitStatement::OutputByteCode(CompileContext &context) const
     // else we transfered it somewhere.
     return 0; // Does nothing.
 }
+
+
 
 CodeResult YieldStatement::OutputByteCode(CompileContext &context) const
 {

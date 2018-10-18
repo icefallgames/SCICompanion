@@ -115,6 +115,7 @@ private:
     ParserSCI asm_arg;
     ParserSCI cond_statement;
     ParserSCI size_of;
+    ParserSCI exists_statement;
     ParserSCI entire_header;
     ParserSCI verb_clause;
     ParserSCI verb_handler_decl;

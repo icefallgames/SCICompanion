@@ -412,6 +412,7 @@ const std::vector<std::string> &GetTopLevelKeywords(LangSyntax lang)
 std::vector<std::string> codeLevelKeywordsSCI =
 {
     // Sorted
+    _T("&exists"),
     _T("&rest"),
     _T("&sizeof"),
     // _T("&tmp"),   // This is special
