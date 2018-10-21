@@ -2064,8 +2064,14 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
                 // The result is now in the accumulator.  We actually want it in the stack, since
                 // we want to use the variable index (currently on the stack) in the accumulator
                 // Do a little trick:
+                WriteSimple(context, Opcode::PUSH0, GetLineNumber());     // increment stack so that it will be used by eq?
                 WriteSimple(context, Opcode::EQ, GetLineNumber());        // -> eq?... the value in the accumulator will now be on the prev register
-                WriteSimple(context, Opcode::TOSS, GetLineNumber());      // Now the saved index will be in the accumulator
+                // Nope, toss discards the stack value
+                //WriteSimple(context, Opcode::TOSS, GetLineNumber());      // Now the saved index will be in the accumulator
+                // Instead, since the ACC isn't currently being used (its value is in the pprev register), let's ldi 0 into it
+                context.code().inst(GetLineNumber(), Opcode::LDI, 0);
+                // Then or it with what we pop off the stack.. essentially transfering from stack to acc
+                WriteSimple(context, Opcode::OR, GetLineNumber());        // Transfer from stack to acc
                 WriteSimple(context, Opcode::PPREV, GetLineNumber());     // And now... the value will be on the stack!
                 VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_STORE | VO_ACC_AS_INDEX_MOD, GetLineNumber());
 
