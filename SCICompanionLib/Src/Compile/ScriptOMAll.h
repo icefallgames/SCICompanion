@@ -506,8 +506,6 @@ namespace sci
         void PreScan(CompileContext &context);
         void Traverse(IExploreNode &en);
 
-        void OutputSourceCode(SourceCodeWriter &out) const {}
-
         // The collection is in _statement1, and the inner code is in _segments.
         std::string IterationVariable;
         bool IsReference;

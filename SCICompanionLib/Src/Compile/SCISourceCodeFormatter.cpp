@@ -234,6 +234,16 @@ std::string GetPropertyText(const PropertyValueBase &prop)
         case ValueType::Pointer:
             mw << "@" << CleanTokenSCI(prop.GetStringValue());
             break;
+        case ValueType::ArraySize:
+            mw << "&sizeof " << CleanTokenSCI(prop.GetStringValue());
+            break;
+
+        case ValueType::ParameterIndex:
+            mw << "&exists " << CleanTokenSCI(prop.GetStringValue());
+            break;
+        case ValueType::Deref:
+            mw << "*" << CleanTokenSCI(prop.GetStringValue());
+            break;
     }
     return mw.str();
 }
@@ -1926,7 +1936,7 @@ public:
     }
     void Visit(const ForEachLoop &vc)
     {
-        out.out << "ForEachLoop";
+        _MaybeIndentAcceptChildren(vc.FinalCode);
     }
     void Visit(const GrammarPart &vc)
     {

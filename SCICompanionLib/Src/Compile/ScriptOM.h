@@ -390,7 +390,7 @@ namespace sci
     class EnumAll : public IExploreNode
     {
     public:
-        EnumAll(sci::Script &script, _TFunc func) : _func(func) { script.Traverse(*this); }
+        EnumAll(sci::SyntaxNode &script, _TFunc func) : _func(func) { script.Traverse(*this); }
 
         void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
         {
@@ -404,7 +404,7 @@ namespace sci
     };
 
     template<typename _T, typename _TFunc>
-    void EnumScriptElements(Script &script, _TFunc func)
+    void EnumScriptElements(SyntaxNode &script, _TFunc func)
     {
         EnumAll<_T, _TFunc> enumIt(script, func);
     }

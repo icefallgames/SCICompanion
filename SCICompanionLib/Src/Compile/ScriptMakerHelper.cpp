@@ -27,6 +27,13 @@ void _SetSendVariableTarget(SendCall &send, const std::string &target)
     send.SetLValue(move(lValue));
 }
 
+unique_ptr<sci::CodeBlock> _WrapInCodeBlock(unique_ptr<sci::SyntaxNode> pNode)
+{
+    unique_ptr<CodeBlock> codeBlock = make_unique<CodeBlock>();
+    codeBlock->AddStatement(move(pNode));
+    return codeBlock;
+}
+
 unique_ptr<SyntaxNode> _MakeNumberStatement(int16_t w)
 {
     unique_ptr<ComplexPropertyValue> pValue = std::make_unique<ComplexPropertyValue>();
@@ -44,8 +51,14 @@ unique_ptr<SyntaxNode> _MakeTokenStatement(const string &token)
     pValue->SetValue(token, ValueType::Token);
     return unique_ptr<SyntaxNode>(move(pValue));
 }
+unique_ptr<SyntaxNode> _MakeStringStatement(const string &token, ValueType valuetype)
+{
+    unique_ptr<ComplexPropertyValue> pValue = std::make_unique<ComplexPropertyValue>();
+    pValue->SetValue(token, valuetype);
+    return unique_ptr<SyntaxNode>(move(pValue));
+}
 
-void _AddAssignment(MethodDefinition &method, const string &lvalueName, const string &assigned)
+void _AddAssignment(StatementsNode &method, const string &lvalueName, const string &assigned)
 {
     unique_ptr<Assignment> pEquals = std::make_unique<Assignment>();
     pEquals->Operator = AssignmentOperator::Assign;
