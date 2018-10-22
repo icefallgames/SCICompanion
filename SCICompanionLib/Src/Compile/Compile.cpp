@@ -2052,10 +2052,6 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         {
             context.ReportError(this, "Property '%s' cannot be indexed like an array.", strVarName.c_str());
         }
-        if (_variable->IsDeref)
-        {
-            context.ReportError(this, "Property '%s': derefs not yet supported on class properties.", strVarName.c_str());
-        }
         if (context.GetClassName().empty())
         {
             context.ReportError(this, "'%s' can only be used within an object method.", strVarName.c_str());
@@ -2203,8 +2199,18 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
             break;
         case ResolvedToken::ClassProperty:
             assert(pIndexer == nullptr || context.HasErrors());
-            StoreProperty(context, wIndex, false, GetLineNumber());  // false -> accumulator
-            // TODO: One day we could support derefs here. It would be a read, not a store prop
+            if (_variable->IsDeref)
+            {
+                // Prop value gets pushed onto stack
+                LoadProperty(context, wIndex, true, GetLineNumber());
+                // Let's output the stm instruction which will pop the address from the stack and store the
+                // value in the acc at the address.
+                WriteSimple(context, Opcode::STM, GetLineNumber());
+            }
+            else
+            {
+                StoreProperty(context, wIndex, false, GetLineNumber());  // false -> accumulator
+            }
             break;
         }
 
