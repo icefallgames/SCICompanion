@@ -42,5 +42,6 @@ namespace sci
         ResourceString = 0x00000007,    // Not available in SCIStudio syntax
         ArraySize = 0x00000008,         // e.g. &sizeof MyArray - should get converted in prescan
         ParameterIndex = 0x00000010,    // the 0-based numerical index of the parameter
+        Deref = 0x00000020
     };
 }

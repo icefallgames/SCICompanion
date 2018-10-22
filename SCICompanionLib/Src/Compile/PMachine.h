@@ -113,7 +113,7 @@ enum class Opcode : uint8_t
     REST = 44,
     LEA = 45,  // load  address of a variable into the acc
     SELFID = 46,  // puts address of self into acc
-    INDETERMINATE = 47,  // NOT A VALID OPCODE
+    STM = 47,  // NEW: pop from stack and put into memory addressed by acc
     PPREV = 48,
     PTOA = 49,      // property index to acc
     ATOP = 50,      // acc to property index
@@ -129,7 +129,7 @@ enum class Opcode : uint8_t
     PUSH1 = 60,      // push 1 onto stack
     PUSH2 = 61,      // push 2 onto stack
     PUSHSELF = 62,      // push self onto stack
-
+    LDM = 63,       // NEW: load from memory pointed to by acc into acc
     FirstLoadStore = 64,
 	LAG = 64,  // load global to acc
 	LAL = 65,
@@ -202,6 +202,7 @@ enum class Opcode : uint8_t
     LineNumber = 129,
 
     LastOne = 129,
+    INDETERMINATE = 130,
 };
 
 Opcode RawToOpcode(const SCIVersion &version, uint8_t rawOpcode);

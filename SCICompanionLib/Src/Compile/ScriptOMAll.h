@@ -69,8 +69,8 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeLValue)
     public:
-        LValue() : NamedNode() { }
-        LValue(const std::string &name) : NamedNode(name){ }
+        LValue() : NamedNode(), IsDeref(false) { }
+        LValue(const std::string &name) : NamedNode(name), IsDeref(false) { }
 
 		LValue(LValue &src) = delete;
 		LValue& operator=(const LValue& src) = delete;
@@ -87,6 +87,7 @@ namespace sci
         
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
+        bool IsDeref;
     private:
         std::unique_ptr<SyntaxNode> _indexer;
     };

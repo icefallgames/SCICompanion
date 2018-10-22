@@ -56,6 +56,7 @@ int scii::is_stackpop_op()
     case Opcode::ULT:
     case Opcode::ULE:
     case Opcode::TOSS:
+    case Opcode::STM:
         return 1;
     default:
         return false;

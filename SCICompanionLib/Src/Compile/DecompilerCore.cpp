@@ -482,6 +482,15 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
         fPutsOnStack = true;
         break;
 
+    case Opcode::LDM:
+        fChangesAcc = true;
+        fEatsAcc = true;
+        break;
+    case Opcode::STM:
+        fEatsAcc = true;
+        cEatStack = 1;
+        break;
+
     case Opcode::TOSS:
         //fChangesAcc = true; // doesn't touch the acc, by definition (toss)
         cEatStack = 1;

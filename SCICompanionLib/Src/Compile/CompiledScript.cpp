@@ -1024,7 +1024,7 @@ bool CompiledScript::_ReadSaids(sci::istream &stream, uint16_t wDataSize)
                     if (b >= 0xf0)
                     {
                         // It's a operator.
-                        saidSequence.push_back({ (uint16_t)b, true });
+                        saidSequence.push_back(std::tuple<uint16_t, bool>((uint16_t)b, true ));
                     }
                     else
                     {
@@ -1034,7 +1034,7 @@ bool CompiledScript::_ReadSaids(sci::istream &stream, uint16_t wDataSize)
                         //fRet = pStream->ReadByte(&b2);
                         if (stream.good())
                         {
-                            saidSequence.push_back({ (((uint16_t)b) << 8) | b2, false });
+                            saidSequence.push_back(std::tuple<uint16_t, bool>(( ((uint16_t)b) << 8) | b2, false));
                         }
                     }
                 }

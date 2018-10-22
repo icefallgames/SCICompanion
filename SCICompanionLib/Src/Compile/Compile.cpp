@@ -1174,6 +1174,42 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         wType = DataTypePointer;
         break;
 
+    case ValueType::Deref:
+        {
+            WORD wInstanceScript;
+            ResolvedToken tokenType = context.LookupToken(this, _stringValue, wNumber, wType, &wInstanceScript);
+            switch (tokenType)
+            {
+            case ResolvedToken::GlobalVariable:
+            case ResolvedToken::ScriptVariable:
+            case ResolvedToken::Parameter:
+            case ResolvedToken::TempVariable:
+            {
+                fVarModifierError = false;
+                uint8_t tempOpcodeMod = VO_LOAD | VO_ACC;
+                tempOpcodeMod |= GetVarOpcodeModifier(context.GetVariableModifier());
+                // Set the modifier (-- or ++) to none now, since we just used it, and we don't want it applying to the indexer.
+                // This properly handles codes like this:
+                // (-- *ptr) ; decrement "thing pointed to by ptr by 1"
+                // REVIEW : I don't htink this works.
+                context.SetVariableModifier(VM_None);
+                {
+                    COutputContext accContext(context, OC_Accumulator);
+                    VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | tempOpcodeMod, GetLineNumber(), GetIndexer());
+                    // This should be in the acc now.
+                }
+                WriteSimple(context, Opcode::LDM, GetLineNumber());
+                PushToStackIfAppropriate(context, GetLineNumber());
+            }
+            break;
+
+            default:
+                context.ReportError(this, "'%s' can not be dereferenced.", _stringValue.c_str());
+            }
+        }
+
+        break;
+
     case ValueType::Token:
         {
             WORD wInstanceScript;
@@ -2016,6 +2052,10 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         {
             context.ReportError(this, "Property '%s' cannot be indexed like an array.", strVarName.c_str());
         }
+        if (_variable->IsDeref)
+        {
+            context.ReportError(this, "Property '%s': derefs not yet supported on class properties.", strVarName.c_str());
+        }
         if (context.GetClassName().empty())
         {
             context.ReportError(this, "'%s' can only be used within an object method.", strVarName.c_str());
@@ -2029,6 +2069,10 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
     BinaryOperator theBinaryOperator = GetBinaryOpFromAssignment(Operator);
     if (theBinaryOperator != BinaryOperator::None)
     {
+        if (_variable->IsDeref)
+        {
+            context.ReportError(_variable.get(), "Only standard assignment operations are permitted on pointer dereferneces.");
+        }
         // This is something like +=, *=, etc...
 
         // If we have an indexer, check here if it's an immediate value (this optimization is in
@@ -2137,16 +2181,30 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         case ResolvedToken::Parameter:
         case ResolvedToken::TempVariable:
         {
-            // We always use the accumulator version of the store opcodes. The value being stored is still
-            // put on the stack in the increment case, even if VO_ACC is used. The difference is that in the indexed
-            // case, we want the value put on the accumulator after the accumulator is used for indexing. The
-            // stack versions of the store opcodes don't do that.
-            VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STORE | VO_ACC, GetLineNumber(), pIndexer);
+            if (_variable->IsDeref)
+            {
+                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_LOAD | VO_STACK, GetLineNumber(), pIndexer);
+                // Now the address is on the stack
+                // Let's output the stm instruction which will pop the address from the stack and store the
+                // value in the acc at the address.
+                WriteSimple(context, Opcode::STM, GetLineNumber());
+                // The value in the acc remains the same.
+            }
+            else
+            {
+                // We always use the accumulator version of the store opcodes. The value being stored is still
+                // put on the stack in the increment case, even if VO_ACC is used. The difference is that in the indexed
+                // case, we want the value put on the accumulator after the accumulator is used for indexing. The
+                // stack versions of the store opcodes don't do that.
+                VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STORE | VO_ACC, GetLineNumber(), pIndexer);
+
+            }
         }
             break;
         case ResolvedToken::ClassProperty:
             assert(pIndexer == nullptr || context.HasErrors());
             StoreProperty(context, wIndex, false, GetLineNumber());  // false -> accumulator
+            // TODO: One day we could support derefs here. It would be a read, not a store prop
             break;
         }
 

@@ -830,8 +830,16 @@ void AddKernelNameA(MatchResult &match, const ParserSCI *pParser, SyntaxContext 
     }
 }
 
-
-
+void DerefLValueA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSyntaxNode<LValue>(stream);
+        pContext->GetSyntaxNode<LValue>()->IsDeref = true;
+        pContext->GetSyntaxNode<LValue>()->SetPosition(stream.GetPosition());
+        pContext->GetSyntaxNode<LValue>()->SetName(pContext->ScratchString());
+    }
+}
 
 SCISyntaxParser::SCISyntaxParser() :
     oppar(char_p("(")),
@@ -844,6 +852,7 @@ SCISyntaxParser::SCISyntaxParser() :
     colon(char_p(":")),
     equalSign(char_p("=")),
     question(char_p("?")),
+    period(char_p("*")),
     alphanumAsmLabel_p(AlphanumP),
     selector_send_p(SelectorP_Term<':'>),
     propget_p(SelectorP_Term<'?'>),
@@ -941,6 +950,7 @@ void SCISyntaxParser::Load()
         | squotedstring_p[{ComplexValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}]
         | bracestring_p[{ComplexValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}]
         | (-pointer[ComplexValuePointerA] >> rvalue_variable)
+        | (period >> general_token[ComplexValueStringA<ValueType::Deref>])
         | selector_literal[ComplexValueStringA<ValueType::Selector>]
         | size_of[ComplexValueStringA<ValueType::ArraySize>]);
 
@@ -1076,6 +1086,7 @@ void SCISyntaxParser::Load()
     // blarg    or   [blarg statement]
     lvalue = (opbracket >> general_token[{SetStatementNameA<LValue>, ParseAutoCompleteContext::LValue}] >> statement[LValueIndexerA] >> clbracket) |
         keyword_p("argc")[SetStatementNameToParamTotalA<LValue>] |
+        (period >> general_token[{DerefLValueA, ParseAutoCompleteContext::LValue}]) |
         general_token[{SetStatementNameA<LValue>, ParseAutoCompleteContext::LValue}];
 
     rest_statement =

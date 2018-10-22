@@ -178,5 +178,6 @@ private:
     ParserSCI colon;
     ParserSCI equalSign;
     ParserSCI question;
+    ParserSCI period;
 };
 
