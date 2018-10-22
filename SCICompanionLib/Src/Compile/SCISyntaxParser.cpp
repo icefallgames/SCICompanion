@@ -1679,113 +1679,142 @@ void _ProcessClassForVerbHandlers(Script &script, ClassDefinition &theClass)
     }
 }
 
-void _ProcessForEach(ICompileLog &log, Script &script)
+
+void _ProcessForEach(ICompileLog &log, Script &script, FunctionBase &func, ForEachLoop &theForEach, int variableGenHint)
 {
-    // Re-work conds into if-elses.
-    EnumScriptElements<ForEachLoop>(script,
-        [&log, &script](ForEachLoop &theForEach)
-        {
-            // For now, just support arrays
-            // In the future, we could support params and lists.
+
+    // For now, just support arrays
+    // In the future, we could support params and lists.
             
-            // This turns this:
-            // (foreach boop buffer
-            //     (boop x: 0)
-            // )
-            //
-            // Into:
-            // (for ((= i 0)) (< i &sizeof buffer) ((++ i))
-            //     ([buffer i] x: 0)
-            // )
-            //
-            // This requires making a new iteration variable.
+    // This turns this:
+    // (foreach boop buffer
+    //     (boop x: 0)
+    // )
+    //
+    // Into:
+    // (for ((= i 0)) (< i &sizeof buffer) ((++ i))
+    //     ([buffer i] x: 0)
+    // )
+    //
+    // This requires making a new iteration variable.
 
-            unique_ptr<ForLoop> forLoop = std::make_unique<ForLoop>();
+    unique_ptr<ForLoop> forLoop = std::make_unique<ForLoop>();
 
-            string loopIndexName = "i"; // TODO this will have to be unique.
+    // Come up with a good loop index name.
+    string loopIndexName = (variableGenHint < 26) ? fmt::format("i_{}", (char)(variableGenHint + 'A')) : fmt::format("i_{}", variableGenHint);
+    func.GetVariablesNC().push_back(make_unique<VariableDecl>(loopIndexName));
 
-            // Buffer name?
-            string bufferName = "INVALID";
-            if (theForEach.GetStatement1()->GetNodeType() == sci::NodeType::NodeTypeComplexValue)
-            {
-                ComplexPropertyValue &collection = static_cast<ComplexPropertyValue&>(*theForEach.GetStatement1());
-                if (collection.GetType() == ValueType::Token)
-                {
-                    bufferName = collection.GetStringValue();
-                }
-                else
-                {
-                    log.ReportResult(CompileResult("The collection must be a temp or local array.", script.GetScriptId(), collection.GetPosition().Line()));
-                }
-            }
-            else
-            {
-                log.ReportResult(CompileResult("The collection must be a temp or local array!", script.GetScriptId(), theForEach.GetStatement1()->GetPosition().Line()));
-            }
-            // else it would be some statement...
-
-            // Condition
-            unique_ptr<BinaryOp> lessThan = make_unique<BinaryOp>(BinaryOperator::LessThan);
-            lessThan->SetStatement1(_MakeTokenStatement(loopIndexName));
-            lessThan->SetStatement2(_MakeStringStatement(bufferName, ValueType::ArraySize));
-            unique_ptr<ConditionalExpression> condition = make_unique<ConditionalExpression>();
-            condition->AddStatement(move(lessThan));
-            forLoop->SetCondition(move(condition));
-
-            // Initializer
-            unique_ptr<Assignment> theEquals = make_unique<Assignment>();
-            theEquals->Operator = AssignmentOperator::Assign;
-            theEquals->_variable = make_unique<LValue>(loopIndexName);
-            theEquals->SetStatement1(_MakeNumberStatement(0));
-            forLoop->SetCodeBlock(_WrapInCodeBlock(move(theEquals)));
-
-            // Looper
-            unique_ptr<UnaryOp> thePlusPlus = make_unique<UnaryOp>();
-            thePlusPlus->Operator = UnaryOperator::Increment;
-            thePlusPlus->SetStatement1(_MakeTokenStatement(loopIndexName));
-            forLoop->SetLooper(_WrapInCodeBlock(move(thePlusPlus)));
-
-            string iterationVariable = theForEach.IterationVariable;
-
-            // REMAINING: replace things in theForEach.GetStatements with []
-            EnumScriptElements<LValue>(theForEach,
-                [&log, &script, &iterationVariable, &bufferName, &loopIndexName](LValue &lValue)
-            {
-                if (lValue.GetName() == iterationVariable)
-                {
-                    // This is us
-                    if (lValue.HasIndexer())
-                    {
-                        log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), lValue.GetPosition().Line()));
-                    }
-                    lValue.SetName(bufferName);
-                    lValue.SetIndexer(_MakeTokenStatement(loopIndexName));
-                }
-            });
-            EnumScriptElements<ComplexPropertyValue>(theForEach,
-                [&log, &script, &iterationVariable, &bufferName, &loopIndexName](ComplexPropertyValue &propValue)
-            {
-                if ((propValue.GetType() == ValueType::Token) && (propValue.GetStringValue() == iterationVariable))
-                {
-                    // This is us
-                    if (propValue.GetIndexer())
-                    {
-                        log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), propValue.GetPosition().Line()));
-                    }
-                    propValue.SetValue(bufferName, ValueType::Token);
-                    propValue.SetIndexer(_MakeTokenStatement(loopIndexName));
-                }
-            });
-
-            // Transfer code to forloop
-            swap(forLoop->GetStatements(), theForEach.GetStatements());
-
-            // TODO: We still need to add our indexingVariable to the function.
-
-            // Our final thing is just one statement, but it might not be for more complex iterators
-            theForEach.FinalCode.push_back(move(forLoop));
+    // Buffer name?
+    string bufferName = "INVALID";
+    if (theForEach.GetStatement1()->GetNodeType() == sci::NodeType::NodeTypeComplexValue)
+    {
+        ComplexPropertyValue &collection = static_cast<ComplexPropertyValue&>(*theForEach.GetStatement1());
+        if (collection.GetType() == ValueType::Token)
+        {
+            bufferName = collection.GetStringValue();
         }
-    );
+        else
+        {
+            log.ReportResult(CompileResult("The collection must be a temp or local array.", script.GetScriptId(), collection.GetPosition().Line()));
+        }
+    }
+    else
+    {
+        log.ReportResult(CompileResult("The collection must be a temp or local array!", script.GetScriptId(), theForEach.GetStatement1()->GetPosition().Line()));
+    }
+    // else it would be some statement...
+
+    // Condition
+    unique_ptr<BinaryOp> lessThan = make_unique<BinaryOp>(BinaryOperator::LessThan);
+    lessThan->SetStatement1(_MakeTokenStatement(loopIndexName));
+    lessThan->SetStatement2(_MakeStringStatement(bufferName, ValueType::ArraySize));
+    unique_ptr<ConditionalExpression> condition = make_unique<ConditionalExpression>();
+    condition->AddStatement(move(lessThan));
+    forLoop->SetCondition(move(condition));
+
+    // Initializer
+    unique_ptr<Assignment> theEquals = make_unique<Assignment>();
+    theEquals->Operator = AssignmentOperator::Assign;
+    theEquals->_variable = make_unique<LValue>(loopIndexName);
+    theEquals->SetStatement1(_MakeNumberStatement(0));
+    forLoop->SetCodeBlock(_WrapInCodeBlock(move(theEquals)));
+
+    // Looper
+    unique_ptr<UnaryOp> thePlusPlus = make_unique<UnaryOp>();
+    thePlusPlus->Operator = UnaryOperator::Increment;
+    thePlusPlus->SetStatement1(_MakeTokenStatement(loopIndexName));
+    forLoop->SetLooper(_WrapInCodeBlock(move(thePlusPlus)));
+
+    string iterationVariable = theForEach.IterationVariable;
+
+    // REMAINING: replace things in theForEach.GetStatements with []
+    EnumScriptElements<LValue>(theForEach,
+        [&log, &script, &iterationVariable, &bufferName, &loopIndexName](LValue &lValue)
+    {
+        if (lValue.GetName() == iterationVariable)
+        {
+            // This is us
+            if (lValue.HasIndexer())
+            {
+                log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), lValue.GetPosition().Line()));
+            }
+            lValue.SetName(bufferName);
+            lValue.SetIndexer(_MakeTokenStatement(loopIndexName));
+        }
+    });
+    EnumScriptElements<ComplexPropertyValue>(theForEach,
+        [&log, &script, &iterationVariable, &bufferName, &loopIndexName](ComplexPropertyValue &propValue)
+    {
+        if ((propValue.GetType() == ValueType::Token) && (propValue.GetStringValue() == iterationVariable))
+        {
+            // This is us
+            if (propValue.GetIndexer())
+            {
+                log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), propValue.GetPosition().Line()));
+            }
+            propValue.SetValue(bufferName, ValueType::Token);
+            propValue.SetIndexer(_MakeTokenStatement(loopIndexName));
+        }
+    });
+    EnumScriptElements<SendCall>(theForEach,
+        [&log, &script, &iterationVariable, &bufferName, &loopIndexName](SendCall &theSend)
+    {
+        if (theSend.GetTargetName() == iterationVariable)
+        {
+            // This is us - if we have a tempvar we can just set a name, but
+            // theSend.SetName()
+            // Otherwise, we need to mess with the sendcall to change the target to [bufferName loopIndexName]
+            unique_ptr<LValue> lValue = make_unique<LValue>(bufferName);
+            lValue->SetIndexer(_MakeTokenStatement(loopIndexName));
+            theSend.SetLValue(move(lValue));
+            theSend.SetName(""); // So we use the LValue
+        }
+    });
+
+    // Transfer code to forloop
+    swap(forLoop->GetStatements(), theForEach.GetStatements());
+
+    // TODO: We still need to add our indexingVariable to the function.
+
+    // Our final thing is just one statement, but it might not be for more complex iterators
+    theForEach.FinalCode.push_back(move(forLoop));
+}
+
+
+void _ProcessForEaches(ICompileLog &log, Script &script)
+{
+    EnumScriptElements<FunctionBase>(script,
+        [&log, &script](FunctionBase &func)
+    {
+        int variableGenHint = 0;
+        EnumScriptElements<ForEachLoop>(func,
+            [&log, &script, &func, &variableGenHint](ForEachLoop &forEachLoop)
+        {
+            _ProcessForEach(log, script, func, forEachLoop, variableGenHint);
+            variableGenHint++;
+        });
+
+    });
 }
 
 // 
@@ -1818,7 +1847,7 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
     // Re-work foreach's into for loops (only for compiles where there is a log, e.g. actual compiles)
     if (pLog)
     {
-        _ProcessForEach(*pLog, script);
+        _ProcessForEaches(*pLog, script);
     }
 
     // Re-work conds into if-elses.

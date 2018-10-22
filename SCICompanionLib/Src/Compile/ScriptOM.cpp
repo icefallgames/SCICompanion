@@ -382,6 +382,8 @@ void VariableDecl::AddSimpleInitializer(const PropertyValue &value)
     // Add a copy of the property value
     AddStatement(make_unique<PropertyValue>(value));
 }
+VariableDecl::VariableDecl(const std::string &name) : StatementsNode(), TypedNode(), _size(1), _unspecifiedSize(false), _name(name) {}
+
 ClassProperty::ClassProperty(const std::string &str, WORD wValue) : NamedNode(), TypedNode()
 {
     _innerName = str;

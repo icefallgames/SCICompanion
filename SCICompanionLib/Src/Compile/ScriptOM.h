@@ -738,6 +738,7 @@ namespace sci
         DECLARE_NODE_TYPE(NodeTypeVariableDeclaration)
     public:
         VariableDecl();
+        VariableDecl(const std::string &name);
         VariableDecl(const VariableDecl &src) = delete;
 		VariableDecl& operator=(const VariableDecl& src) = delete;
 
@@ -843,6 +844,7 @@ namespace sci
         void AddVariable(std::unique_ptr<VariableDecl> pVar) { _tempVars.push_back(std::move(pVar)); }
         std::string ToString() const;
         const VariableDeclVector &GetVariables() const { return _tempVars; }
+        VariableDeclVector &GetVariablesNC() { return _tempVars; }
         const ClassDefinition *GetOwnerClass() const { return _pOwnerClass; }
         void SetOwnerClass(const ClassDefinition *pOwnerClass) { _pOwnerClass = pOwnerClass; }
         const SyntaxNodeVector &GetCodeSegments() const { return _segments; }
