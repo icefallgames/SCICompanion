@@ -72,6 +72,7 @@ namespace sci
         NodeTypeVerbHandler,
 
         NodeTypeGrammarRule,
-        NodeTypeGrammarPart
+        NodeTypeGrammarPart,
+        NodeTypeForEach
     };
 }

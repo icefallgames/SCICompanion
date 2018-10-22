@@ -1783,6 +1783,17 @@ CodeResult CodeBlock::OutputByteCode(CompileContext &context) const
     return CodeResult(wBytes, result.GetType());
 }
 
+CodeResult ForEachLoop::OutputByteCode(CompileContext &context) const
+{
+    WORD wBytes = 0;
+    // These things should have been cleared out:
+    assert(!_statement1);
+    assert(_segments.size() == 0);
+
+    CodeResult result = SingleStatementVectorOutputHelper(FinalCode, context, &wBytes);
+    return CodeResult(wBytes, result.GetType());
+}
+
 CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
 {
     context.NotifySendOrProcCall();
@@ -3741,6 +3752,14 @@ void WhileLoop::PreScan(CompileContext &context)
 {
     _innerCondition->PreScan(context);
     ForwardPreScan2(_segments, context);
+}
+void ForEachLoop::PreScan(CompileContext &context)
+{
+    // These things should have been cleared out:
+    assert(!_statement1);
+    assert(_segments.size() == 0);
+
+    ForwardPreScan2(FinalCode, context);
 }
 
 void ExportEntry::PreScan(CompileContext &context) {}

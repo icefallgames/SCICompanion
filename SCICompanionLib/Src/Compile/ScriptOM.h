@@ -150,6 +150,7 @@ namespace sci
     class GlobalDeclaration;
     class ExternDeclaration;
     class VerbHandlerDefinition;
+    class ForEachLoop;
     class VerbClauseStatement;
     class GrammarPart;
     class GrammarRule;
@@ -204,6 +205,7 @@ namespace sci
         virtual void Visit(const GlobalDeclaration &globalDecl) = 0;
         virtual void Visit(const ExternDeclaration &externDecl) = 0;
         virtual void Visit(const VerbHandlerDefinition &globalDecl) = 0;
+        virtual void Visit(const ForEachLoop &forEachLoop) = 0;
         virtual void Visit(const VerbClauseStatement &externDecl) = 0;
         virtual void Visit(const GrammarPart &globalDecl) = 0;
         virtual void Visit(const GrammarRule &externDecl) = 0;

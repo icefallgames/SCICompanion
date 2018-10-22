@@ -428,6 +428,7 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("enum"),
     _T("exit"),
     _T("for"),
+    _T("foreach"),
     _T("if"),
     _T("mod"),
     _T("not"),

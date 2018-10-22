@@ -1924,6 +1924,10 @@ public:
     {
         out.out << "VerbHandlerDefinition";
     }
+    void Visit(const ForEachLoop &vc)
+    {
+        out.out << "ForEachLoop";
+    }
     void Visit(const GrammarPart &vc)
     {
         out.out << "GrammarPart";

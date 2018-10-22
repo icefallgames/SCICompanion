@@ -154,6 +154,7 @@ vector<string> SCIKeywords =
     "nearVerbs",
     "farVerbs",
     "invVerbs",
+    "foreach"
 };
 
 template<typename _It, typename _TContext>
@@ -841,6 +842,21 @@ void DerefLValueA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *p
     }
 }
 
+void SetIterationVariableA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<ForEachLoop>()->IterationVariable = pContext->ScratchString();
+    }
+}
+void SetIsReferenceA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<ForEachLoop>()->IsReference = true;
+    }
+}
+
 SCISyntaxParser::SCISyntaxParser() :
     oppar(char_p("(")),
     clpar(char_p(")")),
@@ -853,6 +869,7 @@ SCISyntaxParser::SCISyntaxParser() :
     equalSign(char_p("=")),
     question(char_p("?")),
     period(char_p("*")),
+    ampersand(char_p("&")),
     alphanumAsmLabel_p(AlphanumP),
     selector_send_p(SelectorP_Term<':'>),
     propget_p(SelectorP_Term<'?'>),
@@ -1016,6 +1033,13 @@ void SCISyntaxParser::Load()
         >> wrapped_code_block[AddLooperCodeBlockA]
         >> *statement[AddStatementA<ForLoop>];
 
+    foreach_loop =
+        keyword_p("foreach")[SetStatementA<ForEachLoop>]
+        >> -ampersand[SetIsReferenceA]
+        >> general_token[SetIterationVariableA]
+        >> statement[SetStatementA<ForEachLoop>]
+        >> *statement[AddStatementA<ForEachLoop>];
+
     case_statement =
         alwaysmatch_p[StartStatementA]
         >> (oppar[SetStatementA<CaseStatement>]
@@ -1164,6 +1188,7 @@ void SCISyntaxParser::Load()
         if_statement |
         while_loop |
         for_loop |
+        foreach_loop |
         cond_statement |
         switchto_statement |
         switch_statement |
@@ -1653,6 +1678,52 @@ void _ProcessClassForVerbHandlers(Script &script, ClassDefinition &theClass)
     }
 }
 
+void _ProcessForEach(ICompileLog &log, Script &script)
+{
+#if 0
+
+    // Re-work conds into if-elses.
+    EnumScriptElements<ForEachLoop>(script,
+        [&log, &script](ForEachLoop &theForEach)
+    {
+        {
+            // For now, just support arrays
+            // In the future, we could support params and lists.
+            
+            // This turns this:
+            // (foreach boop buffer
+            //     (boop x: 0)
+            // )
+            //
+            // Into:
+            // (for ((= i 0)) (< i &size buffer) ((++ i))
+            //     ([buffer i] x: 0)
+            // )
+            //
+            // This requires making a new iteration variable.
+
+            unique_ptr<ForLoop> forLoop = std::make_unique<ForLoop>();
+
+            string indexerName = "i"; // TODO this will have to be unique.
+
+            // Buffer name?
+
+            // Condition
+            unique_ptr<BinaryOp> condition = make_unique<BinaryOp>(BinaryOperator::LessThan);
+
+            forLoop->SetCondition(
+                make_unique<ConditionalExpression>(
+                    );
+                );
+
+
+            theForEach.FinalCode.push_back(move(forLoop));
+        }
+    }
+
+#endif
+}
+
 // 
 // Fix up scripts so that they conform to standards. Differences in the SCI syntax make
 // it difficult to get the script OM in its final state just in the parsing phase.
@@ -1680,6 +1751,8 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
     }
         );
 
+    // Re-work foreach's into for loops
+    _ProcessForEach(*pLog, script);
 
     // Re-work conds into if-elses.
     EnumScriptElements<CondStatement>(script,

@@ -491,6 +491,31 @@ namespace sci
         VerbUsage _verbUsage;
     };
 
+    class ForEachLoop : public SyntaxNode, public StatementsNode, public OneStatementNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeForEach)
+    public:
+        ForEachLoop() : IsReference(false) {}
+        ForEachLoop(ForEachLoop &src) = delete;
+        ForEachLoop& operator=(ForEachLoop& src) = delete;
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+
+        void OutputSourceCode(SourceCodeWriter &out) const {}
+
+        // The collection is in _statement1, and the inner code is in _segments.
+        std::string IterationVariable;
+        bool IsReference;
+    
+        // Until the syntax parser processes it all into this:
+        SyntaxNodeVector FinalCode;
+    };
+
     //
     // Assignment statement (e.g. += foo 1)
     //

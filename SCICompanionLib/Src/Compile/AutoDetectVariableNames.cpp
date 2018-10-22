@@ -436,6 +436,7 @@ public:
     void Visit(const ExternDeclaration &externDecl) override {}
     void Visit(const VerbClauseStatement &verbClause) override {}
     void Visit(const VerbHandlerDefinition &verbHandler) override {}
+    void Visit(const ForEachLoop &foreachLoop) override {}
     void Visit(const GrammarPart &verbHandler) override {}
     void Visit(const GrammarRule &verbHandler) override {}
 
@@ -550,6 +551,7 @@ public:
     void Visit(const ExternDeclaration &externDecl) override {}
     void Visit(const VerbClauseStatement &verbClause) override {}
     void Visit(const VerbHandlerDefinition &verbHandler) override {}
+    void Visit(const ForEachLoop &forEachLoop) override {}
     void Visit(const GrammarPart &verbHandler) override {}
     void Visit(const GrammarRule &verbHandler) override {}
 

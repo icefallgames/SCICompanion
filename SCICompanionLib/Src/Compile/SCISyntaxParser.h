@@ -121,6 +121,7 @@ private:
     ParserSCI verb_handler_decl;
     ParserSCI verb_clause_verbs;
     ParserSCI verb_clause_nouns;
+    ParserSCI foreach_loop;
 
     // Non-code parsers:
     ParserSCI classdef_file;
@@ -179,5 +180,6 @@ private:
     ParserSCI equalSign;
     ParserSCI question;
     ParserSCI period;
+    ParserSCI ampersand;
 };
 

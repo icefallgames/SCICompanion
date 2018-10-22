@@ -174,6 +174,15 @@ void WhileLoop::Traverse(IExploreNode &en)
 	_innerCondition->Traverse(en);
 	ForwardTraverse2(_segments, en);
 }
+void ForEachLoop::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+    if (_statement1)
+    {
+        _statement1->Traverse(en);
+    }
+    ForwardTraverse2(_segments, en);
+}
 void Script::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);
