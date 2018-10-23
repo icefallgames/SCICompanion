@@ -69,6 +69,15 @@ void _AddAssignment(StatementsNode &method, const string &lvalueName, const stri
     _AddStatement(method, std::move(pEquals));
 }
 
+unique_ptr<sci::SyntaxNode> _MakeBinaryOp(BinaryOperator op, std::unique_ptr<sci::SyntaxNode> one, std::unique_ptr<sci::SyntaxNode> two)
+{
+    unique_ptr<BinaryOp> binop = make_unique<BinaryOp>();
+    binop->Operator = op;
+    binop->SetStatement1(move(one));
+    binop->SetStatement2(move(two));
+    return unique_ptr<SyntaxNode>(move(binop));
+}
+
 void _AddBasicSwitch(MethodDefinition &method, const string &switchValue, const string &case0Comments)
 {
     unique_ptr<SwitchStatement> pSwitch = std::make_unique<SwitchStatement>();
@@ -85,6 +94,20 @@ void _AddBasicSwitch(MethodDefinition &method, const string &switchValue, const 
 
     // Add the switch to the method
     _AddStatement(method, std::move(pSwitch));
+}
+
+unique_ptr<SyntaxNode> _MakeSimpleSend(const string &objectName, const string &propName)
+{
+    unique_ptr<SendCall> pSend = std::make_unique<SendCall>();
+    pSend->SetName(objectName);
+
+    // Create the send param to add to the send call
+    unique_ptr<SendParam> pParam = std::make_unique<SendParam>();
+    pParam->SetName(propName);
+    pParam->SetIsMethod(false);
+    pSend->AddSendParam(move(pParam));
+
+    return unique_ptr<SyntaxNode>(move(pSend));
 }
 
 // parameter may be empty.

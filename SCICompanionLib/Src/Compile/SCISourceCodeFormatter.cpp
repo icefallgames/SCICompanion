@@ -1208,6 +1208,10 @@ public:
         _MaybeNewLineIndent();
 
         GO_INLINE;
+        if (lValue.IsDeref)
+        {
+            out.out << "*";
+        }
         if (lValue.HasIndexer())
         {
             out.out << "[";

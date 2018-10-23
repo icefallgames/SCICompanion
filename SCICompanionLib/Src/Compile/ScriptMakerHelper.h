@@ -30,10 +30,11 @@ void _AddComment(_T &method, const std::string &comment, sci::CommentType type)
 void _AddBasicSwitch(sci::MethodDefinition &method, const std::string &switchValue, const std::string &case0Comments);
 
 void _AddSendCall(sci::MethodDefinition &method, const std::string &objectName, const std::string &methodName, const std::string &parameter, bool isVariable = false);
-
+std::unique_ptr<sci::SyntaxNode> _MakeSimpleSend(const std::string &objectName, const std::string &propName);
 void _SetSendVariableTarget(sci::SendCall &send, const std::string &target);
 
 std::unique_ptr<sci::SyntaxNode> _MakeTokenStatement(const std::string &token);
 std::unique_ptr<sci::SyntaxNode> _MakeStringStatement(const std::string &token, sci::ValueType valueType);
 std::unique_ptr<sci::SyntaxNode> _MakeNumberStatement(int16_t w);
 std::unique_ptr<sci::CodeBlock> _WrapInCodeBlock(std::unique_ptr<sci::SyntaxNode> pNode);
+std::unique_ptr<sci::SyntaxNode> _MakeBinaryOp(BinaryOperator op, std::unique_ptr<sci::SyntaxNode> one, std::unique_ptr<sci::SyntaxNode> two);

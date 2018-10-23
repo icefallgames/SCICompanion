@@ -1679,6 +1679,51 @@ void _ProcessClassForVerbHandlers(Script &script, ClassDefinition &theClass)
     }
 }
 
+bool _IsItADeclaredVariable(const VariableDeclVector &varDecls, const string &name)
+{
+    return find_if(varDecls.begin(), varDecls.end(), [&name](const auto &varDecl) { return varDecl->GetName() == name; }) != varDecls.end();
+}
+
+void _ReplaceIterationVariable(ICompileLog &log, Script &script, ForEachLoop &theForEach, const std::string &iterationVariableOrig, const std::string &newIterationVariable)
+{
+    // Now replace the iteration variable with the newIterationVariable
+    // Replace the iteration variable with [bufferName loopIndexVariable]
+    EnumScriptElements<LValue>(theForEach,
+        [&log, &script, &iterationVariableOrig, &newIterationVariable](LValue &lValue)
+    {
+        if (lValue.GetName() == iterationVariableOrig)
+        {
+            // This is us
+            if (lValue.HasIndexer())
+            {
+                log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), lValue.GetPosition().Line()));
+            }
+            lValue.SetName(newIterationVariable);
+        }
+    });
+    EnumScriptElements<ComplexPropertyValue>(theForEach,
+        [&log, &script, &iterationVariableOrig, &newIterationVariable](ComplexPropertyValue &propValue)
+    {
+        if ((propValue.GetType() == ValueType::Token) && (propValue.GetStringValue() == iterationVariableOrig))
+        {
+            // This is us
+            if (propValue.GetIndexer())
+            {
+                log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), propValue.GetPosition().Line()));
+            }
+            propValue.SetValue(newIterationVariable, ValueType::Token);
+        }
+    });
+    EnumScriptElements<SendCall>(theForEach,
+        [&log, &script, &iterationVariableOrig, &newIterationVariable](SendCall &theSend)
+    {
+        if (theSend.GetTargetName() == iterationVariableOrig)
+        {
+            // This is us - if we have a tempvar we can just set a name:
+            theSend.SetName(newIterationVariable);
+        }
+    });
+}
 
 void _ProcessForEach(ICompileLog &log, Script &script, FunctionBase &func, ForEachLoop &theForEach, int variableGenHint)
 {
@@ -1698,11 +1743,7 @@ void _ProcessForEach(ICompileLog &log, Script &script, FunctionBase &func, ForEa
     //
     // This requires making a new iteration variable.
 
-    unique_ptr<ForLoop> forLoop = std::make_unique<ForLoop>();
-
     // Come up with a good loop index name.
-    string loopIndexName = (variableGenHint < 26) ? fmt::format("i_{}", (char)(variableGenHint + 'A')) : fmt::format("i_{}", variableGenHint);
-    func.GetVariablesNC().push_back(make_unique<VariableDecl>(loopIndexName));
 
     string iterationVariableOrig = theForEach.IterationVariable;
 
@@ -1716,6 +1757,8 @@ void _ProcessForEach(ICompileLog &log, Script &script, FunctionBase &func, ForEa
         func.GetVariablesNC().push_back(make_unique<VariableDecl>(newIterationVariable));
     }
 
+    bool isBuffer = true;
+
     // Buffer name?
     string bufferName = "INVALID";
     if (theForEach.GetStatement1()->GetNodeType() == sci::NodeType::NodeTypeComplexValue)
@@ -1724,6 +1767,10 @@ void _ProcessForEach(ICompileLog &log, Script &script, FunctionBase &func, ForEa
         if (collection.GetType() == ValueType::Token)
         {
             bufferName = collection.GetStringValue();
+            // Now, if this bufferName is a local or temp var, then we can use &sizeof.
+            // Otherwise, we'll assume it's a FixedList... Or rather, an object with elements and size properties.
+            //bool isBuffer = find_if(func.GetVariables().begin(), func.GetVariables().end(), [&bufferName](const std::unique_ptr<VariableDecl> &varDecl) { return varDecl->GetName() == bufferName; }) != func.GetVariables().end();
+            isBuffer = _IsItADeclaredVariable(func.GetVariables(), bufferName) || _IsItADeclaredVariable(script.GetScriptVariables(), bufferName);
         }
         else
         {
@@ -1736,136 +1783,217 @@ void _ProcessForEach(ICompileLog &log, Script &script, FunctionBase &func, ForEa
     }
     // else it would be some statement...
 
-    // Condition
-    unique_ptr<BinaryOp> lessThan = make_unique<BinaryOp>(BinaryOperator::LessThan);
-    lessThan->SetStatement1(_MakeTokenStatement(loopIndexName));
-    lessThan->SetStatement2(_MakeStringStatement(bufferName, ValueType::ArraySize));
-    unique_ptr<ConditionalExpression> condition = make_unique<ConditionalExpression>();
-    condition->AddStatement(move(lessThan));
-    forLoop->SetCondition(move(condition));
-
-    // Initializer
-    unique_ptr<Assignment> theEquals = make_unique<Assignment>();
-    theEquals->Operator = AssignmentOperator::Assign;
-    theEquals->SetVariable(make_unique<LValue>(loopIndexName));
-    theEquals->SetStatement1(_MakeNumberStatement(0));
-    forLoop->SetCodeBlock(_WrapInCodeBlock(move(theEquals)));
-
-    // Looper
-    unique_ptr<UnaryOp> thePlusPlus = make_unique<UnaryOp>();
-    thePlusPlus->Operator = UnaryOperator::Increment;
-    thePlusPlus->SetStatement1(_MakeTokenStatement(loopIndexName));
-    forLoop->SetLooper(_WrapInCodeBlock(move(thePlusPlus)));
-
-    if (!isReference)
+    if (isBuffer)
     {
-        // Now replace the iteration variable with the newIterationVariable
-        // Replace the iteration variable with [bufferName loopIndexVariable]
-        EnumScriptElements<LValue>(theForEach,
-            [&log, &script, &iterationVariableOrig, &newIterationVariable](LValue &lValue)
+        string loopIndexName = (variableGenHint < 26) ? fmt::format("i_{}", (char)(variableGenHint + 'A')) : fmt::format("i_{}", variableGenHint);
+        func.GetVariablesNC().push_back(make_unique<VariableDecl>(loopIndexName));
+
+
+        unique_ptr<ForLoop> forLoop = std::make_unique<ForLoop>();
+
+        // Condition
+        unique_ptr<BinaryOp> lessThan = make_unique<BinaryOp>(BinaryOperator::LessThan);
+        lessThan->SetStatement1(_MakeTokenStatement(loopIndexName));
+        lessThan->SetStatement2(_MakeStringStatement(bufferName, ValueType::ArraySize));
+        unique_ptr<ConditionalExpression> condition = make_unique<ConditionalExpression>();
+        condition->AddStatement(move(lessThan));
+        forLoop->SetCondition(move(condition));
+
+        // Initializer
+        unique_ptr<Assignment> theEquals = make_unique<Assignment>();
+        theEquals->Operator = AssignmentOperator::Assign;
+        theEquals->SetVariable(make_unique<LValue>(loopIndexName));
+        theEquals->SetStatement1(_MakeNumberStatement(0));
+        forLoop->SetCodeBlock(_WrapInCodeBlock(move(theEquals)));
+
+        // Looper
+        unique_ptr<UnaryOp> thePlusPlus = make_unique<UnaryOp>();
+        thePlusPlus->Operator = UnaryOperator::Increment;
+        thePlusPlus->SetStatement1(_MakeTokenStatement(loopIndexName));
+        forLoop->SetLooper(_WrapInCodeBlock(move(thePlusPlus)));
+
+        if (!isReference)
         {
-            if (lValue.GetName() == iterationVariableOrig)
+            _ReplaceIterationVariable(log, script, theForEach, iterationVariableOrig, newIterationVariable);
+        }
+        else
+        {
+            // Replace the iteration variable with [bufferName loopIndexVariable]
+            EnumScriptElements<LValue>(theForEach,
+                [&log, &script, &iterationVariableOrig, &bufferName, &loopIndexName](LValue &lValue)
             {
-                // This is us
-                if (lValue.HasIndexer())
+                if (lValue.GetName() == iterationVariableOrig)
                 {
-                    log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), lValue.GetPosition().Line()));
+                    // This is us
+                    if (lValue.HasIndexer())
+                    {
+                        log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), lValue.GetPosition().Line()));
+                    }
+                    lValue.SetName(bufferName);
+                    lValue.SetIndexer(_MakeTokenStatement(loopIndexName));
                 }
-                lValue.SetName(newIterationVariable);
-            }
-        });
-        EnumScriptElements<ComplexPropertyValue>(theForEach,
-            [&log, &script, &iterationVariableOrig, &newIterationVariable](ComplexPropertyValue &propValue)
-        {
-            if ((propValue.GetType() == ValueType::Token) && (propValue.GetStringValue() == iterationVariableOrig))
+            });
+            EnumScriptElements<ComplexPropertyValue>(theForEach,
+                [&log, &script, &iterationVariableOrig, &bufferName, &loopIndexName](ComplexPropertyValue &propValue)
             {
-                // This is us
-                if (propValue.GetIndexer())
+                if ((propValue.GetType() == ValueType::Token) && (propValue.GetStringValue() == iterationVariableOrig))
                 {
-                    log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), propValue.GetPosition().Line()));
+                    // This is us
+                    if (propValue.GetIndexer())
+                    {
+                        log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), propValue.GetPosition().Line()));
+                    }
+                    propValue.SetValue(bufferName, ValueType::Token);
+                    propValue.SetIndexer(_MakeTokenStatement(loopIndexName));
                 }
-                propValue.SetValue(newIterationVariable, ValueType::Token);
-            }
-        });
-        EnumScriptElements<SendCall>(theForEach,
-            [&log, &script, &iterationVariableOrig, &newIterationVariable](SendCall &theSend)
-        {
-            if (theSend.GetTargetName() == iterationVariableOrig)
+            });
+            EnumScriptElements<SendCall>(theForEach,
+                [&log, &script, &iterationVariableOrig, &bufferName, &loopIndexName](SendCall &theSend)
             {
-                // This is us - if we have a tempvar we can just set a name:
-                theSend.SetName(newIterationVariable);
-            }
-        });
+                if (theSend.GetTargetName() == iterationVariableOrig)
+                {
+                    // This is us - if we have a tempvar we can just set a name, but
+                    // theSend.SetName()
+                    // Otherwise, we need to mess with the sendcall to change the target to [bufferName loopIndexName]
+                    unique_ptr<LValue> lValue = make_unique<LValue>(bufferName);
+                    lValue->SetIndexer(_MakeTokenStatement(loopIndexName));
+                    theSend.SetLValue(move(lValue));
+                    theSend.SetName(""); // So we use the LValue
+                }
+            });
+
+        }
+
+        // Transfer code to forloop
+        swap(forLoop->GetStatements(), theForEach.GetStatements());
+
+        if (!isReference)
+        {
+            // Put in one of these at the beginning of the forloop body: (= newIterationVariable [buffer loopIndexName])
+            unique_ptr<Assignment> loopAssignment = make_unique<Assignment>();
+            loopAssignment->Operator = AssignmentOperator::Assign;
+            loopAssignment->SetVariable(make_unique<LValue>(newIterationVariable));
+            unique_ptr<ComplexPropertyValue> loopAssignmentValue = make_unique<ComplexPropertyValue>();
+            loopAssignmentValue->SetValue(bufferName, ValueType::Token);
+            loopAssignmentValue->SetIndexer(_MakeTokenStatement(loopIndexName));
+            loopAssignment->SetStatement1(move(loopAssignmentValue));
+            forLoop->GetStatements().insert(forLoop->GetStatements().begin(), move(loopAssignment));
+        }
+
+        // Our final thing is just one statement, but it might not be for more complex iterators
+        theForEach.FinalCode.push_back(move(forLoop));
     }
     else
     {
-        // Replace the iteration variable with [bufferName loopIndexVariable]
-        EnumScriptElements<LValue>(theForEach,
-            [&log, &script, &iterationVariableOrig, &bufferName, &loopIndexName](LValue &lValue)
+        // A while loop makes more sense for these things.
+        unique_ptr<WhileLoop> whileLoop = std::make_unique<WhileLoop>();
+
+        string curPtrName = (variableGenHint < 26) ? fmt::format("curPtr_{}", (char)(variableGenHint + 'A')) : fmt::format("curPtr_{}", variableGenHint);
+        func.GetVariablesNC().push_back(make_unique<VariableDecl>(curPtrName));
+        string endPtrName = (variableGenHint < 26) ? fmt::format("endPtr_{}", (char)(variableGenHint + 'A')) : fmt::format("endPtr_{}", variableGenHint);
+        func.GetVariablesNC().push_back(make_unique<VariableDecl>(endPtrName));
+
+        // Let's start with this:
+        // (= curPtr (gCast elements?))
+        // (= endPtr (+ curPtr (*2 (gCast size ? ))))
+        unique_ptr<Assignment> assignCurPtr = make_unique<Assignment>();
+        assignCurPtr->Operator = AssignmentOperator::Assign;
+        assignCurPtr->SetVariable(make_unique<LValue>(curPtrName));
+        assignCurPtr->SetStatement1(_MakeSimpleSend(bufferName, "elements"));
+        theForEach.FinalCode.push_back(move(assignCurPtr));
+
+        unique_ptr<Assignment> assignEndPtr = make_unique<Assignment>();
+        assignEndPtr->Operator = AssignmentOperator::Assign;
+        assignEndPtr->SetVariable(make_unique<LValue>(endPtrName));
+        unique_ptr<SyntaxNode> mult = _MakeBinaryOp(BinaryOperator::Multiply, _MakeNumberStatement(2), _MakeSimpleSend(bufferName, "size"));
+        unique_ptr<SyntaxNode> add = _MakeBinaryOp(BinaryOperator::Add, _MakeTokenStatement(curPtrName), move(mult));
+        assignEndPtr->SetStatement1(move(add));
+        theForEach.FinalCode.push_back(move(assignEndPtr));
+
+        // Now the bulk of the loop. We need this:
+        //(while (< curElement lastElement)
+        //      ...stuff...
+        //     (+= curPtr 2)
+        //)
+        unique_ptr<ConditionalExpression> condition = make_unique<ConditionalExpression>();
+        condition->AddStatement(_MakeBinaryOp(BinaryOperator::LessThan, _MakeTokenStatement(curPtrName), _MakeTokenStatement(endPtrName)));
+        whileLoop->SetCondition(move(condition));
+
+        // Now the meat of the loop
+        if (!isReference)
         {
-            if (lValue.GetName() == iterationVariableOrig)
+            // This is the same as in a buffer-based foreach
+            _ReplaceIterationVariable(log, script, theForEach, iterationVariableOrig, newIterationVariable);
+        }
+        else
+        {
+            // Replace the iteration variable with *newIterationVariable
+            EnumScriptElements<LValue>(theForEach,
+                [&log, &script, &iterationVariableOrig, &curPtrName](LValue &lValue)
             {
-                // This is us
-                if (lValue.HasIndexer())
+                if (lValue.GetName() == iterationVariableOrig)
                 {
-                    log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), lValue.GetPosition().Line()));
+                    // This is us
+                    if (lValue.HasIndexer())
+                    {
+                        log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), lValue.GetPosition().Line()));
+                    }
+                    lValue.SetName(curPtrName);
+                    lValue.IsDeref = true;
                 }
-                lValue.SetName(bufferName);
-                lValue.SetIndexer(_MakeTokenStatement(loopIndexName));
-            }
-        });
-        EnumScriptElements<ComplexPropertyValue>(theForEach,
-            [&log, &script, &iterationVariableOrig, &bufferName, &loopIndexName](ComplexPropertyValue &propValue)
-        {
-            if ((propValue.GetType() == ValueType::Token) && (propValue.GetStringValue() == iterationVariableOrig))
+            });
+            EnumScriptElements<ComplexPropertyValue>(theForEach,
+                [&log, &script, &iterationVariableOrig, &curPtrName](ComplexPropertyValue &propValue)
             {
-                // This is us
-                if (propValue.GetIndexer())
+                if ((propValue.GetType() == ValueType::Token) && (propValue.GetStringValue() == iterationVariableOrig))
                 {
-                    log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), propValue.GetPosition().Line()));
+                    // This is us
+                    if (propValue.GetIndexer())
+                    {
+                        log.ReportResult(CompileResult("An iteration variable can not be indexed.", script.GetScriptId(), propValue.GetPosition().Line()));
+                    }
+                    propValue.SetValue(curPtrName, ValueType::Deref);
                 }
-                propValue.SetValue(bufferName, ValueType::Token);
-                propValue.SetIndexer(_MakeTokenStatement(loopIndexName));
-            }
-        });
-        EnumScriptElements<SendCall>(theForEach,
-            [&log, &script, &iterationVariableOrig, &bufferName, &loopIndexName](SendCall &theSend)
-        {
-            if (theSend.GetTargetName() == iterationVariableOrig)
+            });
+            EnumScriptElements<SendCall>(theForEach,
+                [&log, &script, &iterationVariableOrig, &curPtrName](SendCall &theSend)
             {
-                // This is us - if we have a tempvar we can just set a name, but
-                // theSend.SetName()
-                // Otherwise, we need to mess with the sendcall to change the target to [bufferName loopIndexName]
-                unique_ptr<LValue> lValue = make_unique<LValue>(bufferName);
-                lValue->SetIndexer(_MakeTokenStatement(loopIndexName));
-                theSend.SetLValue(move(lValue));
-                theSend.SetName(""); // So we use the LValue
-            }
-        });
+                if (theSend.GetTargetName() == iterationVariableOrig)
+                {
+                    // This is us - if we have a tempvar we can just set a name, but
+                    // theSend.SetName()
+                    // Otherwise, we need to mess with the sendcall to change the target to *newIterationVariable
+                    // I don't even think this would compile without foreach! Can't have (*ptr poop:) -> we'd mistake it for multiplcation.
+                    unique_ptr<LValue> lValue = make_unique<LValue>(curPtrName);
+                    lValue->IsDeref = true;
+                    theSend.SetLValue(move(lValue));
+                    theSend.SetName(""); // So we use the LValue
+                }
+            });
+        }
 
+        // Transfer code to whileLoop
+        swap(whileLoop->GetStatements(), theForEach.GetStatements());
+
+        if (!isReference)
+        {
+            // Put in one of these at the beginning of the forloop body: (= newIterationVariable *cutPtr)
+            unique_ptr<Assignment> loopAssignment = make_unique<Assignment>();
+            loopAssignment->Operator = AssignmentOperator::Assign;
+            loopAssignment->SetVariable(make_unique<LValue>(newIterationVariable));
+            loopAssignment->SetStatement1(_MakeStringStatement(curPtrName, ValueType::Deref));
+            whileLoop->GetStatements().insert(whileLoop->GetStatements().begin(), move(loopAssignment));
+        }
+        // Then the increment at the end
+        unique_ptr<Assignment> loopIncrement = make_unique<Assignment>();
+        loopIncrement->Operator = AssignmentOperator::Add;
+        loopIncrement->SetVariable(make_unique<LValue>(curPtrName));
+        loopIncrement->SetStatement1(_MakeNumberStatement(2));
+        whileLoop->GetStatements().push_back(move(loopIncrement));
+
+
+        theForEach.FinalCode.push_back(move(whileLoop));
     }
-
-
-    // Transfer code to forloop
-    swap(forLoop->GetStatements(), theForEach.GetStatements());
-    if (!isReference)
-    {
-        // Put in one of these at the beginning of the forloop body: (= newIterationVariable [buffer loopIndexName])
-        unique_ptr<Assignment> loopAssignment = make_unique<Assignment>();
-        loopAssignment->Operator = AssignmentOperator::Assign;
-        loopAssignment->SetVariable(make_unique<LValue>(newIterationVariable));
-        unique_ptr<ComplexPropertyValue> loopAssignmentValue = make_unique<ComplexPropertyValue>();
-        loopAssignmentValue->SetValue(bufferName, ValueType::Token);
-        loopAssignmentValue->SetIndexer(_MakeTokenStatement(loopIndexName));
-        loopAssignment->SetStatement1(move(loopAssignmentValue));
-        forLoop->GetStatements().insert(forLoop->GetStatements().begin(), move(loopAssignment));
-    }
-
-
-    // TODO: We still need to add our indexingVariable to the function.
-
-    // Our final thing is just one statement, but it might not be for more complex iterators
-    theForEach.FinalCode.push_back(move(forLoop));
 }
 
 

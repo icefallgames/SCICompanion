@@ -1475,7 +1475,6 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                 // "send" though.  So it's possible the indexer is not there.
                 const SyntaxNode *pIndexer = _object3->GetIndexer();
 
-                BYTE bOpcodeMod = VO_LOAD | VO_ACC;
                 WORD wNumber;
                 ResolvedToken tokenType = context.LookupToken(this, _object3->GetName(), wNumber, wObjectSpecies);
                 switch (tokenType)
@@ -1484,11 +1483,22 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                 case ResolvedToken::ScriptVariable:
                 case ResolvedToken::Parameter:
                 case ResolvedToken::TempVariable:
-                    VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | bOpcodeMod, GetLineNumber(), pIndexer);
+                    VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | VO_LOAD | VO_ACC, GetLineNumber(), pIndexer);
+                    if (_object3->IsDeref)
+                    {
+                        // Value at address in acc will now be put in acc:
+                        WriteSimple(context, Opcode::LDM, GetLineNumber());
+                    }
                     break;
                 case ResolvedToken::ClassProperty:
                     // Load the property into the accumulator
                     LoadProperty(context, wNumber, false, GetLineNumber());
+                    if (_object3->IsDeref)
+                    {
+                        // Value at address in acc will now be put in acc:
+                        WriteSimple(context, Opcode::LDM, GetLineNumber());
+                    }
+
                     if (pIndexer)
                     {
                         context.ReportError(this, "Properties cannot be indexed: %s.", _object3->GetName().c_str());
