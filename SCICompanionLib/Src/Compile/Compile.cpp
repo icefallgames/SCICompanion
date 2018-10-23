@@ -1790,6 +1790,14 @@ CodeResult ForEachLoop::OutputByteCode(CompileContext &context) const
     assert(!_statement1);
     assert(_segments.size() == 0);
 
+    // However, we leave the iteration variable in to ensure it doesn't conflict with any real variables.
+    uint16_t dummyIndex;
+    SpeciesIndex si;
+    if (ResolvedToken::Unknown != context.LookupToken(nullptr, IterationVariable, dummyIndex, si))
+    {
+        context.ReportError(this, "'%s' is already in use and can't be used as an iteration variable.", IterationVariable.c_str());
+    }
+
     CodeResult result = SingleStatementVectorOutputHelper(FinalCode, context, &wBytes);
     return CodeResult(wBytes, result.GetType());
 }
