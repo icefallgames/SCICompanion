@@ -117,7 +117,7 @@ OperandType OpArgTypes_SCI0[TOTAL_OPCODES][3] = {
 	/*rest*/     {otPVAR,otEMPTY,otEMPTY},
 	/*lea*/      {otUINT,otUINT,otEMPTY},
 	/*selfID*/   {otEMPTY,otEMPTY,otEMPTY},
-	/*stm*/         {otEMPTY,otEMPTY,otEMPTY},
+	/*get*/      {otUINT16, otEMPTY, otEMPTY}, // it's a selector
 	/*pprev*/    {otEMPTY,otEMPTY,otEMPTY},
 	/*pToa*/     {otPROP,otEMPTY,otEMPTY},
 /*50*/
@@ -431,7 +431,7 @@ char *OpcodeNames[132]={
 	"&rest",
 	"lea",
 	"selfID",  
-    "stm",
+    "get",
 	"pprev",
 	"pToa",
 	"aTop",

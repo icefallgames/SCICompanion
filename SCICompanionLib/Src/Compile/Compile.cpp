@@ -1352,6 +1352,9 @@ void _UpdateSecondOperand(code_pos instruction, WORD wValue)
     instruction->update_second_operand(wValue);
 }
 
+int g_countGets = 0;
+int g_countGetsNot = 0;
+
 CodeResult SendCall::OutputByteCode(CompileContext &context) const
 {
     context.NotifySendOrProcCall();
@@ -1405,6 +1408,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         bOpSend = Opcode::SELF;
     }
 
+    bool simplifiedToGet = false;
     UpdateOperandFn updateOperand = nullptr;
     code_pos sendPushInstruction = context.code().get_undetermined();
 
@@ -1541,9 +1545,25 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         else
         {
             assert((bOpSend == Opcode::SELF) || (bOpSend == Opcode::SEND));
-            context.code().inst(GetLineNumber(), bOpSend, NumberOfSendPushesSentinel);
-            sendPushInstruction = context.code().get_cur_pos();
-            updateOperand = _UpdateFirstOperand;
+
+            uint16_t wSelector;
+            bool isSimplePropertyGet = (_params.size() == 1) && !_params[0]->ContainsRest() && (!_params[0]->IsMethod()) && _params[0]->GetStatements().empty() && context.LookupSelector(_params[0]->GetSelectorName(), wSelector);
+            if ((bOpSend == Opcode::SEND) && isSimplePropertyGet)
+            {
+                // Optimize to "Get #selector" in the case of
+                // (pFoo x?)
+                simplifiedToGet = true;
+                context.code().inst(GetLineNumber(), Opcode::GET, wSelector);
+
+                // REVIWE -> also test for (pFoo x: 4) ... since we could optimize for that too.
+                // But we'd need to know it's a property, so we could only do that sometimes.
+            }
+            else
+            {
+                context.code().inst(GetLineNumber(), bOpSend, NumberOfSendPushesSentinel);
+                sendPushInstruction = context.code().get_cur_pos();
+                updateOperand = _UpdateFirstOperand;
+            }
         }
 
         if (queryWrap.query.SendOrProcCallWasOutput)
@@ -1566,6 +1586,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
     WORD wSendPushes = 0;
     SpeciesIndex returnType = DataTypeAny;
 
+    if (!simplifiedToGet)
     {
         if (fFirstCode)
         {

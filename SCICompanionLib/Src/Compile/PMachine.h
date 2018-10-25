@@ -113,7 +113,7 @@ enum class Opcode : uint8_t
     REST = 44,
     LEA = 45,  // load  address of a variable into the acc
     SELFID = 46,  // puts address of self into acc
-    OPCODE47 = 47, 
+    GET = 47,       // Perhaps get/set?
     PPREV = 48,
     PTOA = 49,      // property index to acc
     ATOP = 50,      // acc to property index
