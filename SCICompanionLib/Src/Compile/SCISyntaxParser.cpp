@@ -1769,7 +1769,6 @@ void _ProcessForEach(ICompileLog &log, Script &script, FunctionBase &func, ForEa
             bufferName = collection.GetStringValue();
             // Now, if this bufferName is a local or temp var, then we can use &sizeof.
             // Otherwise, we'll assume it's a FixedList... Or rather, an object with elements and size properties.
-            //bool isBuffer = find_if(func.GetVariables().begin(), func.GetVariables().end(), [&bufferName](const std::unique_ptr<VariableDecl> &varDecl) { return varDecl->GetName() == bufferName; }) != func.GetVariables().end();
             isBuffer = _IsItADeclaredVariable(func.GetVariables(), bufferName) || _IsItADeclaredVariable(script.GetScriptVariables(), bufferName);
         }
         else
