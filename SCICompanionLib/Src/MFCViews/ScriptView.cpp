@@ -428,11 +428,13 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("else"),
     _T("enum"),
     _T("exit"),
+    _T("false"),
     _T("for"),
     _T("foreach"),
     _T("if"),
     _T("mod"),
     _T("not"),
+    _T("null"),
     _T("of"),
     _T("or"),
     _T("repeat"),
@@ -442,6 +444,7 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("super"),
     _T("switch"),
     _T("switchto"),
+    _T("true"),
     _T("while"),
     _T("yield"),
 };
@@ -485,6 +488,8 @@ bool IsCodeLevelKeyword(LangSyntax lang, const std::string &word)
 std::vector<std::string> valueKeywordsSCI =
 {
     "argc",
+    "false",
+    "null",
     "objectFunctionArea",
     "objectInfo",
     "objectLocal",
@@ -496,6 +501,7 @@ std::vector<std::string> valueKeywordsSCI =
     "objectType",
     "scriptNumber",
     "self",
+    "true"
 };
 
 // Keep in alphabetical order

@@ -888,7 +888,7 @@ bool _PreScanPropertyTokenToNumber(CompileContext &context, SyntaxNode *pNode, c
     {
         wValue = 1;
     }
-    else if ((token == "false") || (token == "nullptr"))
+    else if ((token == "false") || (token == "null"))
     {
         wValue = 0;
     }

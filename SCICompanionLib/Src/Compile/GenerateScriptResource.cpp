@@ -573,9 +573,6 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
         {
             // But here it's a section size byte count. i.e. 4 bytes plus byte count of local vars
             // Actually, we're just writing the entire block size.
-            context.ReportWarning(&script, "Persisted Count: %d, localvar blocksize: %d", persistWordCount, (uint16_t)(output.size() - localVarSizeIndex + 2));
-            
-
             write_word(output, localVarSizeIndex, (WORD)(output.size() - localVarSizeIndex + 2));
         }
     }
