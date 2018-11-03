@@ -2430,7 +2430,19 @@ PicCommand CPicView::_EnsurePriorityBarCommand()
         [](PicComponent &pic)
     {
         PicCommand setPriBarsCommand;
-        setPriBarsCommand.CreateSetPriorityBars(g_defaultPriBands16Bit, pic.Traits->SixteenBitPri, pic.Traits->IsVGA);
+
+        uint16_t priLines[ARRAYSIZE(g_defaultPriBands16Bit)];
+        copy(begin(g_defaultPriBands16Bit), end(g_defaultPriBands16Bit), begin(priLines));
+        // Hack for me
+        if (pic.Size.cy == 200)
+        {
+            for (uint16_t &line : priLines)
+            {
+                line += 10;
+            }
+        }
+
+        setPriBarsCommand.CreateSetPriorityBars(priLines, pic.Traits->SixteenBitPri, pic.Traits->IsVGA);
         pic.commands.insert(pic.commands.begin(), setPriBarsCommand);
         return WrapHint(PicChangeHint::EditPicInvalid);
     }
