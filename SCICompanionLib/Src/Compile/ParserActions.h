@@ -220,6 +220,10 @@ void FinishScriptVarA(MatchResult &match, const _TParser *pParser, SyntaxContext
 {
     if (match.Result())
     {
+        if (_Persistable)
+        {
+            pContext->VariableDeclPtr->SetName("." + pContext->VariableDeclPtr->GetName());
+        }
         pContext->VariableDeclPtr->SetIsPersistable(_Persistable);
         pContext->VariableDeclPtr->SetScript(&pContext->Script());
         pContext->Script().AddVariable(move(pContext->VariableDeclPtr));

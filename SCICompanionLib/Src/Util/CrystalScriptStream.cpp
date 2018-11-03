@@ -133,7 +133,8 @@ std::string CScriptStreamLimiter::GetLastWord()
     {
         uint8_t theChar = (uint8_t)pszLine[nChar];
         // & and - are included for Sierra syntax (&tmp, &rest, -info-). Hopefully this doesn't mess up Studio autocomplete.
-        if (isalnum(theChar) || (theChar == '_') || (theChar == '&') || (theChar == '-'))
+        // . is included for support for persisted variables (and . is not used anywhere else, so this should be fine)
+        if (isalnum(theChar) || (theChar == '_') || (theChar == '&') || (theChar == '-') || (theChar == '.'))
         {
             word += theChar;
         }

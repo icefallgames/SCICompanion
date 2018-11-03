@@ -59,7 +59,7 @@ bool IntegerNonZeroP(const ParserSCI *pParser, SyntaxContext *pContext, _It &str
 // Selectors, as far as I can tell, look like this:
 // A-Za-z0-9_-
 // But they must have at least one letter and not start with a number
-template<typename _It>
+template<typename _It, bool _CanStartWithDot = false>
 bool SelectorP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
 {
     bool fRet = false;
@@ -67,7 +67,8 @@ bool SelectorP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
     str.clear();
     char ch = *stream;
     bool hadAlpha = !!isalpha(ch);
-    if (hadAlpha || (ch == '_') || (ch == '-'))     // First character must be a letter or _ or -
+    // First character must be a letter or _ or -
+    if (hadAlpha || (ch == '_') || (ch == '-') || (_CanStartWithDot && (ch == '.')))
     {
         fRet = true;
         str += ch;
@@ -158,10 +159,10 @@ vector<string> SCIKeywords =
     "foreach"
 };
 
-template<typename _It, typename _TContext>
+template<typename _It, typename _TContext, bool _CanStartWithDot = false>
 bool AlphanumPNoKeywordOrTerm(const ParserSCI *pParser, _TContext *pContext, _It &stream)
 {
-    bool fRet = SelectorP(pParser, pContext, stream);
+    bool fRet = SelectorP<_It, _CanStartWithDot>(pParser, pContext, stream);
     if (fRet)
     {
         char chTerm = *stream;
@@ -177,6 +178,12 @@ bool AlphanumPNoKeywordOrTerm(const ParserSCI *pParser, _TContext *pContext, _It
         }
     }
     return fRet;
+}
+
+template<typename _It, typename _TContext>
+bool AlphanumDotPNoKeywordOrTerm(const ParserSCI *pParser, _TContext *pContext, _It &stream)
+{
+    return AlphanumPNoKeywordOrTerm<_It, _TContext, true>(pParser, pContext, stream);
 }
 
 // Same as above, but ignores extra keywords.
@@ -878,6 +885,7 @@ SCISyntaxParser::SCISyntaxParser() :
     asmInstruction_p(AsmInstructionP),
     alphanumNK_p(AlphanumPNoKeywordOrTerm),
     alphanumNK_p2(AlphanumPNoKeywordOrTerm2),
+    alphanumNKdot_p(AlphanumDotPNoKeywordOrTerm),
     alphanumSendToken_p(AlphanumPSendTokenOrTerm),
     alphanum_p(AlphanumP),
     alwaysmatch_p(AlwaysMatchP),
@@ -938,7 +946,7 @@ void SCISyntaxParser::Load()
 
     enumStatement = keyword_p("enum")[InitEnumStartA] >> -integer_p[ErrorA<errInteger>] >> *alphanumNK_p[CreateEnumDefineA];
 
-    general_token = (alphanumNK_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
+    general_token = (alphanumNKdot_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
 
     // Matches #posn
     // Also matches #posn? or #posn: for backwards compatibility.
@@ -1216,7 +1224,7 @@ void SCISyntaxParser::Load()
         (opbracket >> alphanumNK_p[CreateVarDeclA] >> (integer_p[VarDeclSizeA] | alphanumNK_p[VarDeclSizeConstantA])[VarDeclSizeErrorA] >> clbracket) |
         alphanumNK_p[CreateVarDeclA];
 
-    persist_script_var = keyword_p("persist")
+    persist_script_var = keyword_p("persistlocal")
         >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (statement[ScriptVarInitA] | array_init)))[FinishScriptVarA<true>]);
 
     script_var = keyword_p("local")

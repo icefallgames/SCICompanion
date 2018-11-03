@@ -162,6 +162,7 @@ private:
     ParserSCI asmInstruction_p;
     ParserSCI alphanumNK_p;
     ParserSCI alphanumNK_p2;
+    ParserSCI alphanumNKdot_p;
     ParserSCI alphanumSendToken_p;
     ParserSCI alphanum_p;
     ParserSCI alwaysmatch_p;
