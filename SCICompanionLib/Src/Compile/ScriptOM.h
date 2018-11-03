@@ -753,7 +753,9 @@ namespace sci
         void SetSize(uint16_t wSize) { _size.SetValue(wSize); _unspecifiedSize = false; }
         void SetSize(const std::string &sizeConstant) { _size.SetValue(sizeConstant, ValueType::Token); _unspecifiedSize = false; }
         void SetIsUnspecifiedSize(bool unspecified) { _unspecifiedSize = unspecified; }
+        void SetIsPersistable(bool persistable) { _isPersistable = persistable; }
         bool IsUnspecifiedSize() { return _unspecifiedSize; }
+        bool IsPersistable() { return _isPersistable; }
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context) override;
@@ -765,7 +767,8 @@ namespace sci
     private:
         std::string _name;
         PropertyValue _size;
-        bool _unspecifiedSize;  // For script string declarations
+        bool _unspecifiedSize;      // For script string declarations
+        bool _isPersistable;        // Should this be stored in save games.
     };
 
     typedef VariableDecl* VariableDeclPtr;

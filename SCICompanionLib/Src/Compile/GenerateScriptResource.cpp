@@ -468,11 +468,28 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
             // Section 10 for SCI0
             push_word(output, 10);
         }
+
+        // TODO: new stuff
+        size_t localPersistCountIndex = output.size();
+        push_word(output, 0); // How many are persisted?
+
         size_t localVarSizeIndex = output.size();
         push_word(output, 0); // Temporary value.
 
+        uint16_t persistWordCount = 0;
+        bool wrotePersistedWordCount = false;
+
         for (const auto &var : scriptVars)
         {
+            if (!wrotePersistedWordCount && !var->IsPersistable())
+            {
+                // First non-persisted one - this is the word count of persisted ones:
+                write_word(output, localPersistCountIndex, persistWordCount);
+                wrotePersistedWordCount = true;
+
+                context.ReportWarning(&script, "Persisted Count: %d", persistWordCount);
+            }
+
             int size = 0;
             for (auto &value : var->GetStatements())
             {
@@ -513,6 +530,11 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
 
                         push_word(output, pValue->GetNumberValue());
                     }
+
+                    if ((pValue->GetType() != ValueType::Number) && var->IsPersistable())
+                    {
+                        context.ReportError(value.get(), "Persistable locals can only have numeric values.");
+                    }
                 }
                 else
                 {
@@ -530,6 +552,8 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
                 WORD wZeroFill = (var->GetSize() - (WORD)size);
                 output.insert(output.end(), wZeroFill * 2, 0); // WORD = BYTE * 2
             }
+
+            persistWordCount += var->GetSize();
         }
 
         if (separateHeapResource)

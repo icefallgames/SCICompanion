@@ -1216,8 +1216,11 @@ void SCISyntaxParser::Load()
         (opbracket >> alphanumNK_p[CreateVarDeclA] >> (integer_p[VarDeclSizeA] | alphanumNK_p[VarDeclSizeConstantA])[VarDeclSizeErrorA] >> clbracket) |
         alphanumNK_p[CreateVarDeclA];
 
+    persist_script_var = keyword_p("persist")
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (statement[ScriptVarInitA] | array_init)))[FinishScriptVarA<true>]);
+
     script_var = keyword_p("local")
-        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (statement[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (statement[ScriptVarInitA] | array_init)))[FinishScriptVarA<false>]);
 
     // StartFunctionTempVarA is needed to reset "was initializer value set". There are no initializer values for function variables in this syntax.
     function_var_decl = keyword_p("&tmp")[{ StartFunctionTempVarA, ParseAutoCompleteContext::Temp }] >> ++(var_decl[FinishFunctionTempVarA]);
@@ -1384,7 +1387,7 @@ void SCISyntaxParser::Load()
         | selector_section
         | class_def
         | procedures_fwd
-
+        | persist_script_var
         | script_var)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
         >> clpar[GeneralE]);
 

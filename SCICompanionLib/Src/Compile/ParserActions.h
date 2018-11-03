@@ -215,11 +215,12 @@ void ScriptVarInitAutoExpandA(MatchResult &match, const _TParser *pParser, Synta
     }
 }
 
-template<typename _TParser>
+template<bool _Persistable, typename _TParser>
 void FinishScriptVarA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
+        pContext->VariableDeclPtr->SetIsPersistable(_Persistable);
         pContext->VariableDeclPtr->SetScript(&pContext->Script());
         pContext->Script().AddVariable(move(pContext->VariableDeclPtr));
     }

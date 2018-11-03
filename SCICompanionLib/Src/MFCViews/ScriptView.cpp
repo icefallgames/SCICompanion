@@ -362,6 +362,7 @@ std::vector<std::string> topLevelKeywordsSCI =
     _T("include"),
     _T("instance"),
     _T("local"),
+    _T("persist"),
     _T("procedure"),
     _T("public"),
     _T("script#"),

@@ -1352,9 +1352,6 @@ void _UpdateSecondOperand(code_pos instruction, WORD wValue)
     instruction->update_second_operand(wValue);
 }
 
-int g_countGets = 0;
-int g_countGetsNot = 0;
-
 CodeResult SendCall::OutputByteCode(CompileContext &context) const
 {
     context.NotifySendOrProcCall();
@@ -1545,7 +1542,6 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         else
         {
             assert((bOpSend == Opcode::SELF) || (bOpSend == Opcode::SEND));
-
             uint16_t wSelector;
             bool isSimplePropertyGet = (_params.size() == 1) && !_params[0]->ContainsRest() && (!_params[0]->IsMethod()) && _params[0]->GetStatements().empty() && context.LookupSelector(_params[0]->GetSelectorName(), wSelector);
             if ((bOpSend == Opcode::SEND) && isSimplePropertyGet)
@@ -4070,6 +4066,15 @@ void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector
 
 void TrackArraySizes(CompileContext &context, sci::Script &script)
 {
+    // We need to sort these so the persistable ones come first.
+    std::stable_sort(script.GetScriptVariables().begin(), script.GetScriptVariables().end(),
+        [](const auto &a, const auto &b) -> bool
+    {
+        return a->IsPersistable() > b->IsPersistable();
+    }
+
+        );
+
     for (auto &varDecl : script.GetScriptVariables())
     {
         if (varDecl->IsUnspecifiedSize())

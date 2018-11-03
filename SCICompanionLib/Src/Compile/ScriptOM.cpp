@@ -374,7 +374,7 @@ ComplexPropertyValue& ComplexPropertyValue::operator=(ComplexPropertyValue& src)
     return (*this);
 }
 
-VariableDecl::VariableDecl() : StatementsNode(), TypedNode(), _size(1), _unspecifiedSize(false)
+VariableDecl::VariableDecl() : StatementsNode(), TypedNode(), _size(1), _unspecifiedSize(false), _isPersistable(false)
 {
 }
 void VariableDecl::AddSimpleInitializer(const PropertyValue &value)
@@ -382,7 +382,7 @@ void VariableDecl::AddSimpleInitializer(const PropertyValue &value)
     // Add a copy of the property value
     AddStatement(make_unique<PropertyValue>(value));
 }
-VariableDecl::VariableDecl(const std::string &name) : StatementsNode(), TypedNode(), _size(1), _unspecifiedSize(false), _name(name) {}
+VariableDecl::VariableDecl(const std::string &name) : StatementsNode(), TypedNode(), _size(1), _unspecifiedSize(false), _name(name), _isPersistable(false) {}
 
 ClassProperty::ClassProperty(const std::string &str, WORD wValue) : NamedNode(), TypedNode()
 {

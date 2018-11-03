@@ -837,7 +837,7 @@ void StudioSyntaxParser::Load()
     synonyms = keyword_p("synonyms") >> *(squotedstring_p[CreateSynonymA] >> equalSign[GeneralE] >> squotedstring_p[FinishSynonymA]);
 
     script_var = keyword_p("local")
-        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[StudioScriptVarInitA] | array_init)))[FinishScriptVarA]);
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[StudioScriptVarInitA] | array_init)))[FinishScriptVarA<false>]);
 
     script_string = keyword_p("string") >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue[ScriptStringInitA] | string_array_init)))[FinishScriptStringA]);
   
