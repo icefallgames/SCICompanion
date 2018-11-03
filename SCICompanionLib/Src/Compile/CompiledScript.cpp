@@ -657,7 +657,17 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                         // Just a series of WORDs.  The notion of arrays, etc... is not encoded in the resource.
                         // That's all just in source code.  Although arrays can kind of be infered from which ones
                         // are accessed in the script.
-                        uint16_t wNumVars = ((wSectionSize - 4) / 2);
+                        uint16_t wNumVars;
+                        if (this->_version.NewSCI)
+                        {
+                            wNumVars = ((wSectionSize - 6) / 2); // Because a word is taken up by this:
+                            uint16_t numPersistedVars;
+                            byteStream >> numPersistedVars;
+                        }
+                        else
+                        {
+                            wNumVars = ((wSectionSize - 4) / 2);
+                        }
                         for (uint16_t i = 0; fRet && i < wNumVars; i++)
                         {
                             uint16_t w;

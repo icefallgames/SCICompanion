@@ -129,6 +129,7 @@ struct SCIVersion
     bool UsesPolygons;
     bool FixedPalette;
     bool ObjectOffsetBy8;
+    bool NewSCI;    // Gate a bunch of features behind this.
 
     bool operator==(const SCIVersion &src) const;
     bool operator!=(const SCIVersion &src) const;

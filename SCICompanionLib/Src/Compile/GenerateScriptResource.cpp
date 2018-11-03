@@ -469,12 +469,15 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
             push_word(output, 10);
         }
 
-        // TODO: new stuff
-        size_t localPersistCountIndex = output.size();
-        push_word(output, 0); // How many are persisted?
-
-        size_t localVarSizeIndex = output.size();
+        size_t localVarSizeIndex = output.size(); // This is the section block size (for SCI0)
         push_word(output, 0); // Temporary value.
+
+        size_t localPersistCountIndex = 0;
+        if (context.GetVersion().NewSCI)
+        {
+            localPersistCountIndex = output.size();
+            push_word(output, 0); // How many are persisted?
+        }
 
         uint16_t persistWordCount = 0;
         bool wrotePersistedWordCount = false;
@@ -483,11 +486,16 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
         {
             if (!wrotePersistedWordCount && !var->IsPersistable())
             {
-                // First non-persisted one - this is the word count of persisted ones:
-                write_word(output, localPersistCountIndex, persistWordCount);
-                wrotePersistedWordCount = true;
-
-                context.ReportWarning(&script, "Persisted Count: %d", persistWordCount);
+                if (context.GetVersion().NewSCI)
+                {
+                    // First non-persisted one - this is the word count of persisted ones:
+                    write_word(output, localPersistCountIndex, persistWordCount);
+                    wrotePersistedWordCount = true;
+                }
+                else
+                {
+                    context.ReportError(var.get(), "Persistent locals not supported in this version.");
+                }
             }
 
             int size = 0;
@@ -564,6 +572,10 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
         else
         {
             // But here it's a section size byte count. i.e. 4 bytes plus byte count of local vars
+            // Actually, we're just writing the entire block size.
+            context.ReportWarning(&script, "Persisted Count: %d, localvar blocksize: %d", persistWordCount, (uint16_t)(output.size() - localVarSizeIndex + 2));
+            
+
             write_word(output, localVarSizeIndex, (WORD)(output.size() - localVarSizeIndex + 2));
         }
     }

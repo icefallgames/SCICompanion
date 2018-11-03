@@ -934,4 +934,5 @@ void SniffSCIVersion(GameFolderHelper &helper)
     helper.Version.Kernels = _DetectKernelSet(helper);
 
     helper.Version.ObjectOffsetBy8 = !helper.GetIniBool("Version", "NoObjectOffset", helper.Version.SeparateHeapResources);
+    helper.Version.NewSCI = helper.GetIniBool("Version", "NewSCI", false);
 }

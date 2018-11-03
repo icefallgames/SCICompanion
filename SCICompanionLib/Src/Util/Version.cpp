@@ -50,6 +50,7 @@ SCIVersion sciVersion0 =
 	false,
     false,
     false,
+    false,
     false
 };
 
@@ -84,6 +85,7 @@ SCIVersion sciVersion1_EarlyEGA =
     KernelSet::Provided,
     false,
 	false,
+    false,
     false,
     false,
     false
@@ -122,6 +124,7 @@ SCIVersion sciVersion1_Early =
 	false,
     true,
     false,
+    false,
     false
 };
 
@@ -157,6 +160,7 @@ SCIVersion sciVersion1_Mid =
     true,
 	false,
     true,
+    false,
     false,
     false
 };
@@ -194,6 +198,7 @@ SCIVersion sciVersion1_Late =
 	false,
     true,
     false,
+    false,
     false
 };
 
@@ -229,7 +234,8 @@ SCIVersion sciVersion1_1 =
 	false,
     true,
     false,
-    true
+    true,
+    false
 };
 
 SCIVersion sciVersion2 =
@@ -264,7 +270,8 @@ SCIVersion sciVersion2 =
 	true,
     true,
     false,
-    true
+    true,
+    false
 };
 
 bool SCIVersion::operator == (const SCIVersion &src) const
