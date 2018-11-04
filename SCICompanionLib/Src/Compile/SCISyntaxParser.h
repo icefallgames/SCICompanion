@@ -50,6 +50,7 @@ private:
     ParserSCI script_var;
     ParserSCI persist_script_var;
     ParserSCI procedure_decl;
+    ParserSCI inline_decl;
     ParserSCI procedure_base;
     ParserSCI function_var_decl;
     ParserSCI exports;

@@ -431,6 +431,8 @@ namespace sci
 
         // Visitor pattern for double-dispatch
         virtual void Accept(ISyntaxNodeVisitor &visitor) const = 0;
+
+        virtual std::unique_ptr<SyntaxNode> Clone(CompileContext &context) const;
     };
 
     //
@@ -573,6 +575,8 @@ namespace sci
 
 		void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        std::unique_ptr<SyntaxNode> Clone(CompileContext &context) const override;
 	};
 
     // PropertyValues are always passed by value
@@ -597,6 +601,8 @@ namespace sci
 
         void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
+        std::unique_ptr<SyntaxNode> Clone(CompileContext &context) const override;
+
     private:
         std::unique_ptr<SyntaxNode> _pArrayInternal;
     };
@@ -926,6 +932,7 @@ namespace sci
 
         bool _public;
         std::string _class;                 // for class procedures.
+        bool _isInline;
     };
 
     typedef ProcedureDefinition* ProcedurePtr;
@@ -1267,6 +1274,53 @@ namespace sci
         ScriptId _scriptId;
         LangSyntax _language;
     };
+
+
+    template<typename _TFunc>
+    class ReplaceStatementsHelper : public sci::IExploreNode
+    {
+    public:
+        ReplaceStatementsHelper(_TFunc func, CompileContext &context) : _func(func), _context(context) {}
+
+    private:
+        void ExploreNode(sci::SyntaxNode &node, sci::ExploreNodeState state)
+        {
+            if (state == sci::ExploreNodeState::Pre)
+            {
+                StatementsNode *statements = dynamic_cast<StatementsNode*>(&node);
+                if (statements)
+                {
+                    for (std::unique_ptr<SyntaxNode> &statement : statements->GetStatements())
+                    {
+                        _func(_context, statement);
+                    }
+                }
+
+                OneStatementNode *oneStatement = dynamic_cast<OneStatementNode*>(&node);
+                if (oneStatement && oneStatement->GetStatement1())
+                {
+                    _func(_context, oneStatement->GetStatement1Internal());
+                }
+
+                TwoStatementNode *twoStatement = dynamic_cast<TwoStatementNode*>(&node);
+                if (twoStatement && twoStatement->GetStatement2())
+                {
+                    _func(_context, twoStatement->GetStatement2Internal());
+                }
+
+            }
+        }
+
+        CompileContext &_context;
+        _TFunc _func;
+    };
+
+    template<typename _TFunc>
+    void SubstituteStatements(_TFunc func, CompileContext &context, sci::SyntaxNode &node)
+    {
+        ReplaceStatementsHelper<_TFunc> evaluate(func, context);
+        node.Traverse(evaluate);
+    }
 
 }; // namespace sci	
 

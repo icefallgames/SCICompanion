@@ -408,6 +408,19 @@ void CreateProcedureA(MatchResult &match, const _TParser *pParser, SyntaxContext
     }
 }
 
+
+// Function
+template<typename _TParser>
+void CreateInlineA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateProcedure();
+        static_cast<ProcedureDefinition*>(pContext->FunctionPtr.get())->_isInline = true;
+    }
+}
+
+
 template<typename _TParser>
 void CreateMethodA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {

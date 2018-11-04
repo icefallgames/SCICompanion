@@ -4130,47 +4130,66 @@ void MaybeSubstituteWithSimpleValue(CompileContext &context, std::unique_ptr<Syn
     }
 }
 
-class EvaluateConstantExpressionsHelper : public sci::IExploreNode
-{
-public:
-    EvaluateConstantExpressionsHelper(CompileContext &context) : _context(context) {}
-
-private:
-    void ExploreNode(sci::SyntaxNode &node, sci::ExploreNodeState state)
-    {
-        if (state == sci::ExploreNodeState::Pre)
-        {
-            StatementsNode *statements = dynamic_cast<StatementsNode*>(&node);
-            if (statements)
-            {
-                for (std::unique_ptr<SyntaxNode> &statement : statements->GetStatements())
-                {
-                    MaybeSubstituteWithSimpleValue(_context, statement);
-                }
-            }
-
-            OneStatementNode *oneStatement = dynamic_cast<OneStatementNode*>(&node);
-            if (oneStatement)
-            {
-                MaybeSubstituteWithSimpleValue(_context, oneStatement->GetStatement1Internal());
-            }
-
-            TwoStatementNode *twoStatement = dynamic_cast<TwoStatementNode*>(&node);
-            if (twoStatement)
-            {
-                MaybeSubstituteWithSimpleValue(_context, twoStatement->GetStatement2Internal());
-            }
-
-        }
-    }
-
-    CompileContext &_context;
-};
-
 void EvaluateConstantExpressions(CompileContext &context, sci::Script &script)
 {
     // Replace any constant expressions with their evaluated form.
     // REVIEW: This could cause problems if we provided weakptrs to certain objects to the compile context.
-    EvaluateConstantExpressionsHelper evaluate(context);
-    script.Traverse(evaluate);
+    SubstituteStatements(MaybeSubstituteWithSimpleValue, context, script);
+}
+
+std::unique_ptr<SyntaxNode> SyntaxNode::Clone(CompileContext &context) const
+{
+    context.ReportError(this, "This operation is not permitted in this context: %d.", (int)GetNodeType());
+    return make_unique<PropertyValue>(0); // Just something
+}
+
+std::unique_ptr<SyntaxNode> ComplexPropertyValue::Clone(CompileContext &context) const
+{
+    unique_ptr<ComplexPropertyValue> propValue = make_unique<ComplexPropertyValue>();
+    if (_pArrayInternal)
+    {
+        propValue->_pArrayInternal = _pArrayInternal->Clone(context);
+    }
+    // Call super copy constructor
+    *static_cast<PropertyValueBase*>(propValue.get()) = *static_cast<const PropertyValueBase*>(this);
+    return unique_ptr<SyntaxNode>(move(propValue));
+}
+
+std::unique_ptr<SyntaxNode> PropertyValue::Clone(CompileContext &context) const
+{
+    return make_unique<PropertyValue>(*this);
+}
+std::unique_ptr<SyntaxNode> ProcedureCall::Clone(CompileContext &context) const
+{
+    unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(GetName());
+    for (const auto &statement : _segments)
+    {
+        procCall->AddStatement(statement->Clone(context));
+    }
+    return unique_ptr<SyntaxNode>(move(procCall));
+}
+std::unique_ptr<SyntaxNode> BinaryOp::Clone(CompileContext &context) const
+{
+    unique_ptr<BinaryOp> binop = make_unique<BinaryOp>(Operator);
+    binop->SetStatement1(_statement1->Clone(context));
+    binop->SetStatement2(_statement2->Clone(context));
+    return unique_ptr<SyntaxNode>(move(binop));
+}
+std::unique_ptr<SyntaxNode> UnaryOp::Clone(CompileContext &context) const
+{
+    unique_ptr<UnaryOp> unop = make_unique<UnaryOp>();
+    unop->Operator = Operator;
+    unop->SetStatement1(_statement1->Clone(context));
+    return unique_ptr<SyntaxNode>(move(unop));
+}
+std::unique_ptr<SyntaxNode> NaryOp::Clone(CompileContext &context) const
+{
+    unique_ptr<NaryOp> naryOp = make_unique<NaryOp>();
+    naryOp->Operator = Operator;
+    for (const auto &statement : _segments)
+    {
+        naryOp->AddStatement(statement->Clone(context));
+    }
+    return unique_ptr<SyntaxNode>(move(naryOp));
+
 }

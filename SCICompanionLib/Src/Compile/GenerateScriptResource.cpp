@@ -1352,10 +1352,164 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
 }
 
 
+class SubstituteTokens
+{
+public:
+    SubstituteTokens(const FunctionParameterVector &params, vector<unique_ptr<SyntaxNode>> &replacements) : _params(params), _replacements(replacements) {}
+
+    void operator()(CompileContext &context, std::unique_ptr<SyntaxNode> &nodeToReplaceOrModify)
+    {
+        // Wow, this is kind of a problem. We need to provide optimizations for simple tokens.
+        // Basically for ComplexPropValues that have no indexer, and are of type number or token.
+        // And in that case we can expand what we can do.
+
+        ComplexPropertyValue *token = SafeSyntaxNode<ComplexPropertyValue>(nodeToReplaceOrModify.get());
+        if (token)
+        {
+            for (size_t i = 0; i < _params.size(); i++)
+            {
+                if (token->GetStringValue() == _params[i]->GetName())
+                {
+                    // If we can get a plain value from replacements, then do it. Afterwards we'll do better.
+                    bool successfulReplacement = false;
+                    ComplexPropertyValue *replacementValue = SafeSyntaxNode<ComplexPropertyValue>(_replacements[i].get());
+                    if (replacementValue)
+                    {
+                        if ((replacementValue->GetType() == ValueType::Token) && !replacementValue->GetIndexer())
+                        {
+                            token->SetValue(replacementValue->GetStringValue(), token->GetType()); // Retain type
+                            successfulReplacement = true;
+                        }
+                        // TODO: provide more options later
+                        // We can allow the replacement to have an indexer as long as the token doesn't
+                        // Same for pointers, deref, etc...
+                        // Likewise, we can support LValues
+                        // Likewise, we can support replacements that are statements.
+                    }
+                    if (!successfulReplacement)
+                    {
+                        context.ReportError(token, "Can't replace token %s.", token->GetStringValue());
+                    }
+                }
+            }
+        }
+    }
+
+private:
+    const FunctionParameterVector &_params;
+    vector<unique_ptr<SyntaxNode>> &_replacements;
+};
+
+
+class GatherProcCalls
+{
+public:
+    GatherProcCalls(vector<const ProcedureDefinition*> &inlineFunctions) : _inlineFunctions(inlineFunctions) {}
+
+    void operator()(CompileContext &context, std::unique_ptr<SyntaxNode> &node)
+    {
+        if (node->GetNodeType() == NodeType::NodeTypeProcedureCall)
+        {
+            ProcedureCall &call = static_cast<ProcedureCall&>(*node);
+            auto it = find_if(_inlineFunctions.begin(), _inlineFunctions.end(),
+                [&call](const ProcedureDefinition *inlineFunc) { return call.GetName() == inlineFunc->GetName();  }
+                );
+            if (it != _inlineFunctions.end())
+            {
+                const ProcedureDefinition *procDef = *it;
+                const auto &signature = procDef->GetSignatures()[0];
+                if (signature->GetParams().size() == call.GetStatements().size())
+                {
+                    // Let's clone the contents of our procedure definition
+                    vector<unique_ptr<SyntaxNode>> clonedNodes;
+                    for (const auto &node : procDef->GetStatements())
+                    {
+                        clonedNodes.push_back(node->Clone(context));
+                    }
+                    if (!context.HasErrors())
+                    {
+                        // Now we have a clone of our inline function. The next step is to match up parameters
+                        // and make substitutions for the tokens.
+                        // e.g.
+                        // (inline (foo a b)
+                        //     (a ?)
+                        //     (Print b)
+                        // )
+                        //
+                        // (foo (Bar1) (Bar2))
+                        //
+                        // Becomes:
+                        //      ((Bar1) ?)
+                        //      (Print (Bar2))
+                        //
+
+                        SubstituteTokens subTokens(signature->GetParams(), call.GetStatements());
+
+                        for (auto &statement : clonedNodes)
+                        {
+                            SubstituteStatements(
+                                subTokens,
+                                context,
+                                *statement
+                                );
+                        }
+
+                        // Now, if there is only a single clonedNode, we can just replace.
+                        if (clonedNodes.size() == 1)
+                        {
+                            node = move(clonedNodes[0]); // Replaced!
+                        }
+                        else
+                        {
+                            // Otherwise we need a code block.
+                            node = make_unique<CodeBlock>(move(clonedNodes));
+                        }
+                    }
+                }
+                else
+                {
+                    context.ReportError(&call, "Call to an inline function must have the same number of parameters.");
+                }
+            }
+        }
+
+    }
+
+private:
+    vector<const ProcedureDefinition*> &_inlineFunctions;
+};
+
+void _SubstituteInlineFunctions(Script &script, CompileContext &context, CompileResults &results)
+{
+    // Get a list of all inline functions (weak ptrs to)
+    vector<const ProcedureDefinition*> inlineFunctions;
+    for (const auto &proc : script.GetProcedures())
+    {
+        if (proc->_isInline)
+        {
+            inlineFunctions.push_back(proc.get());
+        }
+    }
+    context.GetHeaders().AccumulateInlineProcs(inlineFunctions);
+
+    GatherProcCalls gatherProcCalls(inlineFunctions);
+
+    // Now look through the code for any procedure calls that match.
+    SubstituteStatements(
+        gatherProcCalls,
+        context,
+        script
+        );
+
+}
+
+
 void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &results)
 {
     // Load the include files
     context.LoadIncludes();
+
+    _SubstituteInlineFunctions(script, context, results);
 
     if (!script.GetScriptId().IsGrammarFile() && !script.GetScriptId().IsKernelFile()) // yikes
     {

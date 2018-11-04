@@ -481,7 +481,7 @@ void FunctionBase::AddVariable(unique_ptr<VariableDecl> pVar, PropertyValue valu
 
 MethodDefinition::MethodDefinition() { _fPrivate = false; }
 
-ProcedureDefinition::ProcedureDefinition() { _public = false; }
+ProcedureDefinition::ProcedureDefinition() : _isInline(false), _public(false) { }
 
 ClassDefinition::ClassDefinition() : _fPublic(false)
 {

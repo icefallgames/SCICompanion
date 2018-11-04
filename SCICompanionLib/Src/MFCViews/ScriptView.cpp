@@ -360,6 +360,7 @@ std::vector<std::string> topLevelKeywordsSCI =
     _T("enum"),
     _T("extern"),
     _T("include"),
+    _T("inline"),
     _T("instance"),
     _T("local"),
     _T("persistlocal"),

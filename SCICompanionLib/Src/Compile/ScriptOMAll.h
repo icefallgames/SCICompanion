@@ -196,6 +196,8 @@ namespace sci
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
 		SyntaxNode *GetParameter(size_t i) { return (i < _segments.size()) ? _segments[i].get() : nullptr; }
+    
+        std::unique_ptr<SyntaxNode> Clone(CompileContext &context) const override;
     };
 
     class ReturnStatement : public SyntaxNode, public OneStatementNode
@@ -563,6 +565,8 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
+        std::unique_ptr<SyntaxNode> Clone(CompileContext &context) const override;
+
         BinaryOperator Operator;
 
     private:
@@ -589,6 +593,7 @@ namespace sci
         bool Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const override;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
+        std::unique_ptr<SyntaxNode> Clone(CompileContext &context) const override;
 
         BinaryOperator Operator;
     };
@@ -614,6 +619,7 @@ namespace sci
         virtual std::string ToString() const;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
+        std::unique_ptr<SyntaxNode> Clone(CompileContext &context) const override;
 
         UnaryOperator Operator;
     };

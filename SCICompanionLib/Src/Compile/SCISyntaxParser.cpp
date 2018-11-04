@@ -116,6 +116,7 @@ vector<string> SCIKeywords =
     "switchto",
     "properties",
     "procedure",
+    "inline",
     "method",
     "for",
     "return",
@@ -1245,6 +1246,7 @@ void SCISyntaxParser::Load()
         >> *statement[FunctionStatementA];
 
     procedure_decl = keyword_p("procedure")[CreateProcedureA] >> procedure_base[{FunctionCloseA, ParseAutoCompleteContext::Block}];
+    inline_decl = keyword_p("inline")[CreateInlineA] >> procedure_base[{FunctionCloseA, ParseAutoCompleteContext::Block}];
 
     thread_base = oppar
         >> alphanumNK_p[ClassNameA]     // Yup, thread method name is the class name.
@@ -1381,6 +1383,7 @@ void SCISyntaxParser::Load()
         | instance_decl[FinishClassA]
         | class_decl[FinishClassA]
         | procedure_decl[FinishProcedureA]
+        | inline_decl[FinishProcedureA]
         | thread_decl[FinishClassA]
         | delegate_decl[FinishClassA]
         | synonyms
@@ -1409,6 +1412,7 @@ void SCISyntaxParser::Load()
         (oppar[GeneralE] >>
         (include |
         define[FinishDefineA] |
+        inline_decl[FinishProcedureA] |
         enumStatement
 
         // The following are not yet supported, but we'll include them to possibly

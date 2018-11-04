@@ -1292,6 +1292,19 @@ bool PrecompiledHeaders::LookupDefine(const std::string &str, WORD &wValue)
     return fRet;
 }
 
+void PrecompiledHeaders::AccumulateInlineProcs(std::vector<const ProcedureDefinition*> &results) const
+{
+    for (const auto &pair : _allHeaders)
+    {
+        for (const auto &proc : pair.second->GetProcedures())
+        {
+            // All procs are inline in headers
+            results.push_back(proc.get());
+        }
+    }
+}
+
+
 void GenericOutputByteCode::operator()(const IOutputByteCode* proc)
 {
 	_results.push_back(proc->OutputByteCode(_context));

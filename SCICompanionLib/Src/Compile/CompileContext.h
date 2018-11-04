@@ -50,6 +50,7 @@ namespace sci
     class PropertyValue;
     class VariableDecl;
     class FunctionBase;
+    class ProcedureDefinition;
 }
 class CResourceMap;
 class IOutputByteCode;
@@ -92,6 +93,7 @@ public:
     void Update(CompileContext &context, sci::Script &script);
 
     bool LookupDefine(const std::string &str, WORD &wValue);
+    void AccumulateInlineProcs(std::vector<const sci::ProcedureDefinition*> &results) const;
 private:
     typedef std::unordered_map<std::string, sci::Define*> defines_map;
     typedef std::unordered_map<std::string, std::unique_ptr<sci::Script>> header_map;
@@ -172,6 +174,8 @@ public:
     const sci::FunctionBase *FunctionBaseForPrescan;
 
     bool GenerateDebugInfo;
+
+    const PrecompiledHeaders& GetHeaders() { return _headers; }
 
 private:
     std::map<std::string, uint16_t> *_GetTempTokenMap(sci::ValueType type);
