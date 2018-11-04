@@ -175,6 +175,7 @@ private:
     std::vector<sci::Script*> _headers;   // Note: _headers's pointers are owned by _headerMap
     script_map _headerMap;
     define_map _headerDefines;  // Note: defines are owned by the _headerMap.
+    std::vector<std::string> _headerInlines;
 
     // This maps filenames to scriptnumbers.
     word_map _filenameToScriptNumber;

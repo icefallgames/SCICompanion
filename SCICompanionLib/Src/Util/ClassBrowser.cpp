@@ -856,6 +856,11 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
             items.emplace_back(AutoCompleteSourceType::Procedure, publicProc->GetName());
             procsSyntaxHighlight.insert(publicProc->GetName());
         }
+        for (auto &inlineProc : _headerInlines)
+        {
+            items.emplace_back(AutoCompleteSourceType::Procedure, inlineProc);
+            procsSyntaxHighlight.insert(inlineProc);
+        }
         for (auto &script : _scripts)
         {
             items.emplace_back(AutoCompleteSourceType::ScriptName, script->GetTitle());
@@ -1044,6 +1049,7 @@ bool SCIClassBrowser::_CreateClassTree(ITaskStatus &task)
 void SCIClassBrowser::_CacheHeaderDefines()
 {
     _headerDefines.clear();
+    _headerInlines.clear();
     for (auto &header : _headerMap)
     {
         // Suck out the defines and make them convenienty accessible in a classMap
@@ -1051,9 +1057,14 @@ void SCIClassBrowser::_CacheHeaderDefines()
         {
             _headerDefines.emplace(theDefine->GetLabel(), DefineValueCache(theDefine->GetValue(), theDefine->GetFlags()));
         }
+
+        for (auto &theInline : header.second->GetProcedures())
+        {
+            _headerInlines.push_back(theInline->GetName());
+        }
     }
 
-    _invalidAutoCompleteSources |= AutoCompleteSourceType::Define;
+    _invalidAutoCompleteSources |= AutoCompleteSourceType::Define | AutoCompleteSourceType::Procedure;
 }
 
 std::unique_ptr<sci::Script> SCIClassBrowser::_LoadScript(PCTSTR pszPath)
