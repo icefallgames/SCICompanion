@@ -439,6 +439,7 @@ public:
     void Visit(const ForEachLoop &foreachLoop) override {}
     void Visit(const GrammarPart &verbHandler) override {}
     void Visit(const GrammarRule &verbHandler) override {}
+    void Visit(const TupleDefine &tupleDefine) override {}
 
     void Enter(const SyntaxNode &node) override {}
     void Leave(const SyntaxNode &node) override {}
@@ -554,6 +555,7 @@ public:
     void Visit(const ForEachLoop &forEachLoop) override {}
     void Visit(const GrammarPart &verbHandler) override {}
     void Visit(const GrammarRule &verbHandler) override {}
+    void Visit(const TupleDefine &tupleDefine) override {}
 
     void Enter(const SyntaxNode &node) override {}
     void Leave(const SyntaxNode &node) override {}

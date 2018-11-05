@@ -674,3 +674,4 @@ void ForEachLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*thi
 void VerbClauseStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
 void GrammarRule::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
 void GrammarPart::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void TupleDefine::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }

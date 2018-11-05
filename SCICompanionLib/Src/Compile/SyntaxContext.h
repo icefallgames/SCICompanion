@@ -114,6 +114,9 @@ public:
     void CreateDefine() { DefinePtr = std::make_unique<sci::Define>(); }
     std::unique_ptr<sci::Define> DefinePtr;
 
+    void CreateTuple();
+    std::unique_ptr<sci::SyntaxNode> TuplePtr;
+
     void CreateProcedure() {
         FunctionPtr = std::make_unique<sci::ProcedureDefinition>(); FunctionPtr->AddSignature(std::move(std::make_unique<sci::FunctionSignature>()));
     }

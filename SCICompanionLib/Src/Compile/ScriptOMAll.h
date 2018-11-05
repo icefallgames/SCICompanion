@@ -838,6 +838,23 @@ namespace sci
         GrammarRule& operator=(const GrammarRule& src) = delete;
     };
 
+    class TupleDefine : public SyntaxNode, public StatementsNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeTuple)
+    public:
+        TupleDefine() {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const { return 0; }
+        void PreScan(CompileContext &context) {}
+        void Traverse(IExploreNode &en) {}
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        std::string _label;
+        std::vector<std::tuple<std::string, uint16_t>> _members;
+    };
+
 }; //namespace sci
 
 void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector<bool> andOrs);

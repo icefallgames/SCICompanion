@@ -73,6 +73,7 @@ namespace sci
 
         NodeTypeGrammarRule,
         NodeTypeGrammarPart,
-        NodeTypeForEach
+        NodeTypeForEach,
+        NodeTypeTuple
     };
 }

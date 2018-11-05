@@ -817,6 +817,7 @@ public:
     void Visit(const ForEachLoop &vc) override {}
     void Visit(const GrammarPart &vc) override {}
     void Visit(const GrammarRule &vc) override {}
+    void Visit(const TupleDefine &vc) override {}
 
     void Enter(const SyntaxNode &node) override {}
     void Leave(const SyntaxNode &node) override {}

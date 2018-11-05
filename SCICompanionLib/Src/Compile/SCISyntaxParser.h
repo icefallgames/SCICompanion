@@ -124,6 +124,7 @@ private:
     ParserSCI verb_clause_verbs;
     ParserSCI verb_clause_nouns;
     ParserSCI foreach_loop;
+    ParserSCI tuple_define;
 
     // Non-code parsers:
     ParserSCI classdef_file;

@@ -38,8 +38,10 @@ void SyntaxContext::CreateVerbHandler()
     FunctionPtr = std::make_unique<sci::VerbHandlerDefinition>();
     FunctionPtr->AddSignature(_CreateVerbHandlerSignature());
 }
-
-
+void SyntaxContext::CreateTuple()
+{
+    TuplePtr = std::make_unique<sci::TupleDefine>();
+}
 
 template<typename _It>
 bool IntegerNonZeroP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
@@ -73,7 +75,7 @@ bool SelectorP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
         fRet = true;
         str += ch;
         ch = *(++stream);
-        while (isalnum(ch) || (ch == '_') || (ch == '-'))  // Then any alphanumeric character is fine.
+        while (isalnum(ch) || (ch == '_') || (ch == '-') || (ch == '.'))  // Then any alphanumeric character is fine.
         {
             hadAlpha = hadAlpha || isalpha(ch);
             fRet = true;
@@ -801,6 +803,58 @@ void AddProcedureFwdA(MatchResult &match, const ParserSCI *pParser, SyntaxContex
     }
 }
 
+void FinishTupleDefineA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Turn it into defines.
+        // (tuple posMan x 5 y 100)
+        //
+        // Turns into
+        // (define posMan.x 5)
+        // (define posMan.y 100)
+        // (define posMan 5 100)
+        //
+        const TupleDefine &tupleDefine = static_cast<const TupleDefine&>(*pContext->TuplePtr);
+        unique_ptr<Define> finalDefine = make_unique<Define>();
+        finalDefine->SetLabel(tupleDefine._label);
+        for (const auto &pair : tupleDefine._members)
+        {
+            pContext->Script().AddDefine(make_unique<Define>(tupleDefine._label + "." + get<0>(pair), get<1>(pair)));
+            finalDefine->_multiValues.push_back(get<1>(pair));
+        }
+        pContext->Script().AddDefine(move(finalDefine));
+    }
+}
+void CreateTupleDefineA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateTuple();
+    }
+}
+void TupleLabelA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        static_cast<TupleDefine*>(pContext->TuplePtr.get())->_label = pContext->ScratchString();
+    }
+}
+/*void TupleMemberA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->TuplePtr->_members.emplace_back(pContext->ScratchString(), 0);
+    }
+}*/
+void TupleMemberValueA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        static_cast<TupleDefine*>(pContext->TuplePtr.get())->_members.emplace_back(pContext->ScratchString(), pContext->Integer);
+    }
+}
+
 
 void SetGrammarPartA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -865,6 +919,10 @@ void SetIsReferenceA(MatchResult &match, const ParserSCI *pParser, SyntaxContext
         pContext->GetSyntaxNode<ForEachLoop>()->IsReference = true;
     }
 }
+
+
+
+
 
 SCISyntaxParser::SCISyntaxParser() :
     oppar(char_p("(")),
@@ -944,6 +1002,9 @@ void SCISyntaxParser::Load()
     genText = keyword_p("text#") >> immediateValue[{GenTextA, ParseAutoCompleteContext::DefineValue }];
 
     define = keyword_p("define")[CreateDefineA] >> alphanumNK_p[DefineLabelA] >> integer_p[DefineValueA];
+    
+    tuple_define = keyword_p("tuple")[CreateTupleDefineA] >> alphanumNK_p[TupleLabelA] >>
+        *(alphanumNK_p >> integer_p[TupleMemberValueA]);
 
     enumStatement = keyword_p("enum")[InitEnumStartA] >> -integer_p[ErrorA<errInteger>] >> *alphanumNK_p[CreateEnumDefineA];
 
@@ -1379,6 +1440,7 @@ void SCISyntaxParser::Load()
         >> (include
         | use
         | define[FinishDefineA]
+        | tuple_define[FinishTupleDefineA]
         | enumStatement
         | instance_decl[FinishClassA]
         | class_decl[FinishClassA]

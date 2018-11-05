@@ -1041,7 +1041,20 @@ public:
         bool fHex = IsFlagSet(define.GetFlags(), IntegerFlags::Hex);
         bool fNegate = IsFlagSet(define.GetFlags(), IntegerFlags::Negative);
         out.out << "(define " << define.GetLabel() << " ";
-        _OutputNumber(out.out, define.GetValue(), fHex, fNegate);
+        if (define._multiValues.empty())
+        {
+            // Common case
+            _OutputNumber(out.out, define.GetValue(), fHex, fNegate);
+        }
+        else
+        {
+            // Weird multi-value defines used for TupleDefines
+            for (uint16_t value : define._multiValues)
+            {
+                out.out << " ";
+                _OutputNumber(out.out, value, false, false);
+            }
+        }
         out.out << ")";
     }
 
@@ -1949,6 +1962,10 @@ public:
     void Visit(const GrammarRule &vc)
     {
         out.out << "GrammarRule";
+    }
+    void Visit(const TupleDefine &vc)
+    {
+        out.out << "TupleDefine";
     }
 
     // Measure the size of code output in a first pass, so we can better
