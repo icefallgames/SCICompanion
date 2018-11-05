@@ -292,7 +292,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
 
         if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Define))
         {
-            // Local script defines
+            // Local script defines and tuples
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
             const Script *thisScript = browser.GetLKGScript(scriptNumber);
@@ -302,6 +302,12 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                     [](const std::unique_ptr<Define> &theDefine)
                 {
                     return theDefine->GetName();
+                }
+                );
+                MergeResults(result->choices, prefix, AutoCompleteIconIndex::Define, thisScript->Tuples,
+                    [](const std::unique_ptr<TupleDefine> &theTuple)
+                {
+                    return theTuple->_label;
                 }
                 );
             }

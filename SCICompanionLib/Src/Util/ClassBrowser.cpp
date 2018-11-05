@@ -14,6 +14,7 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "ScriptOM.h"
+#include "ScriptOMAll.h"
 #include "ClassBrowser.h"
 #include "ClassBrowserInfo.h"
 #include "SCO.h"
@@ -835,6 +836,11 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
             items.emplace_back(AutoCompleteSourceType::Define, aDefine.first);
             //AddToTernaryList(items, aDefine.first, AutoCompleteSourceType::Define);
         }
+        for (auto &aTuple : _headerTuples)
+        {
+            // tuple labels
+            items.emplace_back(AutoCompleteSourceType::Define, aTuple);
+        }
         for (auto &aClass : _classMap)
         {
             // Updated when new classes created (rare)
@@ -1050,6 +1056,7 @@ void SCIClassBrowser::_CacheHeaderDefines()
 {
     _headerDefines.clear();
     _headerInlines.clear();
+    _headerTuples.clear();
     for (auto &header : _headerMap)
     {
         // Suck out the defines and make them convenienty accessible in a classMap
@@ -1061,6 +1068,11 @@ void SCIClassBrowser::_CacheHeaderDefines()
         for (auto &theInline : header.second->GetProcedures())
         {
             _headerInlines.push_back(theInline->GetName());
+        }
+
+        for (const auto &aTuple : header.second->Tuples)
+        {
+            _headerTuples.push_back(aTuple->_label);
         }
     }
 

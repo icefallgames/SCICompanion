@@ -1250,6 +1250,7 @@ namespace sci
         std::vector<std::unique_ptr<GrammarRule>> GrammarRules;         // For grammar files.
         std::vector<std::string> KernelNames;                           // For kernel files. What a hack.
 
+        std::vector<std::unique_ptr<TupleDefine>> Tuples;
     private:
         void _PreScanStringDeclaration(CompileContext &context, VariableDecl &stringDecl);
 

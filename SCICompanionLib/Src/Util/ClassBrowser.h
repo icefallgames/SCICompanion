@@ -176,6 +176,7 @@ private:
     script_map _headerMap;
     define_map _headerDefines;  // Note: defines are owned by the _headerMap.
     std::vector<std::string> _headerInlines;
+    std::vector<std::string> _headerTuples;
 
     // This maps filenames to scriptnumbers.
     word_map _filenameToScriptNumber;

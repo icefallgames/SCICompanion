@@ -1116,8 +1116,6 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         break;
 
     case ValueType::ResourceString:
-        // Not implemented yet.
-        // TODO: We need to know we're in a procedure call. This isn't supported for selector calls (per Sierra compat)
         uint16_t autoTextResourceNumber;
         if ((oc != OC_Accumulator) && context.IsAutoText(autoTextResourceNumber))
         {
@@ -1293,34 +1291,56 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                     }
                     else
                     {
-                        // NOTE
-                        // The SCIStudio language is not a context-free grammar, and so following statement:
-                        // FooBar (+ a b)
-                        // Could be interpreted as either a function call to FooBar with one parameters (+ a b), or
-                        // a sequence of two values (FooBar and (+ a b)).  There is no way to tell without first looking
-                        // up the meaning of Foobar (e.g. is it a function?).  Unfortunately we construct the syntax tree
-                        // prior to doing that, and it is now too late.  To compensate, in SCICompanion we treat function
-                        // calls as those where the open paren immediately follows the function name, with no whitespace.
-                        // e.g. FooBar(+ a b).
-                        // This is a difference with the SCIStudio compiler.  To aid the user in fixing this issue,
-                        // we'll look up the "undeclared identifier" here, and see if it's a function name.
-                        WORD wScript, wIndex;
-                        string classOwner;
-                        if (ProcedureUnknown != context.LookupProc(_stringValue, wScript, wIndex, classOwner))
+                        sci::TupleDefine tupleDefine;
+                        if (context.LookupTuple(_stringValue, tupleDefine))
                         {
-                            context.ReportError(this, "The '(' character must immediately follow the function call '%s'.", _stringValue.c_str());
-                        }
-                        else
-                        {
-                            // "Normal" case
-                            // Also check if this is a keyword, and provide a better error.
-                            if (IsSCIKeyword(context.GetLanguage(), _stringValue))
+                            // It's a tuple... which means we can only push to the stack
+                            if (oc != OC_Accumulator)
                             {
-                                context.ReportError(this, "'%s' cannot be used here.", _stringValue.c_str());
+                                for (const auto &pair : tupleDefine._members)
+                                {
+                                    PushImmediate(context, get<1>(pair), GetLineNumber());
+                                }
+                                wNumSendParams += (uint8_t)(tupleDefine._members.size() - 1); // Extra params
+                                wType = DataTypeUInt;
                             }
                             else
                             {
-                                ErrorHelper(context, this, "Undeclared identifier", _stringValue);
+                                context.ReportError(this, "'%s' is multi-valued and cannot be used here.", _stringValue.c_str());
+                            }
+                        }
+                        else
+                        {
+
+                            // NOTE
+                            // The SCIStudio language is not a context-free grammar, and so following statement:
+                            // FooBar (+ a b)
+                            // Could be interpreted as either a function call to FooBar with one parameters (+ a b), or
+                            // a sequence of two values (FooBar and (+ a b)).  There is no way to tell without first looking
+                            // up the meaning of Foobar (e.g. is it a function?).  Unfortunately we construct the syntax tree
+                            // prior to doing that, and it is now too late.  To compensate, in SCICompanion we treat function
+                            // calls as those where the open paren immediately follows the function name, with no whitespace.
+                            // e.g. FooBar(+ a b).
+                            // This is a difference with the SCIStudio compiler.  To aid the user in fixing this issue,
+                            // we'll look up the "undeclared identifier" here, and see if it's a function name.
+                            WORD wScript, wIndex;
+                            string classOwner;
+                            if (ProcedureUnknown != context.LookupProc(_stringValue, wScript, wIndex, classOwner))
+                            {
+                                context.ReportError(this, "The '(' character must immediately follow the function call '%s'.", _stringValue.c_str());
+                            }
+                            else
+                            {
+                                // "Normal" case
+                                // Also check if this is a keyword, and provide a better error.
+                                if (IsSCIKeyword(context.GetLanguage(), _stringValue))
+                                {
+                                    context.ReportError(this, "'%s' cannot be used here.", _stringValue.c_str());
+                                }
+                                else
+                                {
+                                    ErrorHelper(context, this, "Undeclared identifier", _stringValue);
+                                }
                             }
                         }
                     }
@@ -3758,6 +3778,7 @@ void SendCall::PreScan(CompileContext &context)
         }
     }
 }
+
 void ProcedureCall::PreScan(CompileContext &context)
 {
     if (IsSCIKeyword(context.GetLanguage(), _innerName))

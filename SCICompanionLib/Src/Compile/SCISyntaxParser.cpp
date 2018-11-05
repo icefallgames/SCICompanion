@@ -38,10 +38,6 @@ void SyntaxContext::CreateVerbHandler()
     FunctionPtr = std::make_unique<sci::VerbHandlerDefinition>();
     FunctionPtr->AddSignature(_CreateVerbHandlerSignature());
 }
-void SyntaxContext::CreateTuple()
-{
-    TuplePtr = std::make_unique<sci::TupleDefine>();
-}
 
 template<typename _It>
 bool IntegerNonZeroP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
@@ -75,7 +71,7 @@ bool SelectorP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
         fRet = true;
         str += ch;
         ch = *(++stream);
-        while (isalnum(ch) || (ch == '_') || (ch == '-') || (ch == '.'))  // Then any alphanumeric character is fine.
+        while (isalnum(ch) || (ch == '_') || (ch == '-'))  // Then any alphanumeric character is fine.
         {
             hadAlpha = hadAlpha || isalpha(ch);
             fRet = true;
@@ -803,55 +799,27 @@ void AddProcedureFwdA(MatchResult &match, const ParserSCI *pParser, SyntaxContex
     }
 }
 
-void FinishTupleDefineA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        // Turn it into defines.
-        // (tuple posMan x 5 y 100)
-        //
-        // Turns into
-        // (define posMan.x 5)
-        // (define posMan.y 100)
-        // (define posMan 5 100)
-        //
-        const TupleDefine &tupleDefine = static_cast<const TupleDefine&>(*pContext->TuplePtr);
-        unique_ptr<Define> finalDefine = make_unique<Define>();
-        finalDefine->SetLabel(tupleDefine._label);
-        for (const auto &pair : tupleDefine._members)
-        {
-            pContext->Script().AddDefine(make_unique<Define>(tupleDefine._label + "." + get<0>(pair), get<1>(pair)));
-            finalDefine->_multiValues.push_back(get<1>(pair));
-        }
-        pContext->Script().AddDefine(move(finalDefine));
-    }
-}
 void CreateTupleDefineA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
-        pContext->CreateTuple();
+        // We can just add it directly to the script. If it fails compilation, we don't do any processing on the 
+        // script anyway, so it's ok to have an invalid tuple.
+        pContext->Script().Tuples.push_back(make_unique<TupleDefine>());
     }
 }
 void TupleLabelA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
-        static_cast<TupleDefine*>(pContext->TuplePtr.get())->_label = pContext->ScratchString();
+        pContext->Script().Tuples.back()->_label = pContext->ScratchString();
     }
 }
-/*void TupleMemberA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->TuplePtr->_members.emplace_back(pContext->ScratchString(), 0);
-    }
-}*/
 void TupleMemberValueA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
-        static_cast<TupleDefine*>(pContext->TuplePtr.get())->_members.emplace_back(pContext->ScratchString(), pContext->Integer);
+        pContext->Script().Tuples.back()->_members.emplace_back(pContext->ScratchString(), pContext->Integer);
     }
 }
 
@@ -1440,7 +1408,7 @@ void SCISyntaxParser::Load()
         >> (include
         | use
         | define[FinishDefineA]
-        | tuple_define[FinishTupleDefineA]
+        | tuple_define
         | enumStatement
         | instance_decl[FinishClassA]
         | class_decl[FinishClassA]
@@ -1474,6 +1442,7 @@ void SCISyntaxParser::Load()
         (oppar[GeneralE] >>
         (include |
         define[FinishDefineA] |
+        tuple_define |
         inline_decl[FinishProcedureA] |
         enumStatement
 

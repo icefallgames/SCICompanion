@@ -40,6 +40,12 @@ enum ProcedureType
     ProcedureKernel,    // A kernel function (wIndex)
 };
 
+// Fwd decl
+namespace sci
+{
+    class TupleDefine;
+}
+
 //
 // Allows a source code component to declare its filename/position.
 // Also supports an "end" position, optionally (by default == to start position)
@@ -186,4 +192,5 @@ class ILookupDefine
 {
 public:
     virtual bool LookupDefine(const std::string &str, uint16_t &wValue) = 0;
+    virtual bool LookupTuple(const std::string &str, sci::TupleDefine &tuple) = 0;
 };

@@ -269,6 +269,10 @@ public:
             return false;
         }
     }
+    bool LookupTuple(const std::string &str, sci::TupleDefine &tuple) override
+    {
+        return false;
+    }
 };
 
 // If we need to transform a class name to remove spaces, we need to set its original name in the props listd.

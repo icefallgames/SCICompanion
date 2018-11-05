@@ -26,6 +26,35 @@ Opcode GetInstructionForUnaryOperator(UnaryOperator op);
 using namespace sci;
 using namespace std;
 
+// This is for tuple resolution, which looks like send calls but are not.
+bool SendCall::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
+{
+    bool success = false;
+    if (!GetTargetName().empty() && (_params.size() == 1) && (!_params[0]->IsMethod()))
+    {
+        TupleDefine tupleDefine;
+        if (context.LookupTuple(GetTargetName(), tupleDefine))
+        {
+            string selectorName = _params[0]->GetSelectorName();
+            for (const auto &pair : tupleDefine._members)
+            {
+                if (get<0>(pair) == selectorName)
+                {
+                    success = true;
+                    result = get<1>(pair);
+                    break;
+                }
+            }
+
+            if (!success && reportError)
+            {
+                reportError->ReportError(this, "%s is not a member of the tuple %s.", selectorName.c_str(), GetTargetName().c_str());
+            }
+        }
+    }
+    return success;
+}
+
 bool PropertyValueBase::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
 {
     bool isSimpleValue = false;

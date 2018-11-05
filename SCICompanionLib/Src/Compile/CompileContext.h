@@ -51,6 +51,7 @@ namespace sci
     class VariableDecl;
     class FunctionBase;
     class ProcedureDefinition;
+    class TupleDefine;
 }
 class CResourceMap;
 class IOutputByteCode;
@@ -93,6 +94,7 @@ public:
     void Update(CompileContext &context, sci::Script &script);
 
     bool LookupDefine(const std::string &str, WORD &wValue);
+    bool LookupTuple(const std::string &str, sci::TupleDefine &tupleDefine);
     void AccumulateInlineProcs(std::vector<const sci::ProcedureDefinition*> &results) const;
 private:
     typedef std::unordered_map<std::string, sci::Define*> defines_map;
@@ -107,6 +109,7 @@ private:
     // The define hashtable which corresponds to the _curHeaderList
     // Someone else has ownership of these defines.
     defines_map _defines;
+    std::unordered_map<std::string, sci::TupleDefine*> _tuples;
 
     // Whether or not the _defines table is valid
     bool _fValid;
@@ -236,6 +239,7 @@ public:
     bool LookupSelector(const std::string &str, WORD &wIndex);
     void DefineNewSelector(const std::string &str, WORD &wIndex);
     bool LookupDefine(const std::string &str, WORD &wValue);
+    bool LookupTuple(const std::string &str, sci::TupleDefine &tuple);
     void AddDefine(sci::Define *pDefine);
     const SCIVersion &GetVersion() { return _version; }
     //

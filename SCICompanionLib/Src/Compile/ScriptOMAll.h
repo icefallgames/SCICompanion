@@ -154,6 +154,7 @@ namespace sci
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
         void Traverse(IExploreNode &en);
+        bool Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const override;
 
         void SetLValue(std::unique_ptr<LValue> var) { _object3 = std::move(var); }
 		void AddSendParam(std::unique_ptr<SendParam> pParam) { _params.push_back(std::move(pParam)); }
@@ -838,7 +839,7 @@ namespace sci
         GrammarRule& operator=(const GrammarRule& src) = delete;
     };
 
-    class TupleDefine : public SyntaxNode, public StatementsNode
+    class TupleDefine : public SyntaxNode
     {
         DECLARE_NODE_TYPE(NodeTypeTuple)
     public:

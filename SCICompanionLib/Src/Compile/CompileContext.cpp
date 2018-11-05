@@ -267,6 +267,24 @@ bool CompileContext::LookupDefine(const std::string &str, WORD &wValue)
     }
     return fRet;
 }
+
+bool CompileContext::LookupTuple(const string &str, TupleDefine &tupleReturn)
+{
+    // Check this script first:
+    auto it = find_if(_script.Tuples.begin(), _script.Tuples.end(),
+        [&str](const unique_ptr<TupleDefine> &theTuple) { return str == theTuple->_label; }
+    );
+    if (it != _script.Tuples.end())
+    {
+        tupleReturn = *(*it);
+        return true;
+    }
+    else
+    {
+        // Check headers
+        return _headers.LookupTuple(str, tupleReturn);
+    }
+}
 void CompileContext::AddDefine(Define *pDefine)
 {
     WORD wDummy;
@@ -1246,6 +1264,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
         _curHeaderList = headerScanList;
         // Clear out our defines
         _defines.clear();
+        _tuples.clear();
         // And generate them anew
         set<string>::iterator nameIt = _curHeaderList.begin();
         while (nameIt != _curHeaderList.end())
@@ -1258,6 +1277,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
                 // Get the script for this.  We know it exists, so no need to check for failure
                 Script *pOldError = context.SetErrorContext(pHeaderScript);    // All errors henceforth are in this header.
 
+                /*
                 const DefineVector &defines = pHeaderScript->GetDefines();
                 DefineVector::const_iterator defineIt = defines.begin();
                 for (; defineIt != defines.end(); ++defineIt)
@@ -1268,6 +1288,20 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
                         context.ReportWarning((*defineIt).get(), "Duplicate defines: '%s'", defineLabel.c_str());
                     }
                     _defines[defineLabel] = (*defineIt).get(); // This is risky... I hope the container lifetime outlasts _defines.
+                }*/
+
+                for (const auto &theDefine : pHeaderScript->GetDefines())
+                {
+                    if (_defines.find(theDefine->GetLabel()) != _defines.end())
+                    {
+                        context.ReportWarning(theDefine.get(), "Duplicate defines: '%s'", theDefine->GetLabel().c_str());
+                    }
+                    _defines[theDefine->GetLabel()] = theDefine.get(); // This is risky... I hope the container lifetime outlasts _defines.
+                }
+
+                for (const auto &theTuple : pHeaderScript->Tuples)
+                {
+                    _tuples[theTuple->_label] = theTuple.get();
                 }
 
                 context.SetErrorContext(pOldError);   // Now they're in the main script again.
@@ -1291,6 +1325,20 @@ bool PrecompiledHeaders::LookupDefine(const std::string &str, WORD &wValue)
     }
     return fRet;
 }
+
+bool PrecompiledHeaders::LookupTuple(const string &str, TupleDefine &tupleDefine)
+{
+    assert(_fValid);
+    bool fRet = false;
+    auto nodeIt = _tuples.find(str);
+    fRet = (nodeIt != _tuples.end());
+    if (fRet)
+    {
+        tupleDefine = *nodeIt->second;
+    }
+    return fRet;
+}
+
 
 void PrecompiledHeaders::AccumulateInlineProcs(std::vector<const ProcedureDefinition*> &results) const
 {
