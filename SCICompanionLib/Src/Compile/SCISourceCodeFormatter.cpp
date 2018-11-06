@@ -885,6 +885,7 @@ public:
         ForwardOptionalSection("synonyms", script.GetSynonyms());
 
         _AcceptChildren(script.GetDefines());
+        _AcceptChildren(script.Tuples);
 
         _MaybeNewLineIndent();
 
@@ -1045,20 +1046,7 @@ public:
         bool fHex = IsFlagSet(define.GetFlags(), IntegerFlags::Hex);
         bool fNegate = IsFlagSet(define.GetFlags(), IntegerFlags::Negative);
         out.out << "(define " << define.GetLabel() << " ";
-        if (define._multiValues.empty())
-        {
-            // Common case
-            _OutputNumber(out.out, define.GetValue(), fHex, fNegate);
-        }
-        else
-        {
-            // Weird multi-value defines used for TupleDefines
-            for (uint16_t value : define._multiValues)
-            {
-                out.out << " ";
-                _OutputNumber(out.out, value, false, false);
-            }
-        }
+        _OutputNumber(out.out, define.GetValue(), fHex, fNegate);
         out.out << ")";
     }
 
@@ -1967,9 +1955,21 @@ public:
     {
         out.out << "GrammarRule";
     }
-    void Visit(const TupleDefine &vc)
+    void Visit(const TupleDefine &tupleDefine)
     {
-        out.out << "TupleDefine";
+        _MaybeNewLineIndent();
+        out.out << "(tuple " << tupleDefine._label << " ";
+        for (const auto &member : tupleDefine._members)
+        {
+            _MaybeNewLineIndent();
+            string label = get<0>(member);
+            if (!label.empty())
+            {
+                out.out << label << ": ";
+            }
+            _OutputNumber(out.out, get<1>(member), false, true);
+        }
+        out.out << ")";
     }
 
     // Measure the size of code output in a first pass, so we can better

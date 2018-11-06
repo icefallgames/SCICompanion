@@ -626,15 +626,10 @@ namespace sci
         void SetValue(int iNumber, IntegerFlags flags) { ASSERT(iNumber <= 0xFFFF); _wValue = static_cast<uint16_t>(iNumber); _flags = flags; }
         void SetValue(const std::string &value) { _strValue = value; };
         
-        bool IsMultiValues() { return !_multiValues.empty(); }
-
         // IOutputByteCode
         void PreScan(CompileContext &context);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
-
-        // Used for tuples.
-        std::vector<uint16_t> _multiValues;
 
     private:
         std::string _label;

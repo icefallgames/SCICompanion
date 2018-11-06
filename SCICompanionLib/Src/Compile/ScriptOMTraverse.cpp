@@ -93,6 +93,11 @@ void FunctionParameter::Traverse(IExploreNode &en)
     ExploreNodeBlock enb(en, *this);
 }
 
+void TupleDefine::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+}
+
 void CodeBlock::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);
@@ -193,6 +198,7 @@ void Script::Traverse(IExploreNode &en)
     ForwardTraverse2(ClassDefs, en);
     ForwardTraverse2(Selectors, en);
 
+    ForwardTraverse2(Tuples, en);
     ForwardTraverse2(_procedures, en);
     ForwardTraverse2(_classes, en);
     ForwardTraverse2(_scriptVariables, en);

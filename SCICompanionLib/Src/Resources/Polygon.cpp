@@ -148,6 +148,43 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
     }
 }
 
+
+void _ExtractPolygonsFromTuple(const string &name, PolygonComponent &polySource, const vector<tuple<string, uint16_t>> &values)
+{
+    auto it = values.begin();
+    if (it != values.end())
+    {
+        int polyCount = get<1>(*it);
+        ++it;
+
+        for (int i = 0; (it != values.end()) && (i < polyCount); i++)
+        {
+            SCIPolygon polygon;
+            polygon.Name = name;
+            polygon.Type = (PolygonType)get<1>(*it);
+            ++it;
+            uint16_t pointCount = get<1>(*it);
+            ++it;
+            // Now the points
+            while (pointCount && (it != values.end()))
+            {
+                int16_t x = (int16_t)get<1>(*it);
+                ++it;
+                if (it != values.end())
+                {
+                    int16_t y = (int16_t)get<1>(*it);
+                    ++it;
+                    polygon.AppendPoint(point16(x, y));
+                }
+                pointCount--;
+            }
+
+            polySource.AppendPolygon(polygon);
+        }
+    }
+}
+
+
 bool startsWith(const std::string &text, const std::string &prefix)
 {
     return text.length() > prefix.length() && std::equal(prefix.begin(), prefix.end(), text.begin());
@@ -162,6 +199,7 @@ public:
     {
         if (state == ExploreNodeState::Pre)
         {
+            // For now, support both at the same time.
             VariableDecl *varDecl = SafeSyntaxNode<VariableDecl>(&node);
             if (varDecl)
             {
@@ -176,6 +214,22 @@ public:
                     _ExtractPolygonsFromStatements(varDecl->GetName(), _polySource, varDecl->GetStatements());
                 }
             }
+
+            TupleDefine *tupleDefine = SafeSyntaxNode<TupleDefine>(&node);
+            if (tupleDefine)
+            {
+                if (startsWith(tupleDefine->_label, c_szDefaultPolyName))
+                {
+                    // It's the default un-named polygons
+                    _ExtractPolygonsFromTuple("", _polySource, tupleDefine->_members);
+                }
+                else
+                {
+                    // Named poly
+                    _ExtractPolygonsFromTuple(tupleDefine->_label, _polySource, tupleDefine->_members);
+                }
+            }
+
         }
     }
 
@@ -256,7 +310,55 @@ void _ApplyPolygonToVarDecl(VariableDecl &varDecl, const SCIPolygon &poly)
     }
 }
 
-void _ApplyPolygonsToScript(int picNumber, Script &script, const vector<SCIPolygon> &polygons)
+void _ApplyPolygonToTuple(TupleDefine &tupleDefine, const SCIPolygon &poly)
+{
+    // Type, point count, points
+    tupleDefine._members.emplace_back("", (uint16_t)poly.Type);
+    tupleDefine._members.emplace_back("", (uint16_t)poly.Points().size());
+    for (point16 point : poly.Points())
+    {
+        tupleDefine._members.emplace_back("", (uint16_t)point.x);
+        tupleDefine._members.emplace_back("", (uint16_t)point.y);
+    }
+}
+
+void _ApplyPolygonsToScriptAsTuples(int picNumber, Script &script, const vector<SCIPolygon> &polygons)
+{
+    map<string, vector<SCIPolygon>> polygonsByName;
+
+    // Group them by name
+    // Normally it's just the default polygons that have the same name as each other, but we also support
+    // it for other ones.
+    for (const SCIPolygon &poly : polygons)
+    {
+        polygonsByName[poly.Name].push_back(poly);
+    }
+
+    for (const pair<string, vector<SCIPolygon>> &nameAndPolys : polygonsByName)
+    {
+        string polyName = nameAndPolys.first;
+        if (polyName.empty())
+        {
+            // It's the default polygons
+            // e.g. P_110
+            polyName = fmt::format("{0}{1}", c_szDefaultPolyName, picNumber);
+        }
+
+        unique_ptr<TupleDefine> tupleDefine = make_unique<TupleDefine>();
+
+        tupleDefine->_label = polyName;
+
+        // The count
+        tupleDefine->_members.emplace_back("", (uint16_t)nameAndPolys.second.size());
+        for (const SCIPolygon &poly : nameAndPolys.second)
+        {
+            _ApplyPolygonToTuple(*tupleDefine, poly);
+        }
+        script.Tuples.push_back(move(tupleDefine));
+    }
+}
+
+void _ApplyPolygonsToScriptAsLocals(int picNumber, Script &script, const vector<SCIPolygon> &polygons)
 {
     map<string, vector<SCIPolygon>> polygonsByName;
 
@@ -310,7 +412,14 @@ void PolygonComponent::Commit(int picNumber)
         comment->SetPosition(LineCol(0, 0));
         script.AddComment(move(comment));
 
-        _ApplyPolygonsToScript(picNumber, script, _polygons);
+        if (appState->GetVersion().NewSCI)
+        {
+            _ApplyPolygonsToScriptAsTuples(picNumber, script, _polygons);
+        }
+        else
+        {
+            _ApplyPolygonsToScriptAsLocals(picNumber, script, _polygons);
+        }
 
         std::stringstream ss;
         SourceCodeWriter out(ss, lang, &script);

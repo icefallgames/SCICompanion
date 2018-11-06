@@ -848,7 +848,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const { return 0; }
         void PreScan(CompileContext &context) {}
-        void Traverse(IExploreNode &en) {}
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
