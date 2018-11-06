@@ -971,8 +971,16 @@ void SCISyntaxParser::Load()
 
     define = keyword_p("define")[CreateDefineA] >> alphanumNK_p[DefineLabelA] >> integer_p[DefineValueA];
     
+    //
+    // (tuple posMan
+    //     x: 5
+    //     y: 10
+    // )
+    //
+    // (tuple poly134 1 0 3 4)
+    //
     tuple_define = keyword_p("tuple")[CreateTupleDefineA] >> alphanumNK_p[TupleLabelA] >>
-        *(alphanumNK_p >> integer_p[TupleMemberValueA]);
+        *(-selector_send_p >> integer_p[TupleMemberValueA]);
 
     enumStatement = keyword_p("enum")[InitEnumStartA] >> -integer_p[ErrorA<errInteger>] >> *alphanumNK_p[CreateEnumDefineA];
 

@@ -321,7 +321,6 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
                     {
                         SaveSCOFile(helper, sco, script);
                     }
-
                     if (!results.GetDebugInfo().empty())
                     {
                         // Save debug information.
