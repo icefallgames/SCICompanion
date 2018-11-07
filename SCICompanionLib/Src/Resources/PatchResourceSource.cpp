@@ -156,17 +156,28 @@ AppendBehavior PatchFilesResourceSource::AppendResources(const std::vector<const
 {
     for (const ResourceBlob *blob : blobs)
     {
-        std::string filename = GetFileNameFor(*blob);
-        std::string fullPath = _gameFolder + "\\" + filename;
-        std::string bakPath = _gameFolder + "\\" + filename + ".bak";
-        // Write to the bak file
+        // if it's a script or a text resource, we don't really need to worry about preserving the contents, so we can just overwrite directly.
+        if ((blob->GetType() == ResourceType::Script) || (blob->GetType() == ResourceType::Text))
         {
-            ScopedFile file(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
+            std::string filename = GetFileNameFor(*blob);
+            std::string fullPath = _gameFolder + "\\" + filename;
+            ScopedFile file(fullPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
             blob->SaveToHandle(file.hFile, true);
         }
-        // move it to the main guy
-        deletefile(fullPath);
-        movefile(bakPath, fullPath);
+        else
+        {
+            std::string filename = GetFileNameFor(*blob);
+            std::string fullPath = _gameFolder + "\\" + filename;
+            std::string bakPath = _gameFolder + "\\" + filename + ".bak";
+            // Write to the bak file
+            {
+                ScopedFile file(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
+                blob->SaveToHandle(file.hFile, true);
+            }
+            // move it to the main guy
+            deletefile(fullPath);
+            movefile(bakPath, fullPath);
+        }
     }
     return AppendBehavior::Replace;
 }

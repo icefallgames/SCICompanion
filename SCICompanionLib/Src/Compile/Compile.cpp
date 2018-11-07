@@ -73,6 +73,8 @@ using namespace std;
 
 static const WORD NumberOfSendPushesSentinel = 0x5390; // 'send'
 
+CPrecisionTimer g_compileIOTimer;
+
 void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const string &text, const string &identifier, bool checkUse)
 {
     string strError = text;

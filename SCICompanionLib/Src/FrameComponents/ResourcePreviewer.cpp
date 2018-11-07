@@ -481,11 +481,13 @@ void VocabPreviewer::SetResource(const ResourceBlob &blob)
         std::unique_ptr<ResourceEntity> pResource = CreateResourceFromResourceData(blob);
         if (pResource)
         {
-            initTime = timer.Stop();
+            timer.Stop();
+            initTime = timer.GetEllapsed();
 
             timer.Start();
             _Populate(pResource->GetComponent<Vocab000>().GetWords());
-            popTime = timer.Stop();
+            timer.Stop();
+            popTime = timer.GetEllapsed();
             fSuccess = true;
         }
     }
