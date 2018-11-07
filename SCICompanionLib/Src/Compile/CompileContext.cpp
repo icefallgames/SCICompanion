@@ -1362,7 +1362,7 @@ void GenericOutputByteCode::operator()(const IOutputByteCode* proc)
 // Note: The items merged from scriptToBeMerged are removed from it.
 void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged)
 {
-    // For now, just support procedures and local variables
+    // For now, just support procedures, local variables and tuples
     auto &procs = scriptToBeMerged.GetProceduresNC();
     for (auto &proc : procs)
     {
@@ -1372,6 +1372,10 @@ void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged)
     for (auto &localVar : localVars)
     {
         mainScript.AddVariable(move(localVar));
+    }
+    for (auto &tupleDefine : scriptToBeMerged.Tuples)
+    {
+        mainScript.Tuples.push_back(move(tupleDefine));
     }
 }
 
