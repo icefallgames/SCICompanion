@@ -1887,14 +1887,18 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 
 bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)
 {
+    bool fRet;
+    g_compileCodeGenTimer.Start();
     if (version.SeparateHeapResources)
     {
-        return GenerateScriptResource_SCI11(script, headers, tables, results, generateDebugInfo);
+        fRet = GenerateScriptResource_SCI11(script, headers, tables, results, generateDebugInfo);
     }
     else
     {
-        return GenerateScriptResource_SCI0(script, headers, tables, results, generateDebugInfo);
+        fRet = GenerateScriptResource_SCI0(script, headers, tables, results, generateDebugInfo);
     }
+    g_compileCodeGenTimer.Stop();
+    return fRet;
 }
 
 

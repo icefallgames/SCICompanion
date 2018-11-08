@@ -2063,6 +2063,11 @@ bool CompileABunchOfScripts(AppState *appState, DependencyTracker *dependencyTra
     timer.Start();
 
     g_compileIOTimer.Reset();
+    g_compileSyntaxParseTimer.Reset();
+    g_compileCodeGenTimer.Reset();
+    g_compileDebugSymbolTimer.Reset();
+    g_compileObjFileTimer.Reset();
+    g_compileAppendTimer.Reset();
 
     bool result = true;
 
@@ -2075,8 +2080,10 @@ bool CompileABunchOfScripts(AppState *appState, DependencyTracker *dependencyTra
         dialog.DoModal();
         result = !dialog.HasErrors();
         g_compileIOTimer.Start();
+        g_compileAppendTimer.Start();
         defer.Commit();
         g_compileIOTimer.Stop();
+        g_compileAppendTimer.Stop();
     }
 
     timer.Stop();
@@ -2085,7 +2092,12 @@ bool CompileABunchOfScripts(AppState *appState, DependencyTracker *dependencyTra
     log.ReportResult(CompileResult("--------------------------------"));
     std::stringstream strMessage;
     strMessage << "Time elapsed: " << fmt::format("{0:.2f}", (float)timer.GetEllapsed()) << " seconds.";
-    strMessage << "I/O time: " << fmt::format("{0:.2f}", (float)g_compileIOTimer.GetEllapsed()) << " seconds.";
+    strMessage << " Parse: " << fmt::format("{0:.2f}", (float)g_compileSyntaxParseTimer.GetEllapsed()) << " seconds.";
+    strMessage << " CodeGen: " << fmt::format("{0:.2f}", (float)g_compileCodeGenTimer.GetEllapsed()) << " seconds.";
+    strMessage << " Total I/O : " << fmt::format("{0:.2f}", (float)g_compileIOTimer.GetEllapsed()) << " seconds.";
+    strMessage << " Sym I/O: " << fmt::format("{0:.2f}", (float)g_compileDebugSymbolTimer.GetEllapsed()) << " seconds.";
+    strMessage << " .sco I/O: " << fmt::format("{0:.2f}", (float)g_compileObjFileTimer.GetEllapsed()) << " seconds.";
+    strMessage << " write I/O: " << fmt::format("{0:.2f}", (float)g_compileAppendTimer.GetEllapsed()) << " seconds.";
     log.ReportResult(CompileResult(strMessage.str()));
     log.CalculateErrors();
 

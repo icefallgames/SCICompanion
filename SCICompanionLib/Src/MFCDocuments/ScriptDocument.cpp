@@ -322,10 +322,15 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
 
                     // Save the corresponding sco file.
                     g_compileIOTimer.Start();
+
+                    g_compileObjFileTimer.Start();
                     CSCOFile &sco = results.GetSCO();
                     {
                         SaveSCOFile(helper, sco, script);
                     }
+                    g_compileObjFileTimer.Stop();
+
+                    g_compileDebugSymbolTimer.Start();
                     if (!results.GetDebugInfo().empty())
                     {
                         // Save debug information.
@@ -344,6 +349,7 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
                         symFile.write((const char *)&results.GetSymbolInfo()[0], (std::streamsize)results.GetSymbolInfo().size());
                         symFile.close();
                     }
+                    g_compileDebugSymbolTimer.Stop();
                     g_compileIOTimer.Stop();
                     fRet = true;
                 }

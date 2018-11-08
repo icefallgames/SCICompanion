@@ -535,6 +535,11 @@ public:
 };
 
 extern CPrecisionTimer g_compileIOTimer;
+extern CPrecisionTimer g_compileDebugSymbolTimer;
+extern CPrecisionTimer g_compileSyntaxParseTimer;
+extern CPrecisionTimer g_compileCodeGenTimer;
+extern CPrecisionTimer g_compileObjFileTimer;
+extern CPrecisionTimer g_compileAppendTimer;
 
 const std::string MakeFile(PCSTR pszContent, const std::string &filename);
 void ShowTextFile(PCSTR pszContent, const std::string &filename);

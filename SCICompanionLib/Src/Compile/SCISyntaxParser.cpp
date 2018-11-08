@@ -2241,6 +2241,8 @@ void ExtractSomeToken(std::string &str, _It &stream)
 //
 bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM, bool collectComments)
 {
+    g_compileSyntaxParseTimer.Start();
+
     SyntaxContext context(stream, script, preProcessorDefines, addCommentsToOM, collectComments);
     bool fRet = false;
 
@@ -2295,22 +2297,26 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
             pError->ReportResult(CompileResult(strError, scriptId, errorPos.GetLineNumber() + 1, errorPos.GetColumnNumber(), CompileResult::CRT_Error));
         }
     }
+    g_compileSyntaxParseTimer.Stop();
     return fRet;
 }
 
 bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, SyntaxContext &context)
 {
+    g_compileSyntaxParseTimer.Start();
     bool fRet = false;
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
         PostProcessScript(nullptr, script);
         fRet = true;
     }
+    g_compileSyntaxParseTimer.Stop();
     return fRet;
 }
 
 bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool collectComments)
 {
+    g_compileSyntaxParseTimer.Start();
     SyntaxContext context(stream, script, preProcessorDefines, false, collectComments);
     bool fRet = entire_header.Match(&context, stream).Result() && (*stream == 0);
     if (!fRet)
@@ -2327,6 +2333,7 @@ bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unorder
     {
         PostProcessScript(pError, script);
     }
+    g_compileSyntaxParseTimer.Stop();
     return fRet;
 }
 
