@@ -256,16 +256,16 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                     return theVar->GetName();
                 }
                 );
-                if (context.FunctionPtr)
+                if (context.HasFunctionPtr())
                 {
-                    MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, context.FunctionPtr->GetVariables(),
+                    MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, context.CurrentFunctionPtr()->GetVariables(),
                         [](const std::unique_ptr<VariableDecl> &theVar)
                     {
                         return theVar->GetName();
                     });
-                    if (!context.FunctionPtr->GetSignatures().empty())
+                    if (!context.CurrentFunctionPtr()->GetSignatures().empty())
                     {
-                        MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, context.FunctionPtr->GetSignatures()[0]->GetParams(),
+                        MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, context.CurrentFunctionPtr()->GetSignatures()[0]->GetParams(),
                             [](const std::unique_ptr<FunctionParameter> &theVar)
                         {
                             return theVar->GetName();
@@ -276,11 +276,11 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         }
 
         // Property selectors for the *current* class
-        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::ClassSelector) && context.ClassPtr)
+        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::ClassSelector) && context.HasClassPtr())
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            std::string species = context.ClassPtr->IsInstance() ? context.ClassPtr->GetSuperClass() : context.ClassPtr->GetName();
+            std::string species = context.CurrentClassPtr()->IsInstance() ? context.CurrentClassPtr()->GetSuperClass() : context.CurrentClassPtr()->GetName();
             auto properties = browser.CreatePropertyArray(species);
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, *properties,
                 [](const ClassProperty *classProp)

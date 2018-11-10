@@ -35,8 +35,12 @@ unique_ptr<FunctionSignature> _CreateIsVerbHandlerSignature()
 
 void SyntaxContext::CreateVerbHandler()
 {
-    FunctionPtr = std::make_unique<sci::VerbHandlerDefinition>();
-    FunctionPtr->AddSignature(_CreateVerbHandlerSignature());
+    FunctionPtrStack.push_back(std::make_unique<sci::VerbHandlerDefinition>());
+    CurrentFunctionPtr()->AddSignature(_CreateVerbHandlerSignature());
+}
+std::string SyntaxContext::GenerateAnonymousName()
+{
+    return fmt::format("anon_{}", _anonymousNameIndex++);
 }
 
 template<typename _It>
@@ -99,6 +103,8 @@ vector<string> SCIStatementKeywords =
     "cond",
     "while",
     "define",
+    "foreach",
+    "delegate"
 };
 
 vector<string> SCIKeywords =
@@ -155,7 +161,8 @@ vector<string> SCIKeywords =
     "nearVerbs",
     "farVerbs",
     "invVerbs",
-    "foreach"
+    "foreach",
+    "delegate"
 };
 
 template<typename _It, typename _TContext, bool _CanStartWithDot = false>
@@ -353,8 +360,8 @@ void FinishClassProcedureA(MatchResult &match, const ParserSCI *pParser, SyntaxC
     if (match.Result())
     {
         // Add it to the script's procedures, not the class' methods.
-        auto proc = pContext->GetFunctionAsProcedure();
-        proc->SetOwnerClass(pContext->ClassPtr.get());
+        auto proc = pContext->GetFunctionAs<sci::ProcedureDefinition>();
+        proc->SetOwnerClass(pContext->CurrentClassPtr().get());
         pContext->Script().AddProcedure(move(proc));
     }
     else
@@ -419,15 +426,15 @@ void CreateVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxCont
     if (match.Result())
     {
         pContext->CreateVerbHandler();
-        pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
-        static_cast<VerbHandlerDefinition*>(pContext->FunctionPtr.get())->SetVerbUsage(verbUsage);
+        pContext->CurrentFunctionPtr()->SetOwnerClass(pContext->CurrentClassPtr().get());
+        static_cast<VerbHandlerDefinition*>(pContext->CurrentFunctionPtr().get())->SetVerbUsage(verbUsage);
     }
 }
 void FinishVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
-        pContext->ClassPtr->AddVerbHandler(move(std::unique_ptr<sci::VerbHandlerDefinition>(static_cast<sci::VerbHandlerDefinition*>(pContext->FunctionPtr.release()))));
+        pContext->CurrentClassPtr()->AddVerbHandler(move(std::unique_ptr<sci::VerbHandlerDefinition>(static_cast<sci::VerbHandlerDefinition*>(pContext->CurrentFunctionPtr().release()))));
     }
     else
     {
@@ -788,7 +795,7 @@ void AddMethodFwdA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *
 {
     if (match.Result())
     {
-        pContext->ClassPtr->MethodForwards.push_back(pContext->ScratchString());
+        pContext->CurrentClassPtr()->MethodForwards.push_back(pContext->ScratchString());
     }
 }
 void AddProcedureFwdA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -888,7 +895,41 @@ void SetIsReferenceA(MatchResult &match, const ParserSCI *pParser, SyntaxContext
     }
 }
 
+void CreateAnonymousDelegateA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Set our statement, and we'll fill this in later (as a token with the name of the anonymous delegate
+        SetStatementA<ComplexPropertyValue>(match, pParser, pContext, stream);
 
+        // From here on out, we jump into the class:
+        // This is basically CreateDelegateA + ClassNameA, but with an auto-generated name.
+        CreateDelegateA(match, pParser, pContext, stream);
+        pContext->CurrentClassPtr()->SetName(pContext->GenerateAnonymousName());
+    }
+}
+
+void AnonymousDelegateCloseA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // (Similar to ThreadCloseA)
+        FunctionCloseA(match, pParser, pContext, stream);
+        FinishClassMethodA(match, pParser, pContext, stream);
+        string name = pContext->CurrentClassPtr()->GetName();
+        ClassCloseA(match, pParser, pContext, stream);
+        FinishClassA(match, pParser, pContext, stream);
+
+        // Remember that statement we made in CreateAnonymousDelegateA? Time to fill in its value, which is the name of the class we just created.
+        pContext->GetSyntaxNode<ComplexPropertyValue>()->SetValue(name, ValueType::Token);
+    }
+    else
+    {
+        // Get rid of our function and class, so they don't corrupt future things.
+        auto deleteThisFunction = pContext->GetFunctionAs<MethodDefinition>();
+        auto deleteThisClass = pContext->GetClass();
+    }
+}
 
 
 
@@ -1243,6 +1284,7 @@ void SCISyntaxParser::Load()
         break_statement |
         continue_statement |
         contif_statement |
+        anonymous_delegate |
         asm_block |
         send_call |             // Send has to come before procedure. Because procedure will match (foo sel:)
         procedure_call
@@ -1293,10 +1335,17 @@ void SCISyntaxParser::Load()
         >> *statement[FunctionStatementA];
 
     thread_decl = keyword_p("thread")[CreateThreadA] >> thread_base[{ThreadCloseA, ParseAutoCompleteContext::Block}];
-
     // Like thread, but can't contain yields, and extends Code:doit instead of Thread:step
     delegate_decl = keyword_p("delegate")[CreateDelegateA] >> thread_base[{ThreadCloseA, ParseAutoCompleteContext::Block}];
 
+
+    thread_base_noname = oppar
+        >> *alphanumNK_p[FunctionParameterA]
+        >> *function_var_decl
+        >> clpar[GeneralE]
+        >> *statement[FunctionStatementA];
+
+    anonymous_delegate = keyword_p("delegate")[CreateAnonymousDelegateA] >> thread_base_noname[{AnonymousDelegateCloseA, ParseAutoCompleteContext::Block}];
 
     // Unsupported (unneeded) methods forward declaration
     // (methods

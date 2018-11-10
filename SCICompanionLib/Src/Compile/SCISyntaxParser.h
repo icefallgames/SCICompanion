@@ -67,6 +67,8 @@ private:
     ParserSCI thread_decl;
     ParserSCI thread_base;
     ParserSCI delegate_decl;
+    ParserSCI anonymous_delegate;
+    ParserSCI thread_base_noname;
 
     // Statements
     ParserSCI statement;

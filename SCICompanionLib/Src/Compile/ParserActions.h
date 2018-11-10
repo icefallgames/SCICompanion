@@ -25,7 +25,7 @@ void FunctionStatementA(MatchResult &match, const _TParser *pParser, SyntaxConte
 {
     if (match.Result())
     {
-        pContext->FunctionPtr->AddStatement(move(pContext->StatementPtrReturn));
+        pContext->CurrentFunctionPtr()->AddStatement(move(pContext->StatementPtrReturn));
     }
 }
 
@@ -298,11 +298,11 @@ void FinishFunctionTempVarA(MatchResult &match, const _TParser *pParser, SyntaxC
         // Use the current PropertyValue for initialization (it not used, it was zero'd out in StartFunctionTempVarA)
         if (pContext->PropertyValueWasSet)
         {
-            pContext->FunctionPtr->AddVariable(move(pContext->VariableDecl), pContext->PropertyValue);
+            pContext->CurrentFunctionPtr()->AddVariable(move(pContext->VariableDecl), pContext->PropertyValue);
         }
         else
         {
-            pContext->FunctionPtr->AddVariable(move(pContext->VariableDecl));
+            pContext->CurrentFunctionPtr()->AddVariable(move(pContext->VariableDecl));
         }
     }
 }
@@ -319,18 +319,18 @@ void CreateThreadA
         CreateClassA<true>(match, pParser, pContext, stream);
 
         // We don't know its name yet. But we know the superclass.
-        pContext->ClassPtr->SetSuperClass("Thread");
+        pContext->CurrentClassPtr()->SetSuperClass("Thread");
 
         // Add a method
         pContext->CreateMethod();
-        pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
-        pContext->FunctionPtr->SetScript(&pContext->Script());
-        pContext->FunctionPtr->SetName("step"); // And we know the function name.
-        pContext->FunctionPtr->SetIsThread(true);
-        pContext->FunctionPtr->SetPosition(stream.GetPosition());
+        pContext->CurrentFunctionPtr()->SetOwnerClass(pContext->CurrentClassPtr().get());
+        pContext->CurrentFunctionPtr()->SetScript(&pContext->Script());
+        pContext->CurrentFunctionPtr()->SetName("step"); // And we know the function name.
+        pContext->CurrentFunctionPtr()->SetIsThread(true);
+        pContext->CurrentFunctionPtr()->SetPosition(stream.GetPosition());
 
         // Add a RestoreContext at the start.
-        pContext->FunctionPtr->AddStatement(std::make_unique<sci::RestoreStatement>());
+        pContext->CurrentFunctionPtr()->AddStatement(std::make_unique<sci::RestoreStatement>());
         // The class name will come later...
     }
 }
@@ -345,15 +345,15 @@ void CreateDelegateA
         CreateClassA<true>(match, pParser, pContext, stream);
 
         // We don't know its name yet. But we know the superclass.
-        pContext->ClassPtr->SetSuperClass("Code");
+        pContext->CurrentClassPtr()->SetSuperClass("Code");
 
         // Add a method
         pContext->CreateMethod();
-        pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
-        pContext->FunctionPtr->SetScript(&pContext->Script());
-        pContext->FunctionPtr->SetName("doit"); // And we know the function name.
-        pContext->FunctionPtr->SetIsThread(false);
-        pContext->FunctionPtr->SetPosition(stream.GetPosition());
+        pContext->CurrentFunctionPtr()->SetOwnerClass(pContext->CurrentClassPtr().get());
+        pContext->CurrentFunctionPtr()->SetScript(&pContext->Script());
+        pContext->CurrentFunctionPtr()->SetName("doit"); // And we know the function name.
+        pContext->CurrentFunctionPtr()->SetIsThread(false);
+        pContext->CurrentFunctionPtr()->SetPosition(stream.GetPosition());
     }
 }
 
@@ -376,7 +376,7 @@ void CreateYieldA
 {
     if (match.Result())
     {
-        if (!pContext->FunctionPtr->GetIsThread())
+        if (!pContext->CurrentFunctionPtr()->GetIsThread())
         {
             match.ChangeResult(false);
             pContext->ReportError("yield statements can only appear in threads.", stream);
@@ -384,7 +384,7 @@ void CreateYieldA
         // Since a yield becomes two instructions, we can't just use SetStatement1
         // We could possibly put them in a code block though?
 
-        pContext->FunctionPtr->AddStatement(std::make_unique<ProcedureCall>("SaveContext"));
+        pContext->CurrentFunctionPtr()->AddStatement(std::make_unique<ProcedureCall>("SaveContext"));
 
         pContext->CreateSyntaxNode<ReturnStatement>(stream);
         pContext->GetSyntaxNode<ReturnStatement>()->SetPosition(stream.GetPosition());
@@ -416,7 +416,7 @@ void CreateInlineA(MatchResult &match, const _TParser *pParser, SyntaxContext *p
     if (match.Result())
     {
         pContext->CreateProcedure();
-        static_cast<ProcedureDefinition*>(pContext->FunctionPtr.get())->_isInline = true;
+        static_cast<ProcedureDefinition*>(pContext->CurrentFunctionPtr().get())->_isInline = true;
     }
 }
 
@@ -427,7 +427,7 @@ void CreateMethodA(MatchResult &match, const _TParser *pParser, SyntaxContext *p
     if (match.Result())
     {
         pContext->CreateMethod();
-        pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
+        pContext->CurrentFunctionPtr()->SetOwnerClass(pContext->CurrentClassPtr().get());
     }
 }
 
@@ -438,7 +438,7 @@ void ProcedurePublicA(MatchResult &match, const _TParser *pParser, SyntaxContext
 {
     if (match.Result())
     {
-        static_cast<ProcedurePtr>(pContext->FunctionPtr.get())->SetPublic(true);
+        static_cast<ProcedurePtr>(pContext->CurrentFunctionPtr().get())->SetPublic(true);
     }
 }
 
@@ -447,9 +447,9 @@ void FunctionNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *p
 {
     if (match.Result())
     {
-        pContext->FunctionPtr->SetName(pContext->ScratchString());
-        pContext->FunctionPtr->SetScript(&pContext->Script());
-        pContext->FunctionPtr->SetPosition(stream.GetPosition());
+        pContext->CurrentFunctionPtr()->SetName(pContext->ScratchString());
+        pContext->CurrentFunctionPtr()->SetScript(&pContext->Script());
+        pContext->CurrentFunctionPtr()->SetPosition(stream.GetPosition());
     }
     else
     {
@@ -464,14 +464,14 @@ void FunctionParameterA(MatchResult &match, const _TParser *pParser, SyntaxConte
     {
         std::unique_ptr<FunctionParameter> param = std::make_unique<FunctionParameter>(pContext->ScratchString());
         param->SetPosition(stream.GetPosition());
-        pContext->FunctionPtr->GetSignaturesNC()[0]->AddParam(std::move(param), false);
+        pContext->CurrentFunctionPtr()->GetSignaturesNC()[0]->AddParam(std::move(param), false);
     }
 }
 
 template<typename _TParser>
 void FunctionCloseA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
-    pContext->FunctionPtr->SetEndPosition(stream.GetPosition());
+    pContext->CurrentFunctionPtr()->SetEndPosition(stream.GetPosition());
     if (!match.Result() && pParser->_psz) // Check for _psz here... might have ')', or nothing.
     {
         GeneralE(match, pParser, pContext, stream);
@@ -483,7 +483,7 @@ void FinishProcedureA(MatchResult &match, const _TParser *pParser, SyntaxContext
 {
     if (match.Result())
     {
-        pContext->Script().AddProcedure(move(pContext->GetFunctionAsProcedure()));
+        pContext->Script().AddProcedure(move(pContext->GetFunctionAs<sci::ProcedureDefinition>()));
     }
 }
 
@@ -492,7 +492,7 @@ void ProcedureClassA(MatchResult &match, const _TParser *pParser, SyntaxContext 
 {
     if (match.Result())
     {
-        static_cast<ProcedurePtr>(pContext->FunctionPtr.get())->SetClass(pContext->ScratchString());
+        static_cast<ProcedurePtr>(pContext->CurrentFunctionPtr().get())->SetClass(pContext->ScratchString());
     }
     else
     {
@@ -785,9 +785,9 @@ void CreateClassA(MatchResult &match, const _TParser *pParser, SyntaxContext *pC
     if (match.Result())
     {
         pContext->CreateClass();
-        pContext->ClassPtr->SetInstance(fInstance);
-        pContext->ClassPtr->SetScript(&pContext->Script());
-        pContext->ClassPtr->SetPosition(stream.GetPosition());
+        pContext->CurrentClassPtr()->SetInstance(fInstance);
+        pContext->CurrentClassPtr()->SetScript(&pContext->Script());
+        pContext->CurrentClassPtr()->SetPosition(stream.GetPosition());
     }
 }
 
@@ -796,7 +796,7 @@ void FinishClassA(MatchResult &match, const _TParser *pParser, SyntaxContext *pC
 {
     if (match.Result())
     {
-        pContext->Script().AddClass(move(pContext->ClassPtr));
+        pContext->Script().AddClass(pContext->GetClass());
     }
 }
 
@@ -805,7 +805,7 @@ void ClassNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *pCon
 {
     if (match.Result())
     {
-        pContext->ClassPtr->SetName(pContext->ScratchString().c_str());
+        pContext->CurrentClassPtr()->SetName(pContext->ScratchString().c_str());
     }
 }
 
@@ -814,14 +814,14 @@ void ClassSuperA(MatchResult &match, const _TParser *pParser, SyntaxContext *pCo
 {
     if (match.Result())
     {
-        pContext->ClassPtr->SetSuperClass(pContext->ScratchString());
+        pContext->CurrentClassPtr()->SetSuperClass(pContext->ScratchString());
     }
 }
 
 template<typename _TParser>
 void ClassCloseA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
-    pContext->ClassPtr->SetEndPosition(stream.GetPosition()); // set the closing position no matter what
+    pContext->CurrentClassPtr()->SetEndPosition(stream.GetPosition()); // set the closing position no matter what
     if (!match.Result() && pParser->_psz)
     {
         GeneralE(match, pParser, pContext, stream);
@@ -833,7 +833,7 @@ void FinishClassMethodA(MatchResult &match, const _TParser *pParser, SyntaxConte
 {
     if (match.Result())
     {
-        pContext->ClassPtr->AddMethod(move(pContext->GetFunctionAsMethod()));
+        pContext->CurrentClassPtr()->AddMethod(move(pContext->GetFunctionAs<sci::MethodDefinition>()));
     }
     else
     {
@@ -851,6 +851,10 @@ void CreateClassPropertyA(MatchResult &match, const _TParser *pParser, SyntaxCon
         pContext->ClassProp->SetName(pContext->ScratchString());
         pContext->ClassProp->SetPosition(stream.GetPosition());
     }
+    else
+    {
+        pContext->ReportError("Expected property name.", stream);
+    }
 }
 
 template<typename _TParser>
@@ -859,7 +863,7 @@ void FinishClassPropertyA(MatchResult &match, const _TParser *pParser, SyntaxCon
     if (match.Result())
     {
         pContext->ClassProp->SetValue(pContext->PropertyValue);
-        pContext->ClassPtr->AddProperty(move(pContext->ClassProp));
+        pContext->CurrentClassPtr()->AddProperty(move(pContext->ClassProp));
     }
 }
 
@@ -869,7 +873,7 @@ void FinishClassPropertyStatementA(MatchResult &match, const _TParser *pParser, 
     if (match.Result())
     {
         pContext->ClassProp->SetStatement1(move(pContext->StatementPtrReturn));
-        pContext->ClassPtr->AddProperty(move(pContext->ClassProp));
+        pContext->CurrentClassPtr()->AddProperty(move(pContext->ClassProp));
     }
     else
     {

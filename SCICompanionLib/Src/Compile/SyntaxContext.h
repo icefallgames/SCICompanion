@@ -30,7 +30,7 @@ enum class IfDefDefineState
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly, bool collectComments) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly), _collectComments(collectComments), CurrentStringType(0)
+    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly, bool collectComments) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly), _collectComments(collectComments), CurrentStringType(0), _anonymousNameIndex(0)
 #ifdef PARSE_DEBUG
         , ParseDebug(false), ParseDebugIndent(0)
 #endif
@@ -115,22 +115,43 @@ public:
     std::unique_ptr<sci::Define> DefinePtr;
 
     void CreateProcedure() {
-        FunctionPtr = std::make_unique<sci::ProcedureDefinition>(); FunctionPtr->AddSignature(std::move(std::make_unique<sci::FunctionSignature>()));
+        FunctionPtrStack.push_back(std::make_unique<sci::ProcedureDefinition>());
+        CurrentFunctionPtr()->AddSignature(std::move(std::make_unique<sci::FunctionSignature>()));
     }
     void CreateMethod() {
-        FunctionPtr = std::make_unique<sci::MethodDefinition>(); FunctionPtr->AddSignature(std::move(std::make_unique<sci::FunctionSignature>()));
+        FunctionPtrStack.push_back(std::make_unique<sci::MethodDefinition>());
+        CurrentFunctionPtr()->AddSignature(std::move(std::make_unique<sci::FunctionSignature>()));
     }
     void CreateVerbHandler();
-    std::unique_ptr<sci::FunctionBase> FunctionPtr;
-    std::unique_ptr<sci::ProcedureDefinition> GetFunctionAsProcedure() {
-        return std::unique_ptr<sci::ProcedureDefinition>(static_cast<sci::ProcedureDefinition*>(FunctionPtr.release()));
-    }
-    std::unique_ptr<sci::MethodDefinition> GetFunctionAsMethod() {
-        return std::unique_ptr<sci::MethodDefinition>(static_cast<sci::MethodDefinition*>(FunctionPtr.release()));
+    std::vector<std::unique_ptr<sci::FunctionBase>> FunctionPtrStack;
+    bool HasFunctionPtr() { return !FunctionPtrStack.empty(); }
+    std::unique_ptr<sci::FunctionBase> &CurrentFunctionPtr() { return FunctionPtrStack.back(); }
+
+    template<typename _TFunc>
+    std::unique_ptr<_TFunc> GetFunctionAs()
+    {
+        std::unique_ptr<sci::FunctionBase> result = std::move(FunctionPtrStack.back());
+        FunctionPtrStack.pop_back();
+        assert(result->GetNodeType() == _TFunc::MyNodeType);
+        return std::unique_ptr<_TFunc>(static_cast<_TFunc*>(result.release()));
     }
 
-    void CreateClass() { ClassPtr = std::make_unique<sci::ClassDefinition>(); }
-    std::unique_ptr<sci::ClassDefinition> ClassPtr;
+    std::vector<std::unique_ptr<sci::ClassDefinition>> ClassPtrStack;
+    bool HasClassPtr() { return !ClassPtrStack.empty(); }
+    std::unique_ptr<sci::ClassDefinition> &CurrentClassPtr()
+    {
+        return ClassPtrStack.back();
+    }
+    std::unique_ptr<sci::ClassDefinition> GetClass()
+    {
+        std::unique_ptr<sci::ClassDefinition> result = std::move(ClassPtrStack.back());
+        ClassPtrStack.pop_back();
+        return result;
+    }
+
+    std::string GenerateAnonymousName();
+
+    void CreateClass() { ClassPtrStack.push_back(std::make_unique<sci::ClassDefinition>()); }
 
     void CreateClassProperty() { ClassProp = std::make_unique<sci::ClassProperty>(); }
     std::unique_ptr<sci::ClassProperty> ClassProp;
@@ -162,9 +183,9 @@ public:
             {
                 _statements.push(move(comment));
             }
-            else if (FunctionPtr)
+            else if (HasFunctionPtr())
             {
-                FunctionPtr->AddStatement(move(comment));
+                CurrentFunctionPtr()->AddStatement(move(comment));
             }
         }
     }
@@ -320,6 +341,7 @@ private:
     std::string _scratch2;
     std::vector<ParseACChannels> _parseAutoCompleteContext;
     std::stack<std::unique_ptr<sci::SyntaxNode>> _statements;
+    int _anonymousNameIndex;
 
 public:
 #ifdef PARSE_DEBUG

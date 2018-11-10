@@ -358,7 +358,7 @@ void ClassPublicA(MatchResult &match, const Parser *pParser, SyntaxContext *pCon
 {
     if (match.Result())
     {
-        pContext->ClassPtr->SetPublic(true);
+        pContext->CurrentClassPtr()->SetPublic(true);
     }
 }
 

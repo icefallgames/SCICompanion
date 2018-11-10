@@ -61,15 +61,15 @@ std::string _ClassFromObjectName(SCIClassBrowser &browser, _TContext *pContext, 
         // Get the last known good version of this script (for resolving things that reside in this script)
         const sci::Script *pGood = browser.GetLKGScript(browser.GetScriptNumberHelper(&pContext->Script()));
 
-        if (pContext->ClassPtr)
+        if (pContext->HasClassPtr())
         {
             if (strObject == "self")
             {
-                className = pContext->ClassPtr->GetName();
+                className = pContext->CurrentClassPtr()->GetName();
             }
             else if (strObject == "super")
             {
-                className = pContext->ClassPtr->GetSuperClass();
+                className = pContext->CurrentClassPtr()->GetSuperClass();
             }
         }
         if (className.empty())
@@ -161,7 +161,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
 
         // Try to figure out where we are.
         // 1. A classname in a class definition?
-        if (pContext->ClassPtr &&
+        if (pContext->HasClassPtr() &&
             containsV(acContexts, ParseAutoCompleteContext::SuperClass))
         {
             const std::vector<ClassDefinition*> &classes = browser.GetAllClasses();
@@ -396,7 +396,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     if (!fFound && isValue)
                     {
                         // 6. Local method variables
-                        const FunctionPtr pFunction = pContext->FunctionPtr.get();
+                        const FunctionPtr pFunction = pContext->CurrentFunctionPtr().get();
                         if (pFunction)
                         {
                             const VariableDeclVector &tempVars = pFunction->GetVariables();
@@ -471,9 +471,9 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     if (!fFound && isValue)
                     {
                         // 8. Class property
-                        const ClassPtr pClass = pContext->ClassPtr.get();
-                        if (pClass)
+                        if (pContext->HasClassPtr())
                         {
+                            const ClassPtr pClass = pContext->CurrentClassPtr().get();
                             auto classAndProp = _FindClassProperty(browser, *pClass, strText);
                             if (get<0>(classAndProp))
                             {
