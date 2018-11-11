@@ -125,7 +125,7 @@ public:
     void CreateVerbHandler();
     std::vector<std::unique_ptr<sci::FunctionBase>> FunctionPtrStack;
     bool HasFunctionPtr() { return !FunctionPtrStack.empty(); }
-    std::unique_ptr<sci::FunctionBase> &CurrentFunctionPtr() { return FunctionPtrStack.back(); }
+    const std::unique_ptr<sci::FunctionBase> &CurrentFunctionPtr() const { return FunctionPtrStack.back(); }
 
     template<typename _TFunc>
     std::unique_ptr<_TFunc> GetFunctionAs()

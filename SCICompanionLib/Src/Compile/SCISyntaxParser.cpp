@@ -109,60 +109,62 @@ vector<string> SCIStatementKeywords =
 
 vector<string> SCIKeywords =
 {
-    "if",
-    "asm",
-    "break",
-    "breakif",
-    "continue",
-    "contif",
-    "repeat",
-    "switch",
-    "switchto",
-    "properties",
-    "procedure",
-    "inline",
-    "method",
-    "for",
-    "return",
-    "cond",
-    "while",
-    "else",
-    "super",
-    "mod",
-    "or",
-    "and",
-    "not",
-    "of",
-    // "scriptNumber",  // This is special, because it's a value. So don't count it as a banned keyword.
-    "public",
-    "text#",
-    "define",
     "&tmp",
     "&rest",
     "&sizeof",
     "&exists",
+    "and",
+    "asm",
+    "break",
+    "breakif",
+    "class#"        // ** In classdef
+    "classdef"      // **
+    "cond",
+    "continue",
+    "contif",
+    "define",
+    "delegate",
+    "else",
+    "exit",
+    "extern"        // ** For linking public procedures
+    "farVerbs",
+    "file#"         // ** Procedure forward declarations
+    "for",
+    "foreach",
+    "global"        // ** For global var declarations
+    "if",
+    "inline",
+    "invVerbs",
+    "method",
+    "methods"       // ** Method forward declarations (also methods in classdef)
+    "mod",
+    "nearVerbs",
+    "not",
+    "of",
+    "or",
+    "procedure",
+    "properties",
+    "public",
+    "repeat",
+    "return",
     "script#"
+    "selectors"     // ** For the selector list
+    "super#"        // ** In classdef
+    "super",
+    "switch",
+    "switchto",
+    "text#",
+    "thread",
+    "while",
+    "yield"
+
+
+
+    // "scriptNumber",  // This is special, because it's a value. So don't count it as a banned keyword.
     // neg, send, case, do, default, export are also keywords, but for the Studio language.
 
-    // The following are original Sierra constructs that are not supported yet.
-    "extern"        // For linking public procedures
-    "selectors"     // For the selector list
-    "global"        // For global var declarations
-    "classdef"      //
-    "methods"       // Method forward declarations (also methods in classdef)
-    "class#"        // In classdef
-    "super#"        // In classdef
-    "file#"         // Procedure forward declarations
-    "thread"
-    "yield"
-    "delegate"
-    "exit"
+    // **: Original Sierra constructs that are not supported yet.
 
-    "nearVerbs",
-    "farVerbs",
-    "invVerbs",
-    "foreach",
-    "delegate"
 };
 
 template<typename _It, typename _TContext, bool _CanStartWithDot = false>
@@ -176,6 +178,7 @@ bool AlphanumPNoKeywordOrTerm(const ParserSCI *pParser, _TContext *pContext, _It
         if (fRet)
         {
             std::string &str = pContext->ScratchString();
+            //fRet = !std::binary_search(SCIKeywords.begin(), SCIKeywords.end(), str); // Not noticeably faster
             fRet = std::find(SCIKeywords.begin(), SCIKeywords.end(), str) == SCIKeywords.end();
             if (fRet && pContext->extraKeywords)
             {
@@ -434,7 +437,7 @@ void FinishVerbHandlerA(MatchResult &match, const ParserSCI *pParser, SyntaxCont
 {
     if (match.Result())
     {
-        pContext->CurrentClassPtr()->AddVerbHandler(move(std::unique_ptr<sci::VerbHandlerDefinition>(static_cast<sci::VerbHandlerDefinition*>(pContext->CurrentFunctionPtr().release()))));
+        pContext->CurrentClassPtr()->AddVerbHandler(pContext->GetFunctionAs<VerbHandlerDefinition>());
     }
     else
     {
