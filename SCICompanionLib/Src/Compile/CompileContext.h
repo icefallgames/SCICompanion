@@ -152,7 +152,7 @@ public:
     // Retrieves a temporary value that maps to a ValueType::String/ResourceString, ValueType::Said or ValueType::Token.
     // This is used to link "sources" (where the actual data exists) with "sinks" (a reference to the data).
     // You can call as many times as you want for a single type/text (it will return the same token)
-    uint16_t GetTempToken(sci::ValueType type, const std::string &text);
+    uint16_t GetTempToken(sci::ValueType type, const std::string &text, const sci::SyntaxNode *errorSpotIfDoesntExist = nullptr);
 
     // Called to specify the position in the heap (or script) resource at which a string, said or object is written.
     void WroteSource(uint16_t tempToken, uint16_t offset);      // Can only be one per token.

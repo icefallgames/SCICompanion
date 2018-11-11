@@ -981,7 +981,7 @@ void PropertyValueBase::PreScan(CompileContext &context)
         {
             assert(_fNegate == false); // REVIEW: SCIStudio compiler doesn't allow it - should we?
             _type = ValueType::Number;
-        }
+        } // I guess we can have instances and stuff here too, so we'll delay..
         break;
 
     case ValueType::ParameterIndex:

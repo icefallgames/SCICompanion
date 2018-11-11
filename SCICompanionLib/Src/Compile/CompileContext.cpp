@@ -1518,7 +1518,7 @@ std::string CompileContext::GetScriptStringFromToken(const std::string &stringTo
     return "";
 }
 
-uint16_t CompileContext::GetTempToken(ValueType type, const std::string &text)
+uint16_t CompileContext::GetTempToken(ValueType type, const std::string &text, const sci::SyntaxNode *errorSpotIfDoesntExist)
 {
     std::map<std::string, uint16_t> *tempTokens = _GetTempTokenMap(type);
  
@@ -1529,6 +1529,10 @@ uint16_t CompileContext::GetTempToken(ValueType type, const std::string &text)
     }
     else
     {
+        if (errorSpotIfDoesntExist)
+        {
+            ReportError(errorSpotIfDoesntExist, "Unknown token: %s", text.c_str());
+        }
         (*tempTokens)[text] = _nextTempToken++;
         return (*tempTokens)[text];
     }
