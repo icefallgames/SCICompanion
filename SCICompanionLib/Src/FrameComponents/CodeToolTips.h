@@ -396,9 +396,9 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     if (!fFound && isValue)
                     {
                         // 6. Local method variables
-                        const FunctionPtr pFunction = pContext->CurrentFunctionPtr().get();
-                        if (pFunction)
+                        if (pContext->HasFunctionPtr())
                         {
+                            const FunctionPtr pFunction = pContext->CurrentFunctionPtr().get();
                             const VariableDeclVector &tempVars = pFunction->GetVariables();
                             auto varIt = match_name(tempVars.begin(), tempVars.end(), strText);
                             fFound = (varIt != tempVars.end());
