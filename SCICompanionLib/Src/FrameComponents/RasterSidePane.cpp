@@ -493,13 +493,13 @@ int _ValidateSize2(UINT nID, int nSize)
     {
         return 1;
     }
-    else if ((nID == IDC_EDIT_CELWIDTH) && (nSize > 320))
+    else if ((nID == IDC_EDIT_CELWIDTH) && (nSize > 356))
     {
-        return 320;
+        return 356;
     }
-    else if ((nID == IDC_EDIT_CELHEIGHT) && (nSize > 190))
+    else if ((nID == IDC_EDIT_CELHEIGHT) && (nSize > 200))
     {
-        return 190;
+        return 200;
     }
     else
     {

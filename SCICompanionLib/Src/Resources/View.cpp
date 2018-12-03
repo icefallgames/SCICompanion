@@ -1178,7 +1178,7 @@ RasterTraits viewRasterTraitsVGA1 =
 {
     RasterCaps::Transparency | RasterCaps::Placement | RasterCaps::Mirror | RasterCaps::Reorder | RasterCaps::Resize | RasterCaps::Animate | RasterCaps::EightBitPlacement,
     OriginStyle::BottomCenter,
-    320,        // These numbers are arbitrary. They are just used to guard against large corrupt cel sizes causing us to allocate tons of memory.
+    356,        // These numbers are arbitrary. They are just used to guard against large corrupt cel sizes causing us to allocate tons of memory.
     200,        // However, some Sierra games have unusually large cels (e.g. Longbow, view 80, is 193 pixels high)
     PaletteType::VGA_256,
     g_vgaPaletteMapping,

@@ -2432,7 +2432,8 @@ PicCommand CPicView::_EnsurePriorityBarCommand()
         PicCommand setPriBarsCommand;
 
         uint16_t priLines[ARRAYSIZE(g_defaultPriBands16Bit)];
-        copy(begin(g_defaultPriBands16Bit), end(g_defaultPriBands16Bit), begin(priLines));
+        //copy(begin(g_defaultPriBands16Bit), end(g_defaultPriBands16Bit), begin(priLines));
+        copy(g_defaultPriBands16Bit, g_defaultPriBands16Bit + ARRAYSIZE(g_defaultPriBands16Bit), priLines);
         // Hack for me
         if (pic.Size.cy == 200)
         {
