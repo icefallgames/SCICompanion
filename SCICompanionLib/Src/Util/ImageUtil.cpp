@@ -293,7 +293,7 @@ std::unique_ptr<PaletteComponent> GetPaletteFromImage(Gdiplus::Bitmap &bitmap, i
     return originalPalette;
 }
 
-bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, PaletteComponent &palette)
+bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, std::vector<PaletteComponent> &palettes, PaletteComponent &globalPalette)
 {
     int errorCode;
     GifFileType *fileType = DGifOpenFileName(filename, &errorCode);
@@ -304,15 +304,15 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
         int center = fileType->Image.Left + fileType->Image.Width / 2;  // Assume this is the center.
 
         // Get the palette.
-        memset(palette.Colors, 0, sizeof(palette.Colors));
+        memset(globalPalette.Colors, 0, sizeof(globalPalette.Colors));
         if (fileType->SColorMap)
         {
             for (int i = 0; i < fileType->SColorMap->ColorCount; i++)
             {
-                palette.Colors[i].rgbRed = fileType->SColorMap->Colors[i].Red;
-                palette.Colors[i].rgbBlue = fileType->SColorMap->Colors[i].Blue;
-                palette.Colors[i].rgbGreen = fileType->SColorMap->Colors[i].Green;
-                palette.Colors[i].rgbReserved = 0x1;    // Or 0x3? REVIEW
+                globalPalette.Colors[i].rgbRed = fileType->SColorMap->Colors[i].Red;
+                globalPalette.Colors[i].rgbBlue = fileType->SColorMap->Colors[i].Blue;
+                globalPalette.Colors[i].rgbGreen = fileType->SColorMap->Colors[i].Green;
+                globalPalette.Colors[i].rgbReserved = 0x1;    // Or 0x3? REVIEW
             }
         }
 
@@ -321,6 +321,20 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
             SavedImage &savedImage = fileType->SavedImages[i];
 
             bool initializeWithPrevious = false;
+
+            // This cel has its own palette
+            if (savedImage.ImageDesc.ColorMap)
+            {
+                palettes.emplace_back();
+                PaletteComponent &celPalette = palettes.back();
+                for (int i = 0; i < savedImage.ImageDesc.ColorMap->ColorCount; i++)
+                {
+                    celPalette.Colors[i].rgbRed = savedImage.ImageDesc.ColorMap->Colors[i].Red;
+                    celPalette.Colors[i].rgbBlue = savedImage.ImageDesc.ColorMap->Colors[i].Blue;
+                    celPalette.Colors[i].rgbGreen = savedImage.ImageDesc.ColorMap->Colors[i].Green;
+                    celPalette.Colors[i].rgbReserved = 0x1;    // Or 0x3? REVIEW
+                }
+            }
 
             cels.emplace_back();
             Cel &cel = cels.back();
@@ -336,6 +350,7 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
 
             if (initializeWithPrevious)
             {
+                // NOTE: This doesn't work when each cel has its own palette. We'd need to go and find the closest RGB color.
                 cel = cels[i - 1]; // That's easy
             }
             else

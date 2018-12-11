@@ -57,7 +57,7 @@ int SquishPalette(uint8_t *data, size_t dataSize, const PaletteComponent &palett
 int CountActualUsedColors(const Cel &cel, bool *used);
 int CountActualUsedColors(const std::vector<const Cel*> &cels, bool *used);
 std::unique_ptr<PaletteComponent> GetPaletteFromImage(Gdiplus::Bitmap &bitmap, int *numberOfUsedEntriesOut = nullptr);
-bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, PaletteComponent &palette);
+bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, std::vector<PaletteComponent> &palette, PaletteComponent &globalPalette);
 void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &cels, int colorCount, const  RGBQUAD *colors, const uint8_t *paletteMapping, uint8_t transparentIndex);
 bool GetCelsAndPaletteFromGdiplus(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, std::vector<Cel> &cels, PaletteComponent &palette);
 bool DoPalettesMatch(const PaletteComponent &paletteA, const PaletteComponent &paletteB);

@@ -768,17 +768,41 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool 
     std::vector<ImageSequenceItem> imageSequenceItems;
     for (const string &file : files)
     {
-        imageSequenceItems.emplace_back();
-        ImageSequenceItem &item = imageSequenceItems.back();
         bool success = false;
         if (0 == lstrcmpi(".gif", PathFindExtension(file.c_str())))
         {
             // Try our gif loader, which understands palettes better than gdip
-            success = GetCelsAndPaletteFromGIFFile(file.c_str(), item.Cels, item.Palette);
+            // REVIEW: We should allow for multiple palettes to be returned too! Each gif frame can have its own palette (e.g. gifcam)
+            vector<Cel> cels;
+            vector<PaletteComponent> palettes;
+            PaletteComponent globalPalette;
+            success = GetCelsAndPaletteFromGIFFile(file.c_str(), cels, palettes, globalPalette);
+            if (success)
+            {
+                if (palettes.size() == cels.size())
+                {
+                    // Each cel had its own palette
+                    for (size_t i = 0; i < cels.size(); i++)
+                    {
+                        imageSequenceItems.emplace_back();
+                        imageSequenceItems.back().Cels.push_back(cels[i]);
+                        imageSequenceItems.back().Palette = palettes[i];
+                    }
+                }
+                else
+                {
+                    // One palette for all (we'll assume)
+                    imageSequenceItems.emplace_back();
+                    imageSequenceItems.back().Cels = cels;
+                    imageSequenceItems.back().Palette = globalPalette;
+                }
+            }
         }
         if (!success)
         {
             // Use gdiplus to load the image.
+            imageSequenceItems.emplace_back();
+            ImageSequenceItem &item = imageSequenceItems.back();
 #ifdef UNICODE
             item.Bitmap.reset(Bitmap::FromFile(pszFileName));
 #else
@@ -790,10 +814,10 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool 
             SysFreeString(unicodestr);
 #endif    
             success = item.Bitmap->GetLastStatus() == Gdiplus::Ok;
-        }
-        if (!success)
-        {
-            imageSequenceItems.pop_back();
+            if (!success)
+            {
+                imageSequenceItems.pop_back();
+            }
         }
     }
 
