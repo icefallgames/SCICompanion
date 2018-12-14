@@ -389,14 +389,14 @@ void CNewRoomDialog::_PrepareBuffer()
         // The doit method
         {
 			std::unique_ptr<MethodDefinition> pDoit = std::make_unique<MethodDefinition>();
-            pDoit->SetName("doit");
+            pDoit->SetName("tick");
             {
                 unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
 				signature->SetDataType("void");
 				pDoit->AddSignature(move(signature));
             }
                 
-            _AddSendCall(*pDoit, "super", "doit", "");
+            _AddSendCall(*pDoit, "super", "tick", "");
             _AddComment(*pDoit, "// code executed each game cycle", CommentType::Indented);
 			pClass->AddMethod(std::move(pDoit));
         }
