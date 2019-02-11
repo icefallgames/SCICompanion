@@ -1556,7 +1556,36 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
         FixCaseStatements hack(context);
         script.Traverse(hack);
     }
+
+    // 
 }
+
+/*
+class TrackInstancesUsed : public IExploreNode
+{
+public:
+    TrackInstancesUsed(CompileContext &context, set<string> &instancesUsed) : _context(context), _instancesUsed {}
+
+private:
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state)
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+        }
+  
+    }
+
+    CompileContext &_context;
+};
+
+void _ValidateInstancesUsed(Script &script, CompileContext &context, CompileResults &results)
+{
+    set<string> instancesUsed;
+    TrackInstancesUsed trackInstancesUsed(context);
+    script.Traverse(trackInstancesUsed);
+}
+*/
+
 
 bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results, bool generateDebugInfo)
 {
@@ -1632,6 +1661,22 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     }
 
     context.FixupSinksAndSources(output, output);
+
+    // Some validation
+    for (const auto &instance : script.GetClasses())
+    {
+        if (instance->IsInstance())
+        {
+            if (!context.WasInstanceReferenceWritten(instance->GetName()))
+            {
+                // It might be a public export
+                if (!instance->IsPublic())
+                {
+                    context.ReportWarning(instance.get(), "Instance '%s' is not used anywhere.", instance->GetName().c_str());
+                }
+            }
+        }
+    }
 
     return !context.HasErrors();
 }

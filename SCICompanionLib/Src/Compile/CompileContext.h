@@ -172,6 +172,7 @@ public:
     // Returns all strings or saids that have been tracked via GetTempToken.
     std::vector<std::string> GetStringsThatWereWritten();
     std::vector<std::string> GetSaids();
+    bool WasInstanceReferenceWritten(const std::string &instanceName) const;
 
     std::map<std::string, uint16_t> ScriptArraySizes;
     const sci::FunctionBase *FunctionBaseForPrescan;
