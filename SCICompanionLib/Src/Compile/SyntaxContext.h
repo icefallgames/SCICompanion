@@ -138,7 +138,7 @@ public:
 
     std::vector<std::unique_ptr<sci::ClassDefinition>> ClassPtrStack;
     bool HasClassPtr() { return !ClassPtrStack.empty(); }
-    std::unique_ptr<sci::ClassDefinition> &CurrentClassPtr()
+    const std::unique_ptr<sci::ClassDefinition> &CurrentClassPtr() const
     {
         return ClassPtrStack.back();
     }

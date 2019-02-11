@@ -427,6 +427,7 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("cond"),
     _T("contif"),
     _T("continue"),
+    _T("delegate"),
     _T("else"),
     _T("enum"),
     _T("exit"),
