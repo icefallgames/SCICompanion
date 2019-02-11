@@ -492,7 +492,8 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
                     write_word(output, localPersistCountIndex, persistWordCount);
                     wrotePersistedWordCount = true;
                 }
-                else
+
+                if (persistWordCount > 0)
                 {
                     context.ReportError(var.get(), "Persistent locals not supported in this version.");
                 }
