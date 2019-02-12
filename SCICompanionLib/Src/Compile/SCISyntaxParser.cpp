@@ -1580,16 +1580,18 @@ unique_ptr<SyntaxNode> _MakeVerbOrNounComparisonNotEqual(const string &itemOrVer
     return unique_ptr<SyntaxNode>(move(equalStatement));
 }
 
-unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const PropertyValueVector &values)
+unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const PropertyValueVector &values, const SyntaxNode &codeLocationNode)
 {
     if (values.size() > 1)
     {
         // (IsOneItem item valbahbla fwef)
         unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(IsOneOfCall);
         procCall->AddStatement(make_unique<PropertyValue>(itemOrVerb, ValueType::Token));
+        procCall->GetStatements().back()->SetPosition(codeLocationNode.GetPosition());
         for (auto value : values)
         {
             procCall->AddStatement(make_unique<PropertyValue>(value));
+            procCall->GetStatements().back()->SetPosition(codeLocationNode.GetPosition());
         }
         return unique_ptr<SyntaxNode>(move(procCall));
     }
@@ -1598,7 +1600,9 @@ unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const
         // (== item qwfwefwe)
         unique_ptr<BinaryOp> equalStatement = make_unique<BinaryOp>(BinaryOperator::Equal);
         equalStatement->SetStatement1(make_unique<PropertyValue>(itemOrVerb, ValueType::Token));
+        equalStatement->GetStatement1()->SetPosition(codeLocationNode.GetPosition());
         equalStatement->SetStatement2(make_unique<PropertyValue>(values[0]));
+        equalStatement->GetStatement2()->SetPosition(codeLocationNode.GetPosition());
         return unique_ptr<SyntaxNode>(move(equalStatement));
     }
 }
@@ -1625,18 +1629,18 @@ void _ProcessInventoryVerbHandler(ClassDefinition &theClass, VerbHandlerDefiniti
 
         // put them in an and
         unique_ptr<BinaryOp> andStatement = make_unique<BinaryOp>(BinaryOperator::LogicalAnd);
-        andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs));
+        andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs, verbClause));
         if (verbClause.AnyItem)
         {
             andStatement->SetStatement2(_MakeVerbOrNounComparisonNotEqual("item", NoItem));
         }
         else if (verbClause.Items.empty())
         {
-            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing));
+            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing, verbClause));
         }
         else
         {
-            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", verbClause.Items));
+            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", verbClause.Items, verbClause));
         }
         theCase->SetStatement1(move(andStatement));
 
@@ -1698,18 +1702,18 @@ void _ProcessVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbH
 
         // put them in an and
         unique_ptr<BinaryOp> andStatement = make_unique<BinaryOp>(BinaryOperator::LogicalAnd);
-        andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs));
+        andStatement->SetStatement1(_MakeVerbOrNounComparison("verb", verbClause.Verbs, verbClause));
         if (verbClause.AnyItem)
         {
             andStatement->SetStatement2(_MakeVerbOrNounComparisonNotEqual("item", NoItem));
         }
         else if (verbClause.Items.empty())
         {
-            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing));
+            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", nothing, verbClause));
         }
         else
         {
-            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", verbClause.Items));
+            andStatement->SetStatement2(_MakeVerbOrNounComparison("item", verbClause.Items, verbClause));
         }
         theCase->SetStatement1(move(andStatement));
 
