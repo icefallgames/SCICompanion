@@ -101,10 +101,10 @@ OperandType OpArgTypes_SCI0[TOTAL_OPCODES][3] = {
 /*30*/
 	/*dup*/      {otEMPTY,otEMPTY,otEMPTY},
 	/*link*/     {otUINT,otEMPTY,otEMPTY},
-    /*call*/     {otLABEL,otUINT16,otEMPTY},
-	/*callk*/    {otKERNEL,otUINT16,otEMPTY},
-	/*callb*/    {otPUBPROC,otUINT16,otEMPTY},
-	/*calle*/    {otUINT,otPUBPROC,otUINT16},
+    /*call*/     {otLABEL,otUINT8,otEMPTY},
+	/*callk*/    {otKERNEL,otUINT8,otEMPTY},
+	/*callb*/    {otPUBPROC,otUINT8,otEMPTY},
+	/*calle*/    {otUINT,otPUBPROC,otUINT8 },
 	/*ret*/      {otEMPTY,otEMPTY,otEMPTY},
 	/*send*/     {otUINT8,otEMPTY,otEMPTY},
 	/*yield*/    {otEMPTY,otEMPTY,otEMPTY},
@@ -206,6 +206,149 @@ OperandType OpArgTypes_SCI0[TOTAL_OPCODES][3] = {
 	/*-sli*/     {otVAR,otEMPTY,otEMPTY},
 	/*-sti*/     {otVAR,otEMPTY,otEMPTY},
 	/*-spi*/     {otVAR,otEMPTY,otEMPTY},
+};
+
+OperandType OpArgTypes_SCI0_New[TOTAL_OPCODES][3] = {
+    /*bnot*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*add*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*sub*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*mul*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*div*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*mod*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*shr*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*shl*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*xor*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*and*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*10*/
+    /*or*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*neg*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*not*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*eq?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*ne?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*gt?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*ge?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*lt?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*le?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*ugt?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*20*/
+    /*uge?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*ult?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*ule?*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*bt*/{ otLABEL,otEMPTY,otEMPTY },
+    /*bnt*/{ otLABEL,otEMPTY,otEMPTY },
+    /*jmp*/{ otLABEL,otEMPTY,otEMPTY },
+    /*ldi*/{ otINT,otEMPTY,otEMPTY },
+    /*push*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*pushi*/{ otINT,otEMPTY,otEMPTY },
+    /*toss*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*30*/
+    /*dup*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*link*/{ otUINT,otEMPTY,otEMPTY },
+    /*call*/{ otLABEL,otUINT16,otEMPTY },
+    /*callk*/{ otKERNEL,otUINT16,otEMPTY },
+    /*callb*/{ otPUBPROC,otUINT16,otEMPTY },
+    /*calle*/{ otUINT,otPUBPROC,otUINT16 },
+    /*ret*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*send*/{ otUINT8,otEMPTY,otEMPTY },
+    /*yield*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*restore*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*40*/
+    /*class*/{ otCLASS,otEMPTY,otEMPTY },
+    /**/{ otEMPTY,otEMPTY,otEMPTY },
+    /*self*/{ otUINT8, otEMPTY, otEMPTY },
+    /*super*/{ otCLASS, otUINT8, otEMPTY },
+    /*rest*/{ otPVAR,otEMPTY,otEMPTY },
+    /*lea*/{ otUINT,otUINT,otEMPTY },
+    /*selfID*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*get*/{ otUINT16, otEMPTY, otEMPTY }, // it's a selector
+    /*pprev*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*pToa*/{ otPROP,otEMPTY,otEMPTY },
+    /*50*/
+    /*aTop*/{ otPROP,otEMPTY,otEMPTY },
+    /*pTos*/{ otPROP,otEMPTY,otEMPTY },
+    /*sTop*/{ otPROP,otEMPTY,otEMPTY },
+    /*ipToa*/{ otPROP,otEMPTY,otEMPTY },
+    /*dpToa*/{ otPROP,otEMPTY,otEMPTY },
+    /*ipTos*/{ otPROP,otEMPTY,otEMPTY },
+    /*dpTos*/{ otPROP,otEMPTY,otEMPTY },
+    /*lofsa*/{ otOFFS,otEMPTY,otEMPTY },
+    /*lofss*/{ otOFFS,otEMPTY,otEMPTY },
+    /*push0*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*60*/
+    /*push1*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*push2*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*pushSelf*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*ldm*/{ otEMPTY,otEMPTY,otEMPTY },
+    /*lag*/{ otVAR,otEMPTY,otEMPTY },
+    /*lal*/{ otVAR,otEMPTY,otEMPTY },
+    /*lat*/{ otVAR,otEMPTY,otEMPTY },
+    /*lap*/{ otVAR,otEMPTY,otEMPTY },
+    /*lsg*/{ otVAR,otEMPTY,otEMPTY },
+    /*lsl*/{ otVAR,otEMPTY,otEMPTY },
+    /*70*/
+    /*lst*/{ otVAR,otEMPTY,otEMPTY },
+    /*lsp*/{ otVAR,otEMPTY,otEMPTY },
+    /*lagi*/{ otVAR,otEMPTY,otEMPTY },
+    /*lali*/{ otVAR,otEMPTY,otEMPTY },
+    /*lati*/{ otVAR,otEMPTY,otEMPTY },
+    /*lapi*/{ otVAR,otEMPTY,otEMPTY },
+    /*lsgi*/{ otVAR,otEMPTY,otEMPTY },
+    /*lsli*/{ otVAR,otEMPTY,otEMPTY },
+    /*lsti*/{ otVAR,otEMPTY,otEMPTY },
+    /*lspi*/{ otVAR,otEMPTY,otEMPTY },
+    /*80*/
+    /*sag*/{ otVAR,otEMPTY,otEMPTY },
+    /*sal*/{ otVAR,otEMPTY,otEMPTY },
+    /*sat*/{ otVAR,otEMPTY,otEMPTY },
+    /*sap*/{ otVAR,otEMPTY,otEMPTY },
+    /*ssg*/{ otVAR,otEMPTY,otEMPTY },
+    /*ssl*/{ otVAR,otEMPTY,otEMPTY },
+    /*sst*/{ otVAR,otEMPTY,otEMPTY },
+    /*ssp*/{ otVAR,otEMPTY,otEMPTY },
+    /*sagi*/{ otVAR,otEMPTY,otEMPTY },
+    /*sali*/{ otVAR,otEMPTY,otEMPTY },
+    /*90*/
+    /*sati*/{ otVAR,otEMPTY,otEMPTY },
+    /*sapi*/{ otVAR,otEMPTY,otEMPTY },
+    /*ssgi*/{ otVAR,otEMPTY,otEMPTY },
+    /*ssli*/{ otVAR,otEMPTY,otEMPTY },
+    /*ssti*/{ otVAR,otEMPTY,otEMPTY },
+    /*sspi*/{ otVAR,otEMPTY,otEMPTY },
+    /*+ag*/{ otVAR,otEMPTY,otEMPTY },
+    /*+al*/{ otVAR,otEMPTY,otEMPTY },
+    /*+at*/{ otVAR,otEMPTY,otEMPTY },
+    /*+ap*/{ otVAR,otEMPTY,otEMPTY },
+    /*100*/
+    /*+sg*/{ otVAR,otEMPTY,otEMPTY },
+    /*+sl*/{ otVAR,otEMPTY,otEMPTY },
+    /*+st*/{ otVAR,otEMPTY,otEMPTY },
+    /*+sp*/{ otVAR,otEMPTY,otEMPTY },
+    /*+agi*/{ otVAR,otEMPTY,otEMPTY },
+    /*+ali*/{ otVAR,otEMPTY,otEMPTY },
+    /*+ati*/{ otVAR,otEMPTY,otEMPTY },
+    /*+api*/{ otVAR,otEMPTY,otEMPTY },
+    /*+sgi*/{ otVAR,otEMPTY,otEMPTY },
+    /*+sli*/{ otVAR,otEMPTY,otEMPTY },
+    /*110*/
+    /*+sti*/{ otVAR,otEMPTY,otEMPTY },
+    /*+spi*/{ otVAR,otEMPTY,otEMPTY },
+    /*-ag*/{ otVAR,otEMPTY,otEMPTY },
+    /*-al*/{ otVAR,otEMPTY,otEMPTY },
+    /*-at*/{ otVAR,otEMPTY,otEMPTY },
+    /*-ap*/{ otVAR,otEMPTY,otEMPTY },
+    /*-sg*/{ otVAR,otEMPTY,otEMPTY },
+    /*-sl*/{ otVAR,otEMPTY,otEMPTY },
+    /*-st*/{ otVAR,otEMPTY,otEMPTY },
+    /*-sp*/{ otVAR,otEMPTY,otEMPTY },
+    /*120*/
+    /*-agi*/{ otVAR,otEMPTY,otEMPTY },
+    /*-ali*/{ otVAR,otEMPTY,otEMPTY },
+    /*-ati*/{ otVAR,otEMPTY,otEMPTY },
+    /*-api*/{ otVAR,otEMPTY,otEMPTY },
+    /*-sgi*/{ otVAR,otEMPTY,otEMPTY },
+    /*-sli*/{ otVAR,otEMPTY,otEMPTY },
+    /*-sti*/{ otVAR,otEMPTY,otEMPTY },
+    /*-spi*/{ otVAR,otEMPTY,otEMPTY },
 };
 
 OperandType OpArgTypes_SCI2[TOTAL_OPCODES][3] = {
@@ -371,14 +514,21 @@ const OperandType *GetOperandTypes(const SCIVersion &version, Opcode opcode)
     }
     else
     {
-        switch (opcode)
+        if (version.NewSCI)
         {
-        case Opcode::LDM:
-        case Opcode::STM:
-            return stmldmOperands;
-            break;
+            switch (opcode)
+            {
+            case Opcode::LDM:
+            case Opcode::STM:
+                return stmldmOperands;
+                break;
+            }
+            return OpArgTypes_SCI0_New[static_cast<BYTE>(opcode)];
         }
-        return OpArgTypes_SCI0[static_cast<BYTE>(opcode)];
+        else
+        {
+            return OpArgTypes_SCI0[static_cast<BYTE>(opcode)];
+        }
     }
 }
 

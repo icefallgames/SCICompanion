@@ -1570,7 +1570,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         {
             assert((bOpSend == Opcode::SELF) || (bOpSend == Opcode::SEND));
             uint16_t wSelector;
-            bool isSimplePropertyGet = (_params.size() == 1) && !_params[0]->ContainsRest() && (!_params[0]->IsMethod()) && _params[0]->GetStatements().empty() && context.LookupSelector(_params[0]->GetSelectorName(), wSelector);
+            bool isSimplePropertyGet = context.GetVersion().NewSCI && (_params.size() == 1) && !_params[0]->ContainsRest() && (!_params[0]->IsMethod()) && _params[0]->GetStatements().empty() && context.LookupSelector(_params[0]->GetSelectorName(), wSelector);
             if ((bOpSend == Opcode::SEND) && isSimplePropertyGet)
             {
                 // Optimize to "Get #selector" in the case of

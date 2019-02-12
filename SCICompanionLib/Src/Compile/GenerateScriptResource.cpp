@@ -490,8 +490,8 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
                 {
                     // First non-persisted one - this is the word count of persisted ones:
                     write_word(output, localPersistCountIndex, persistWordCount);
-                    wrotePersistedWordCount = true;
                 }
+                wrotePersistedWordCount = true;
 
                 if (persistWordCount > 0)
                 {
@@ -1061,10 +1061,10 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
                 case ValueType::Number:
                     wValue = value->GetNumberValue();
                     break;
-                case ValueType::ResourceString: // For now, strings are ok in property lists
+                case ValueType::ResourceString:
                 {
                     uint16_t autoTextNum;
-                    if (context.IsAutoText(autoTextNum))
+                    if (context.GetVersion().NewSCI && context.IsAutoText(autoTextNum))
                     {
                         // Add ourselves as a resource tuple, and get the number.
                         wValue = context.AddStringResourceTuple(value->GetStringValue());
@@ -1085,7 +1085,7 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
                     }
                 }
                     break;
-                case ValueType::String: // For now, strings are ok in property lists
+                case ValueType::String:
                     wValue = context.GetTempToken(ValueType::String, value->GetStringValue());
                     fTrackRelocation = true;
                     break;
