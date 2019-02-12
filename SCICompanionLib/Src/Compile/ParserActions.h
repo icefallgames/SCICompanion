@@ -351,7 +351,8 @@ void CreateDelegateA
         pContext->CreateMethod();
         pContext->CurrentFunctionPtr()->SetOwnerClass(pContext->CurrentClassPtr().get());
         pContext->CurrentFunctionPtr()->SetScript(&pContext->Script());
-        pContext->CurrentFunctionPtr()->SetName("tick"); // And we know the function name.
+        //pContext->Script().SyntaxVersion
+        pContext->CurrentFunctionPtr()->SetName("doit"); // And we know the function name.
         pContext->CurrentFunctionPtr()->SetIsThread(false);
         pContext->CurrentFunctionPtr()->SetPosition(stream.GetPosition());
     }
