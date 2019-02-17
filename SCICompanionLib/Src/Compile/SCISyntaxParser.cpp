@@ -37,6 +37,8 @@ void SyntaxContext::CreateVerbHandler()
 {
     FunctionPtrStack.push_back(std::make_unique<sci::VerbHandlerDefinition>());
     CurrentFunctionPtr()->AddSignature(_CreateVerbHandlerSignature());
+    CurrentFunctionPtr()->SetOwnerClass(CurrentClassPtr().get());
+    CurrentFunctionPtr()->SetScript(&Script());
 }
 std::string SyntaxContext::GenerateAnonymousName()
 {
