@@ -215,6 +215,7 @@
     <ClCompile Include="Src\Compile\TarjanAlgorithm.cpp" />
     <ClCompile Include="Src\Compile\ValidateSaid.cpp" />
     <ClCompile Include="Src\Compile\ValidateSelectors.cpp" />
+    <ClCompile Include="Src\Dialogs\AdvancedPasteDialog.cpp" />
     <ClCompile Include="Src\Dialogs\AudioEditDialog.cpp" />
     <ClCompile Include="Src\Dialogs\AudioPreferencesDialog.cpp" />
     <ClCompile Include="Src\Dialogs\BitmapToVGADialog.cpp" />
@@ -313,6 +314,7 @@
     <ClInclude Include="Src\Compile\ValidateSaid.h" />
     <ClInclude Include="Src\Compile\ValidateSelectors.h" />
     <ClInclude Include="Src\cpptoml\cpptoml.h" />
+    <ClInclude Include="Src\Dialogs\AdvancedPasteDialog.h" />
     <ClInclude Include="Src\Dialogs\AudioEditDialog.h" />
     <ClInclude Include="Src\Dialogs\AudioPreferencesDialog.h" />
     <ClInclude Include="Src\Dialogs\ChooseTalkerViewLoopDialog.h" />
