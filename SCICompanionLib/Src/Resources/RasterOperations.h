@@ -68,7 +68,7 @@ enum class BitmapScaleOptions
 DEFINE_ENUM_FLAGS(BitmapScaleOptions, uint8_t)
 
 
-enum AdvancedRasterOp : int
+enum class AdvancedRasterOp : int
 {
     Replace,
     Add,
@@ -76,7 +76,8 @@ enum AdvancedRasterOp : int
     Max,
     Min,     // good for lighting.
     Avg,
-    Mult
+    Mult,
+    Blend,
 };
 
 // See if we can make source be smaller and that's ok

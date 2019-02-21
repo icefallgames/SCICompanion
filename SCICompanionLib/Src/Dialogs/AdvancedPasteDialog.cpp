@@ -42,7 +42,7 @@ AdvancedRasterCopyInfo g_copyInfo =
 AdvancedPasteDialog::AdvancedPasteDialog(CWnd* pParent /*=NULL*/)
     : CExtResizableDialog(AdvancedPasteDialog::IDD, pParent), _initialized(false), _pDoc(nullptr), _destLoop(0), _sourceLoop(0), _fillAllCels(FALSE)
 {
-    _blendOp = g_copyInfo.blendOp;
+    _blendOp = static_cast<int>(g_copyInfo.blendOp);
     HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPALETTE), RT_ACCELERATOR);
     _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPALETTE));
 }

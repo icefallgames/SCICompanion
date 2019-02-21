@@ -489,7 +489,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateDelete)
     //ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateEGAOnly)
     ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateIsVGA)
-    ON_UPDATE_COMMAND_UI(ID_GREYSCALE, OnUpdateEGAOnly)
+    ON_UPDATE_COMMAND_UI(ID_GREYSCALE, OnUpdateAlwaysOn)
     ON_UPDATE_COMMAND_UI(ID_VIEW_EDITPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMAPPALETTE, OnUpdateIsVGA)
@@ -3117,6 +3117,67 @@ void CRasterView::OnInvert()
     }
     else
     {
+        for (int i = 0; i < _cWorkingCels; i++)
+        {
+            CSize sizeCel = _celData[i].GetCSize();
+            for (int y = 0; y < sizeCel.cy; y++)
+            {
+                uint8_t *pLine = _ViewOffset(i, y);
+                for (int x = 0; x < sizeCel.cx; x++)
+                {
+                    pLine[x] = 255 - pLine[x];
+                }
+            }
+        }
+    }
+    _CommitSourceData();
+}
+
+void CRasterView::OnGreyScale()
+{
+    // TODO: Use effect area.
+    _GrabSourceData();
+
+    const RasterComponent *raster = _GetRaster();
+    if (raster->Traits.PaletteType != PaletteType::VGA_256)
+    {
+        for (int i = 0; i < _cWorkingCels; i++)
+        {
+            CSize sizeCel = _celData[i].GetCSize();
+            for (int y = 0; y < sizeCel.cy; y++)
+            {
+                uint8_t *pLine = _ViewOffset(i, y);
+                for (int x = 0; x < sizeCel.cx; x++)
+                {
+
+                    assert((pLine + x) <
+                        (_celData[i].GetDataPtr() + CX_ACTUAL(sizeCel.cx) * sizeCel.cy));
+                    switch (pLine[x])
+                    {
+                    case 0xe:
+                    case 0xd:
+                    case 0xc:
+                    case 0xb:
+                        // Light grey
+                        pLine[x] = 0x7;
+                        break;
+                    case 0x0:
+                    case 0xf:
+                    case 0x7:
+                    case 0x8:
+                        // No change
+                        break;
+                    default:
+                        // Dark grey
+                        pLine[x] = 0x8;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
         // For VGA, we'll do a gradient.
         CNewRasterResourceDocument *pDoc = GetDoc();
         const PaletteComponent *paletteComponent = pDoc->GetCurrentPaletteComponent();
@@ -3147,53 +3208,11 @@ void CRasterView::OnInvert()
                         for (int y = 0; y < sizeCel.cy; y++)
                         {
                             uint8_t *pLine = _ViewOffset(i, y);
-                            assert(pLine[x] <= 0xf);
                             pLine[x] = paletteIndex;
                         }
                     }
                 }
 
-            }
-        }
-    }
-    _CommitSourceData();
-}
-
-void CRasterView::OnGreyScale()
-{
-    // TODO: Use effect area.
-    _GrabSourceData();
-    for (int i = 0; i < _cWorkingCels; i++)
-    {
-        CSize sizeCel = _celData[i].GetCSize();
-        for (int y = 0; y < sizeCel.cy; y++)
-        {
-            uint8_t *pLine = _ViewOffset(i, y);
-            for (int x = 0; x < sizeCel.cx; x++)
-            {
-
-                assert((pLine + x) <
-                    (_celData[i].GetDataPtr() + CX_ACTUAL(sizeCel.cx) * sizeCel.cy));
-                switch (pLine[x])
-                {
-                case 0xe:
-                case 0xd:
-                case 0xc:
-                case 0xb:
-                    // Light grey
-                    pLine[x] = 0x7;
-                    break;
-                case 0x0:
-                case 0xf:
-                case 0x7:
-                case 0x8:
-                    // No change
-                    break;
-                default:
-                    // Dark grey
-                    pLine[x] = 0x8;
-                    break;
-                }
             }
         }
     }

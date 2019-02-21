@@ -1230,6 +1230,11 @@ void AdvancedRasterCopyCel(const AdvancedRasterCopyInfo &copyInfo, const Cel &so
                 case AdvancedRasterOp::Mult:
                     destData = (byte)(255.0f * ((float)destData / 255.0f) * ((float)data / 255.0f));
                     break;
+
+                case AdvancedRasterOp::Blend:
+                    // We're just a single value, so we're assuming we're white and the value is alpha. So:
+                    destData = data + (byte)((int)destData * (255 - (int)data) / 255);
+                    break;
                 }
 
                 dest.Data[destIndex] = destData;
