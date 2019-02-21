@@ -1168,3 +1168,107 @@ void DeserializeCelRuntime(sci::istream &in, Cel &cel)
     cel.Data.allocate(PaddedSize(cel.size));
     in.read_data(&cel.Data[0], cel.Data.size());
 }
+
+
+
+void AdvancedRasterCopyCel(const AdvancedRasterCopyInfo &copyInfo, const Cel &source, Cel &dest)
+{
+    if ((source.size.cx > dest.size.cx) || (source.size.cy > dest.size.cy))
+    {
+        // We don't handle this... only smaller source is ok.
+        return;
+    }
+
+    for (int y = 0; y < source.size.cy; y++)
+    {
+        for (int x = 0; x < source.size.cx; x++)
+        {
+            byte data = source.Data[x + y * source.GetStride()];
+
+            if (!copyInfo.honorTx || (data != source.TransparentColor))
+            {
+                int xDest = x + copyInfo.xOffset;
+                int yDest = y + copyInfo.yOffset;
+                if (!copyInfo.xWrap)
+                {
+                    xDest = max(xDest, copyInfo.xMarginLeft);
+                    xDest = min(xDest, dest.size.cx - copyInfo.xMarginRight - 1);
+                }
+                if (!copyInfo.yWrap)
+                {
+                    yDest = max(yDest, copyInfo.yMarginTop);
+                    yDest = min(yDest, dest.size.cy - copyInfo.yMarginBottom - 1);
+                }
+                xDest %= dest.size.cx;
+                yDest %= dest.size.cy;
+
+                int destIndex = xDest + yDest * dest.GetStride();
+                byte destData = dest.Data[destIndex];
+
+                // Do blend op.
+                switch (copyInfo.blendOp)
+                {
+                case AdvancedRasterOp::Replace:
+                    destData = data;
+                    break;
+                case AdvancedRasterOp::Add:
+                    destData = (byte)min(255, (int)data + (int)destData);
+                    break;
+                case AdvancedRasterOp::Sub:
+                    destData = (byte)max(0, (int)data + (int)destData);
+                    break;
+                case AdvancedRasterOp::Min:
+                    destData = min(destData, data);
+                    break;
+                case AdvancedRasterOp::Max:
+                    destData = max(destData, data);
+                    break;
+                case AdvancedRasterOp::Avg:
+                    destData = (byte)(((int)destData + (int)data) / 2);
+                    break;
+                case AdvancedRasterOp::Mult:
+                    destData = (byte)(255.0f * ((float)destData / 255.0f) * ((float)data / 255.0f));
+                    break;
+                }
+
+                dest.Data[destIndex] = destData;
+            }
+        }
+    }
+}
+
+RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const RasterComponent &source, CelIndex celIndexSource, int cCels, RasterComponent &dest, CelIndex celIndexDest)
+{
+    // offset
+    // greyscale or not
+    // blending op
+    const std::vector<Cel> &celsSource = source.Loops[celIndexSource.loop].Cels;
+    std::vector<Cel> &celsDest = dest.Loops[celIndexDest.loop].Cels;
+    int sourceIndex = celIndexSource.cel;
+    int destIndex = celIndexDest.cel;
+    if (copyInfo.randomCel)
+    {
+        destIndex += std::rand() % celsDest.size();
+    }
+
+    AdvancedRasterCopyInfo localCopyInfo = copyInfo;
+    if (copyInfo.randomOffset)
+    {
+        localCopyInfo.xOffset += rand() % celsDest[0].size.cx;
+        localCopyInfo.yOffset += rand() % celsDest[0].size.cy;
+    }
+
+    for (int i = 0; i < cCels; i++)
+    {
+        sourceIndex %= celsSource.size();
+        destIndex %= celsDest.size();
+
+        AdvancedRasterCopyCel(localCopyInfo, celsSource[sourceIndex], celsDest[destIndex]);
+
+        // Wrap cels:
+        sourceIndex++;
+        destIndex++;
+    }
+
+    return RasterChange(RasterChangeHint::Loop, celIndexDest);
+}

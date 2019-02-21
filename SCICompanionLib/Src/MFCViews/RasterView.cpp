@@ -36,6 +36,7 @@
 #include "OnionSkinSettingsDialog.h"
 #include "RotateArbitraryDialog.h"
 #include "NearestColors.h"
+#include "AdvancedPasteDialog.h"
 
 using namespace std;
 
@@ -47,6 +48,8 @@ using namespace std;
 #define COLOR_NORMALBACKGROUND RGB(0, 0, 128)
 
 CExtBitmap g_AffectAllBitmap;
+
+std::unique_ptr<AdvancedPasteDialog> g_AdvancedPasteDialog;
 
 COLORREF _ToGreenCOLORREF(byte sciColor)
 {
@@ -419,6 +422,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_EDIT_COPY, OnCopyPic)
     ON_COMMAND(ID_EDIT_PASTE, OnPaste)
     ON_COMMAND(ID_EDIT_PASTETRANSPARENT, OnPasteTransparent)
+    ON_COMMAND(ID_VIEW_PASTEADVANCED, OnPasteAdvanced)
     ON_COMMAND(ID_VIEW_PASTESPECIAL, OnPasteSpecial)
     ON_COMMAND(ID_EDIT_CUT, OnCut)
     ON_COMMAND(ID_EDIT_DELETE, OnDelete)
@@ -2416,6 +2420,17 @@ void CRasterView::OnPaste()
 void CRasterView::OnPasteTransparent()
 {
     _OnPaste(true, false);
+}
+
+void CRasterView::OnPasteAdvanced()
+{
+    if (!g_AdvancedPasteDialog)
+    {
+        g_AdvancedPasteDialog = std::make_unique<AdvancedPasteDialog>();
+        g_AdvancedPasteDialog->SetRasterDocument(static_cast<CNewRasterResourceDocument*>(GetDocument()));
+        g_AdvancedPasteDialog->Create(IDD_ADVANCEDPASTE);
+    }
+    g_AdvancedPasteDialog->ShowWindow(SW_SHOW);
 }
 
 void CRasterView::OnPasteSpecial()

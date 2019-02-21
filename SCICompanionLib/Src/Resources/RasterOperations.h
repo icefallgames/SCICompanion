@@ -58,6 +58,7 @@ struct PaletteComponent;
 struct Cel;
 struct Loop;
 
+
 enum class BitmapScaleOptions
 {
     None = 0,
@@ -65,6 +66,39 @@ enum class BitmapScaleOptions
     AllowMin = 0x2,
 };
 DEFINE_ENUM_FLAGS(BitmapScaleOptions, uint8_t)
+
+
+enum AdvancedRasterOp : int
+{
+    Replace,
+    Add,
+    Sub,
+    Max,
+    Min,     // good for lighting.
+    Avg,
+    Mult
+};
+
+// See if we can make source be smaller and that's ok
+
+struct AdvancedRasterCopyInfo
+{
+    // Ugly BOOL's so it can be used directly with MFC dialog.
+    AdvancedRasterOp blendOp;
+    BOOL randomCel;
+    int xOffset;
+    int yOffset;
+    BOOL randomOffset;
+    BOOL xWrap;
+    BOOL yWrap;
+    BOOL greyScale;
+    BOOL honorTx;
+    // Ignored if xWrap, yWrap:
+    int xMarginLeft;
+    int xMarginRight;
+    int yMarginTop;
+    int yMarginBottom;
+};
 
 HBITMAP GetBitmap(const RasterComponent &raster, const PaletteComponent *palette, CelIndex celIndex, int cx, int cy, BitmapScaleOptions scaleOptions);
 HBITMAP GetBitmap(const Cel &cel, const PaletteComponent *palette, int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor, bool greyScale);
@@ -106,3 +140,5 @@ RasterChangeHint ShrinkWrapCel(RasterComponent &raster, CelIndex celIndex);
 // These don't adhere to any persisted format. Use only at runtime.
 void SerializeCelRuntime(sci::ostream &out, const Cel &cel);
 void DeserializeCelRuntime(sci::istream &in, Cel &cel);
+
+RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const RasterComponent &source, CelIndex celIndexSource, int cCels, RasterComponent &dest, CelIndex celIndexDest);

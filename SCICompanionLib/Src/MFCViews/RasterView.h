@@ -23,6 +23,7 @@
 
 // fwd decl
 class CNewRasterResourceDocument;
+class AdvancedPasteDialog;
 struct RasterComponent;
 struct Cel;
 struct OnionSkinFrameOptions;
@@ -282,6 +283,7 @@ private:
     afx_msg void OnCopyPic();
     afx_msg void OnPaste();
     afx_msg void OnPasteTransparent();
+    afx_msg void OnPasteAdvanced();
     afx_msg void OnPasteSpecial();
     afx_msg void OnUpdateAllViewCommands(CCmdUI *pCmdUI);
     afx_msg void OnCut();
@@ -489,4 +491,5 @@ private:
     SelectionManager _selectionManager;
 };
 
+extern std::unique_ptr<AdvancedPasteDialog> g_AdvancedPasteDialog;
 

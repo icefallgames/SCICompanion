@@ -317,6 +317,8 @@
 #define IDD_PICCOMMANDS_EGAPOLY         404
 #define IDD_DIALOGCELVIEW3              405
 #define IDD_DIALOGNEARESTCOLORS         406
+#define IDD_PICCLIPS1                   407
+#define IDD_ADVANCEDPASTE               407
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -471,6 +473,7 @@
 #define IDC_EDIT1                       1127
 #define IDC_BROWSEINFO                  1128
 #define IDC_EDITHEIGHT                  1128
+#define IDC_SOURCELOOP                  1128
 #define IDC_SCRIPTNAV                   1129
 #define IDC_CODECOMPLETION              1130
 #define IDC_HOVERTIPS                   1131
@@ -846,6 +849,15 @@
 #define IDC_CHECKRENDERUP               1413
 #define IDC_CHECKRENDERUP2              1415
 #define IDC_DITHERCHECK                 1416
+#define ID_OK                           1417
+#define IDC_EDITDESTLOOP                1419
+#define IDC_SPINSOURCELOOP              1420
+#define IDC_CHECKRANDOMCEL              1421
+#define IDC_CHECKRANDOMOFFSET           1422
+#define IDC_CHECKWRAPX                  1423
+#define IDC_CHECKWRAPY                  1424
+#define IDC_CHECKHONORTRANSPARENCY      1425
+#define IDC_COMBOBLENDOP                1426
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1260,6 +1272,7 @@
 #define ID_PIC_NEARESTCOLORS            33366
 #define ID_MAIN_SHOWNEARESTCOLORS       33367
 #define ID_VIEW_NEARESTCOLORS           33368
+#define ID_VIEW_PASTEADVANCED           33369
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1267,9 +1280,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        415
-#define _APS_NEXT_COMMAND_VALUE         33369
-#define _APS_NEXT_CONTROL_VALUE         1417
+#define _APS_NEXT_RESOURCE_VALUE        416
+#define _APS_NEXT_COMMAND_VALUE         33370
+#define _APS_NEXT_CONTROL_VALUE         1427
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
