@@ -17,6 +17,7 @@
 #include "RasterOperations.h"
 #include "PaletteOperations.h"
 #include "ResourceEntity.h"
+#include <random>
 
 // Ok, try resizing a view resource
 //
@@ -1239,6 +1240,9 @@ void AdvancedRasterCopyCel(const AdvancedRasterCopyInfo &copyInfo, const Cel &so
 
 RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const RasterComponent &source, CelIndex celIndexSource, int cCels, RasterComponent &dest, CelIndex celIndexDest)
 {
+    std::random_device rd;
+    std::mt19937 mt(rd());
+
     // offset
     // greyscale or not
     // blending op
@@ -1248,14 +1252,48 @@ RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const Ra
     int destIndex = celIndexDest.cel;
     if (copyInfo.randomCel)
     {
-        destIndex += std::rand() % celsDest.size();
+        std::uniform_int_distribution<int32_t> distribution(0, celsDest.size() - 1);
+        destIndex += distribution(mt);
     }
 
     AdvancedRasterCopyInfo localCopyInfo = copyInfo;
     if (copyInfo.randomOffset)
     {
-        localCopyInfo.xOffset += rand() % celsDest[0].size.cx;
-        localCopyInfo.yOffset += rand() % celsDest[0].size.cy;
+        // Assume xOffset and yOffset are 0 in this case
+        localCopyInfo.xOffset = 0;
+        localCopyInfo.yOffset = 0;
+
+        size16 sourceSize = celsSource[0].size;
+        size16 destSize = celsDest[0].size;
+        if (!localCopyInfo.xWrap)
+        {
+            // We need a bounds!
+            int xMin = copyInfo.xMarginLeft;
+            int xMax = max(xMin, destSize.cx - copyInfo.xMarginRight - sourceSize.cx);
+
+            std::uniform_int_distribution<int32_t> distribution(xMin, xMax);
+            localCopyInfo.xOffset += distribution(mt);
+        }
+        else
+        {
+            std::uniform_int_distribution<int32_t> distribution(0, destSize.cx - 1);
+            localCopyInfo.xOffset += distribution(mt);
+        }
+
+        if (!localCopyInfo.yWrap)
+        {
+            // We need a bounds!
+            int yMin = copyInfo.yMarginBottom; // y is flipped
+            int yMax = max(yMin, destSize.cy - copyInfo.yMarginTop - sourceSize.cy);
+
+            std::uniform_int_distribution<int32_t> distribution(yMin, yMax);
+            localCopyInfo.yOffset += distribution(mt);
+        }
+        else
+        {
+            std::uniform_int_distribution<int32_t> distribution(0, destSize.cy - 1);
+            localCopyInfo.yOffset += distribution(mt);
+        }
     }
 
     for (int i = 0; i < cCels; i++)

@@ -48,6 +48,7 @@ private:
     int _destLoop;
     int _sourceLoop;
     int _blendOp;
+    BOOL _fillAllCels;
 
 public:
     afx_msg void OnBnClickedDoit();

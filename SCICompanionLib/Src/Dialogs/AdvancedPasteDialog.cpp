@@ -40,7 +40,7 @@ AdvancedRasterCopyInfo g_copyInfo =
 // AdvancedPasteDialog dialog
 
 AdvancedPasteDialog::AdvancedPasteDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(AdvancedPasteDialog::IDD, pParent), _initialized(false), _pDoc(nullptr), _destLoop(0), _sourceLoop(0)
+    : CExtResizableDialog(AdvancedPasteDialog::IDD, pParent), _initialized(false), _pDoc(nullptr), _destLoop(0), _sourceLoop(0), _fillAllCels(FALSE)
 {
     _blendOp = g_copyInfo.blendOp;
     HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPALETTE), RT_ACCELERATOR);
@@ -82,10 +82,16 @@ void AdvancedPasteDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECKWRAPX, g_copyInfo.xWrap);
     DDX_Check(pDX, IDC_CHECKWRAPY, g_copyInfo.yWrap);
     DDX_Check(pDX, IDC_CHECKHONORTRANSPARENCY, g_copyInfo.honorTx);
+    DDX_Check(pDX, IDC_CHECKALLDESTCELS, _fillAllCels);
 
     DDX_CBIndex(pDX, IDC_COMBOBLENDOP, _blendOp);
     DDX_Text(pDX, IDC_EDITDESTLOOP, _destLoop);
     DDX_Text(pDX, IDC_SOURCELOOP, _sourceLoop);
+
+    DDX_Text(pDX, IDC_EDITMARGINLEFT, g_copyInfo.xMarginLeft);
+    DDX_Text(pDX, IDC_EDITMARGINRIGHT, g_copyInfo.xMarginRight);
+    DDX_Text(pDX, IDC_EDITMARGINTOP, g_copyInfo.yMarginTop);
+    DDX_Text(pDX, IDC_EDITMARGINBOTTOM, g_copyInfo.yMarginBottom);
 
     if (!_initialized)
     {
@@ -95,10 +101,7 @@ void AdvancedPasteDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, ID_OK, m_wndOk);
         // Spin control
         DDX_Control(pDX, IDC_SPINSOURCELOOP, m_wndSourceLoop);
-        m_wndSourceLoop.SetRange(_pDoc->GetResource()->GetComponent<RasterComponent>().LoopCount(), 0);
     }
-
-
 
 }
 
@@ -110,6 +113,9 @@ END_MESSAGE_MAP()
 void AdvancedPasteDialog::SetRasterDocument(CNewRasterResourceDocument *pDoc)
 {
     _pDoc = pDoc;
+
+    // Update our range
+    m_wndSourceLoop.SetRange(_pDoc->GetResource()->GetComponent<RasterComponent>().LoopCount() - 1, 0);
 }
 
 void AdvancedPasteDialog::OnBnClickedDoit()
@@ -122,7 +128,8 @@ void AdvancedPasteDialog::OnBnClickedDoit()
     _pDoc->ApplyChanges<RasterComponent>(
         [&](RasterComponent &raster)
     {
-        RasterChange rasterChange = AdvancedRasterCopy(g_copyInfo, raster, CelIndex(_sourceLoop, 0), (int)raster.Loops[_sourceLoop].Cels.size(), raster, CelIndex(_destLoop, 0));
+        int cCels = _fillAllCels ? (int)raster.Loops[_destLoop].Cels.size() : (int)raster.Loops[_sourceLoop].Cels.size();
+        RasterChange rasterChange = AdvancedRasterCopy(g_copyInfo, raster, CelIndex(_sourceLoop, 0), cCels, raster, CelIndex(_destLoop, 0));
         return WrapRasterChange(rasterChange);
     }
     );

@@ -2427,9 +2427,9 @@ void CRasterView::OnPasteAdvanced()
     if (!g_AdvancedPasteDialog)
     {
         g_AdvancedPasteDialog = std::make_unique<AdvancedPasteDialog>();
-        g_AdvancedPasteDialog->SetRasterDocument(static_cast<CNewRasterResourceDocument*>(GetDocument()));
         g_AdvancedPasteDialog->Create(IDD_ADVANCEDPASTE);
     }
+    g_AdvancedPasteDialog->SetRasterDocument(static_cast<CNewRasterResourceDocument*>(GetDocument()));
     g_AdvancedPasteDialog->ShowWindow(SW_SHOW);
 }
 
