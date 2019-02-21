@@ -76,6 +76,7 @@ private:
     void OnPenStyle();
     void OnApplyToAll();
     void OnIsScalable();
+    void OnQuantizeLevels();
 
     void _UpdatePaletteChoices();
     void _UpdatePaletteResources();
@@ -120,6 +121,9 @@ private:
     // View-specific
     CExtComboBox m_wndPaletteChoice;
     CExtButton m_wndEditPaletteButton;
+
+    CEdit m_wndEditQuantizeLevels;
+    CExtButton m_wndButtonQuantizeLevels;
 
     // Color: (supported by all)
     CChooseColorStatic m_wndPalette; // Actually not all

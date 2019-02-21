@@ -96,6 +96,7 @@ BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_COMMAND(IDC_BUTTONLEFT, OnLeft)
     ON_COMMAND(ID_MAKEFONT, OnMakeFont)
     ON_COMMAND(IDC_BUTTONPENSTYLE, OnPenStyle)
+    ON_COMMAND(IDC_BUTTON_QUANTIZELEVELS, OnQuantizeLevels)
 END_MESSAGE_MAP()
 
 void RasterSidePane::_OnUpdateCommandUIs()
@@ -1174,6 +1175,14 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_BUTTONPENSTYLE, m_wndButtonPenStyle);
         AddAnchor(IDC_BUTTONPENSTYLE, CPoint(100, 0), CPoint(100, 0));
     }
+    if (GetDlgItem(IDC_EDIT_QUANTIZELEVELS))
+    {
+        DDX_Control(pDX, IDC_EDIT_QUANTIZELEVELS, m_wndEditQuantizeLevels);
+        m_wndEditQuantizeLevels.SetWindowTextA("16");
+        AddAnchor(IDC_EDIT_QUANTIZELEVELS, CPoint(100, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_BUTTON_QUANTIZELEVELS, m_wndButtonQuantizeLevels);
+        AddAnchor(IDC_BUTTON_QUANTIZELEVELS, CPoint(0, 0), CPoint(100, 0));
+    }
 }
 
 void RasterSidePane::_OnAddCel(bool before)
@@ -1341,6 +1350,38 @@ void RasterSidePane::OnPenStyle()
             dialog.GetPenStyle(&penStyle);
             _pDoc->SetPenStyle(penStyle);
         }
+    }
+}
+
+void RasterSidePane::OnQuantizeLevels()
+{
+    if (_pDoc)
+    {
+        CString strNumber;
+        m_wndEditQuantizeLevels.GetWindowText(strNumber);
+        int levelCount = StrToInt(strNumber);
+        levelCount = max(2, levelCount);
+        levelCount = min(255, levelCount);
+
+
+        CelIndex rgdwIndices[128];
+        int cCels = _pDoc->GetSelectedGroup(rgdwIndices, ARRAYSIZE(rgdwIndices));
+        if (cCels > 0)
+        {
+            ResourceEntityDocument *pred = static_cast<ResourceEntityDocument*>(_pDoc);
+            pred->ApplyChanges<RasterComponent>(
+                [&rgdwIndices, cCels, levelCount](RasterComponent &raster)
+            {
+                for (int i = 0; i < cCels; i++)
+                {
+                    QuantizeCel(raster, rgdwIndices[i], levelCount);
+                    
+                }
+                return WrapRasterChange(RasterChange(RasterChangeHint::Loop));
+            }
+            );
+        }
+
     }
 }
 

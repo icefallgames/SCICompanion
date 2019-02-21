@@ -358,6 +358,8 @@
 #define IDC_BUTTON_MAINCOLOR2           1011
 #define IDC_BUTTON_ALTCOLOR             1011
 #define IDC_EDITPACKAGE                 1012
+#define IDC_BUTTON_ADDLOOPAFTER2        1012
+#define IDC_BUTTON_QUANTIZELEVELS       1012
 #define IDC_EDITRESOURCE                1013
 #define IDC_FAKEEGOX                    1014
 #define IDC_FAKEEGOY                    1015
@@ -397,6 +399,7 @@
 #define IDC_COMBO_MIRROR                1054
 #define IDC_BUTTON_ADDCELBEFORE         1055
 #define IDC_SPIN_CHOOSELOOP             1056
+#define IDC_EDIT_QUANTIZELEVELS         1056
 #define IDC_EDIT_CHOOSELOOP             1057
 #define IDC_STATIC_MIRROROF             1058
 #define IDC_BUTTON_ADDLOOPBEFORE        1059
@@ -862,7 +865,6 @@
 #define IDC_EDITMARGINLEFT              1428
 #define IDC_EDITMARGINRIGHT             1429
 #define IDC_EDITMARGINTOP               1430
-#define IDC_EDITMARGINTOP2              1431
 #define IDC_EDITMARGINBOTTOM            1431
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773

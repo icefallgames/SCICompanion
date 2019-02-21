@@ -1310,3 +1310,22 @@ RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const Ra
 
     return RasterChange(RasterChangeHint::Loop, celIndexDest);
 }
+
+// Note: we ignore transparency
+RasterChange QuantizeCel(RasterComponent &raster, CelIndex celIndex, int numLevels)
+{
+    Cel &cel = raster.GetCel(celIndex);
+
+    double factor = (double)numLevels / 255.0f;
+
+    for (byte &data : cel.Data)
+    {
+        double fData = data;
+        fData *= factor; // now between 0 and numLevels FP
+        fData = std::round(fData); // now integer between 0 and numLevels.
+        fData /= factor;
+        data = (byte)fData;
+    }
+
+    return RasterChange(RasterChangeHint::Loop, celIndex);
+}

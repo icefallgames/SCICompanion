@@ -142,3 +142,4 @@ void SerializeCelRuntime(sci::ostream &out, const Cel &cel);
 void DeserializeCelRuntime(sci::istream &in, Cel &cel);
 
 RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const RasterComponent &source, CelIndex celIndexSource, int cCels, RasterComponent &dest, CelIndex celIndexDest);
+RasterChange QuantizeCel(RasterComponent &raster, CelIndex celIndex, int numLevels);
