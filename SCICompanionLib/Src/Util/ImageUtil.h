@@ -69,6 +69,7 @@ std::string GetGdiplusStatusString(Gdiplus::Status status);
 HBITMAP Create32bbpBitmap(const Cel &cel, const RGBQUAD *palette, int paletteSize);
 HBITMAP Create32bbpBitmap(const uint8_t *pData, int cxStride, int cx, int cy, uint8_t transparentColor, const RGBQUAD *palette, int paletteSize);
 uint8_t FindBestPaletteIndex(const PaletteComponent &currentPalette, RGBQUAD color);
+uint8_t FindBestPaletteIndexNoTx(const PaletteComponent &currentPalette, RGBQUAD color);
 
 // Methods for encoding an SCI resource inside a windows .bmp file.
 bool EncodeResourceInBitmap(const ResourceBlob &blob, const BITMAPINFO &info, uint8_t *pBits);

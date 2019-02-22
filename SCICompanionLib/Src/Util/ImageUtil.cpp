@@ -630,6 +630,10 @@ uint8_t FindBestPaletteIndex(const PaletteComponent &currentPalette, RGBQUAD col
 {
     return _FindBestPaletteIndexMatch(GetColorDistanceRGB, 0xff, true, color, 256, currentPalette.Mapping, currentPalette.Colors);;
 }
+uint8_t FindBestPaletteIndexNoTx(const PaletteComponent &currentPalette, RGBQUAD color)
+{
+    return _FindBestPaletteIndexMatch(GetColorDistanceRGB, 0xff, false, color, 256, currentPalette.Mapping, currentPalette.Colors);;
+}
 
 void ConvertCelToNewPalette(Cel &cel, const PaletteComponent &currentPalette, uint8_t transparentColor, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
 {

@@ -36,7 +36,7 @@ public:
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
     // Dialog Data
-    enum { IDD = IDD_BLUR };
+    enum { IDD = IDD_COLOR_SHIFTER };
 
     void OnColorClick(BYTE bIndex, int nID, BOOL fLeft) override;
     void OnColorHover(BYTE bIndex) override {}

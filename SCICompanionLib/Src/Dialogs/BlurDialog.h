@@ -21,6 +21,17 @@ GNU General Public License for more details.
 struct PaletteComponent;
 struct RasterComponent;
 
+struct BlurSettings
+{
+    int sigma;
+    int boost;
+    int fXWrap;
+    int fYWrap;
+    int fColorMatch;
+    int fXBlur;
+    int fYBlur;
+};
+
 class BlurDialog : public CExtResizableDialog
 {
 public:
@@ -52,15 +63,21 @@ private:
     CExtSliderWnd m_wndSliderBoost;
     CExtSliderWnd m_wndSliderSigma;
 
-    int _sigma;
-    int _boost;
-    int _fXWrap;
-    int _fYWrap;
+    CExtEdit m_wndSigmaDisplay;
+    CExtEdit m_wndBoostDisplay;
+
+    CExtCheckBox m_wndXWrap;
+    CExtCheckBox m_wndYWrap;
+    CExtCheckBox m_wndXBlur;
+    CExtCheckBox m_wndYBlur;
+    CExtCheckBox m_wndColorMatch;
+
+    BlurSettings _settings;
 
     bool _applyToAll;
 
     bool _initialized;
 
 public:
-    //afx_msg void OnBnClickedRadioview();
+    afx_msg void OnBnClickedSomeCheckbox();
 };

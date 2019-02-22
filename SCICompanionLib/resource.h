@@ -632,7 +632,9 @@
 #define IDC_EDITRANGE                   1233
 #define IDC_EDITSEQ                     1233
 #define IDC_EDITSIZE                    1233
+#define IDC_EDITSIGMA                   1233
 #define IDC_STATICTRANSLABEL            1234
+#define IDC_EDITBOOST                   1234
 #define IDC_CHECKDONTUSEINPALETTE       1235
 #define IDC_BUTTONREVERT                1236
 #define IDC_EDITALPHATHRESHOLD          1236
@@ -866,9 +868,14 @@
 #define IDC_EDITMARGINRIGHT             1429
 #define IDC_SLIDERSIGMA                 1429
 #define IDC_EDITMARGINTOP               1430
-#define IDC_SLIDERSIGMA2                1430
 #define IDC_SLIDERBOOST                 1430
 #define IDC_EDITMARGINBOTTOM            1431
+#define IDC_CHECKXWRAP                  1431
+#define IDC_CHECKYWRAP                  1432
+#define IDC_CHECKCOLORMATCH             1433
+#define IDC_CHECKXBLUR                  1434
+#define IDC_CHECKXBLUR2                 1435
+#define IDC_CHECKYBLUR                  1435
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1294,7 +1301,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        417
 #define _APS_NEXT_COMMAND_VALUE         33371
-#define _APS_NEXT_CONTROL_VALUE         1430
+#define _APS_NEXT_CONTROL_VALUE         1432
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
