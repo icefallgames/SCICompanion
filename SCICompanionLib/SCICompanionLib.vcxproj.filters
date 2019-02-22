@@ -816,6 +816,9 @@
     <ClCompile Include="Src\Dialogs\AdvancedPasteDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\BlurDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1752,6 +1755,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Dialogs\AdvancedPasteDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\BlurDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

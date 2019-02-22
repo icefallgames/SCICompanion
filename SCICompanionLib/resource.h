@@ -319,6 +319,7 @@
 #define IDD_DIALOGNEARESTCOLORS         406
 #define IDD_PICCLIPS1                   407
 #define IDD_ADVANCEDPASTE               407
+#define IDD_BLUR                        408
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -358,7 +359,6 @@
 #define IDC_BUTTON_MAINCOLOR2           1011
 #define IDC_BUTTON_ALTCOLOR             1011
 #define IDC_EDITPACKAGE                 1012
-#define IDC_BUTTON_ADDLOOPAFTER2        1012
 #define IDC_BUTTON_QUANTIZELEVELS       1012
 #define IDC_EDITRESOURCE                1013
 #define IDC_FAKEEGOX                    1014
@@ -864,7 +864,10 @@
 #define IDC_CHECKALLDESTCELS            1427
 #define IDC_EDITMARGINLEFT              1428
 #define IDC_EDITMARGINRIGHT             1429
+#define IDC_SLIDERSIGMA                 1429
 #define IDC_EDITMARGINTOP               1430
+#define IDC_SLIDERSIGMA2                1430
+#define IDC_SLIDERBOOST                 1430
 #define IDC_EDITMARGINBOTTOM            1431
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
@@ -1281,6 +1284,7 @@
 #define ID_MAIN_SHOWNEARESTCOLORS       33367
 #define ID_VIEW_NEARESTCOLORS           33368
 #define ID_VIEW_PASTEADVANCED           33369
+#define ID_VIEW_BLUR                    33370
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1288,9 +1292,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        416
-#define _APS_NEXT_COMMAND_VALUE         33370
-#define _APS_NEXT_CONTROL_VALUE         1429
+#define _APS_NEXT_RESOURCE_VALUE        417
+#define _APS_NEXT_COMMAND_VALUE         33371
+#define _APS_NEXT_CONTROL_VALUE         1430
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -37,6 +37,7 @@
 #include "RotateArbitraryDialog.h"
 #include "NearestColors.h"
 #include "AdvancedPasteDialog.h"
+#include "BlurDialog.h"
 
 using namespace std;
 
@@ -442,6 +443,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_VIEW_REMOVEEMBEDDEDPALETTE, RemoveVGAPalette)
     ON_COMMAND(ID_VIEW_REMAPPALETTE, RemapPalette)
     ON_COMMAND(ID_VIEW_SHIFTCOLORS, ShiftColors)
+    ON_COMMAND(ID_VIEW_BLUR, Blur)
     ON_COMMAND(ID_VIEW_SHRINKWRAPCEL, ShrinkWrapCels)
     ON_COMMAND(ID_VIEW_LEFTONIONSKIN, ToggleLeftOnion)
     ON_COMMAND(ID_VIEW_RIGHTONIONSKIN, ToggleRightOnion)
@@ -494,6 +496,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMAPPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_SHIFTCOLORS, OnUpdateAlwaysOn)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_BLUR, OnUpdateAlwaysOn)
     ON_UPDATE_COMMAND_UI(ID_VIEW_SHRINKWRAPCEL, OnUpdateAlwaysOn)
     ON_UPDATE_COMMAND_UI(ID_VIEW_LEFTONIONSKIN, OnUpdateLeftOnion)
     ON_UPDATE_COMMAND_UI(ID_VIEW_RIGHTONIONSKIN, OnUpdateRightOnion)
@@ -3908,6 +3911,39 @@ void CRasterView::ShiftColors()
             return WrapHint(hint);
         }
             );
+    }
+}
+
+
+
+void CRasterView::Blur()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        const PaletteComponent *paletteComponent = pDoc->GetCurrentPaletteComponent();
+        std::unique_ptr<PaletteComponent> egaPalette;
+        int paletteCount = _paletteCount;
+        if (!paletteComponent)
+        {
+            egaPalette = std::make_unique<PaletteComponent>();
+            memcpy(egaPalette->Colors, _palette, _paletteCount * sizeof(*_palette));
+            paletteComponent = egaPalette.get();
+        }
+
+        pDoc->PreviewChanges<RasterComponent>(
+            [paletteComponent, pDoc, paletteCount, this](RasterComponent &raster)
+        {
+            RasterChangeHint hint = RasterChangeHint::None;
+
+            BlurDialog dialog(*paletteComponent, paletteCount, raster, pDoc->GetSelectedIndex(), *this, pDoc->GetApplyToAllCels());
+            if (IDOK == dialog.DoModal())
+            {
+                hint |= RasterChangeHint::NewView;
+            }
+            return WrapHint(hint);
+        }
+        );
     }
 }
 

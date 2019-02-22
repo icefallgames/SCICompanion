@@ -219,6 +219,7 @@
     <ClCompile Include="Src\Dialogs\AudioEditDialog.cpp" />
     <ClCompile Include="Src\Dialogs\AudioPreferencesDialog.cpp" />
     <ClCompile Include="Src\Dialogs\BitmapToVGADialog.cpp" />
+    <ClCompile Include="Src\Dialogs\BlurDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ChooseColorDialogVGA.cpp" />
     <ClCompile Include="Src\Dialogs\ChooseTalkerViewLoopDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ColorAdjustDialog.cpp" />
@@ -317,6 +318,7 @@
     <ClInclude Include="Src\Dialogs\AdvancedPasteDialog.h" />
     <ClInclude Include="Src\Dialogs\AudioEditDialog.h" />
     <ClInclude Include="Src\Dialogs\AudioPreferencesDialog.h" />
+    <ClInclude Include="Src\Dialogs\BlurDialog.h" />
     <ClInclude Include="Src\Dialogs\ChooseTalkerViewLoopDialog.h" />
     <ClInclude Include="Src\Dialogs\ColorAdjustDialog.h" />
     <ClInclude Include="Src\Dialogs\ColorShiftCallback.h" />
