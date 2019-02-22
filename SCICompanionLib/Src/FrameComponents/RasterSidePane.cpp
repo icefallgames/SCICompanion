@@ -1182,6 +1182,8 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         AddAnchor(IDC_EDIT_QUANTIZELEVELS, CPoint(100, 0), CPoint(100, 0));
         DDX_Control(pDX, IDC_BUTTON_QUANTIZELEVELS, m_wndButtonQuantizeLevels);
         AddAnchor(IDC_BUTTON_QUANTIZELEVELS, CPoint(0, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_CHECKQUANTIZEGAMMA, m_wndCheckQuantizeGamma);
+        AddAnchor(IDC_CHECKQUANTIZEGAMMA, CPoint(0, 0), CPoint(100, 0));
     }
 }
 
@@ -1362,7 +1364,7 @@ void RasterSidePane::OnQuantizeLevels()
         int levelCount = StrToInt(strNumber);
         levelCount = max(2, levelCount);
         levelCount = min(255, levelCount);
-
+        bool gammaCorrected = m_wndCheckQuantizeGamma.GetCheck() == BST_CHECKED;
 
         CelIndex rgdwIndices[128];
         int cCels = _pDoc->GetSelectedGroup(rgdwIndices, ARRAYSIZE(rgdwIndices));
@@ -1370,11 +1372,11 @@ void RasterSidePane::OnQuantizeLevels()
         {
             ResourceEntityDocument *pred = static_cast<ResourceEntityDocument*>(_pDoc);
             pred->ApplyChanges<RasterComponent>(
-                [&rgdwIndices, cCels, levelCount](RasterComponent &raster)
+                [&rgdwIndices, cCels, levelCount, gammaCorrected](RasterComponent &raster)
             {
                 for (int i = 0; i < cCels; i++)
                 {
-                    QuantizeCel(raster, rgdwIndices[i], levelCount);
+                    QuantizeCel(raster, rgdwIndices[i], levelCount, gammaCorrected);
                     
                 }
                 return WrapRasterChange(RasterChange(RasterChangeHint::Loop));

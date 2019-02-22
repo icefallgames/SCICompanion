@@ -124,6 +124,7 @@ private:
 
     CEdit m_wndEditQuantizeLevels;
     CExtButton m_wndButtonQuantizeLevels;
+    CExtCheckBox m_wndCheckQuantizeGamma;
 
     // Color: (supported by all)
     CChooseColorStatic m_wndPalette; // Actually not all

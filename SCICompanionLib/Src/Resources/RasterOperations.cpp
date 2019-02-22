@@ -1308,29 +1308,44 @@ RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const Ra
 
         AdvancedRasterCopyCel(localCopyInfo, celsSource[sourceIndex], celsDest[destIndex]);
 
+        localCopyInfo.xOffset += copyInfo.xFrameOffset;
+        localCopyInfo.yOffset += copyInfo.yFrameOffset;
+
         // Wrap cels:
         sourceIndex++;
         destIndex++;
     }
 
+    UpdateMirrors(dest, celIndexDest.loop);
+
     return RasterChange(RasterChangeHint::Loop, celIndexDest);
 }
 
 // Note: we ignore transparency
-RasterChange QuantizeCel(RasterComponent &raster, CelIndex celIndex, int numLevels)
+RasterChange QuantizeCel(RasterComponent &raster, CelIndex celIndex, int numLevels, bool gammaCorrected)
 {
     Cel &cel = raster.GetCel(celIndex);
 
-    double factor = (double)numLevels / 255.0f;
-
     for (byte &data : cel.Data)
     {
-        double fData = data;
-        fData *= factor; // now between 0 and numLevels FP
+        double fData = (double)data / 255.0f;
+        if (gammaCorrected)
+        {
+            // Helps with darker color bands
+            fData = pow(fData, 1.0 / 2.2);
+        }
+        fData *= (double)numLevels; // now between 0 and numLevels FP
         fData = std::round(fData); // now integer between 0 and numLevels.
-        fData /= factor;
-        data = (byte)fData;
+        fData /= (double)numLevels; // back to 0-1
+        if (gammaCorrected)
+        {
+            fData = pow(fData, 2.2);
+        }
+        fData *= 255.0;
+        data = (byte)min(255, fData);
     }
+
+    UpdateMirrors(raster, celIndex);
 
     return RasterChange(RasterChangeHint::Loop, celIndex);
 }

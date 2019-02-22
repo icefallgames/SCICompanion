@@ -99,6 +99,8 @@ struct AdvancedRasterCopyInfo
     int xMarginRight;
     int yMarginTop;
     int yMarginBottom;
+    int xFrameOffset; // offset on successive frames...
+    int yFrameOffset;
 };
 
 HBITMAP GetBitmap(const RasterComponent &raster, const PaletteComponent *palette, CelIndex celIndex, int cx, int cy, BitmapScaleOptions scaleOptions);
@@ -143,4 +145,4 @@ void SerializeCelRuntime(sci::ostream &out, const Cel &cel);
 void DeserializeCelRuntime(sci::istream &in, Cel &cel);
 
 RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const RasterComponent &source, CelIndex celIndexSource, int cCels, RasterComponent &dest, CelIndex celIndexDest);
-RasterChange QuantizeCel(RasterComponent &raster, CelIndex celIndex, int numLevels);
+RasterChange QuantizeCel(RasterComponent &raster, CelIndex celIndex, int numLevels, bool gammaCorrected);

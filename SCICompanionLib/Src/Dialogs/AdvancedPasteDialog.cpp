@@ -34,7 +34,8 @@ AdvancedRasterCopyInfo g_copyInfo =
     TRUE,
     TRUE,       // Greyscale (?)
     FALSE,      // honor tx
-    0, 0, 0, 0  // Margins
+    0, 0, 0, 0,  // Margins
+    0, 0        // frame offsets
 };
 
 // AdvancedPasteDialog dialog
@@ -92,6 +93,8 @@ void AdvancedPasteDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDITMARGINRIGHT, g_copyInfo.xMarginRight);
     DDX_Text(pDX, IDC_EDITMARGINTOP, g_copyInfo.yMarginTop);
     DDX_Text(pDX, IDC_EDITMARGINBOTTOM, g_copyInfo.yMarginBottom);
+    DDX_Text(pDX, IDC_EDITFRAMEOFFSETX, g_copyInfo.xFrameOffset);
+    DDX_Text(pDX, IDC_EDITFRAMEOFFSETY, g_copyInfo.yFrameOffset);
 
     if (!_initialized)
     {
