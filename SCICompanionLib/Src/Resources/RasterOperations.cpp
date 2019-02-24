@@ -1170,7 +1170,18 @@ void DeserializeCelRuntime(sci::istream &in, Cel &cel)
     in.read_data(&cel.Data[0], cel.Data.size());
 }
 
-
+// Modulo that works with -ve numbers that can be more negative than the divisor
+// 10, 3    -> 1, as expected.
+// -10, 3   -> needs to be 2
+int UMod(int value, int divisor)
+{
+    value -= (divisor * (value / divisor));
+    if (value < 0)
+    {
+        value += divisor;
+    }
+    return value;
+}
 
 void AdvancedRasterCopyCel(const AdvancedRasterCopyInfo &copyInfo, const Cel &source, Cel &dest)
 {
@@ -1200,8 +1211,8 @@ void AdvancedRasterCopyCel(const AdvancedRasterCopyInfo &copyInfo, const Cel &so
                     yDest = max(yDest, copyInfo.yMarginTop);
                     yDest = min(yDest, dest.size.cy - copyInfo.yMarginBottom - 1);
                 }
-                xDest %= dest.size.cx;
-                yDest %= dest.size.cy;
+                xDest = UMod(xDest, dest.size.cx);
+                yDest = UMod(yDest, dest.size.cy);
 
                 int destIndex = xDest + yDest * dest.GetStride();
                 byte destData = dest.Data[destIndex];
@@ -1283,6 +1294,10 @@ RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const Ra
         {
             std::uniform_int_distribution<int32_t> distribution(0, destSize.cx - 1);
             localCopyInfo.xOffset += distribution(mt);
+
+            // playing around
+            //std::poisson_distribution<int> boop(destSize.cx / 2);
+            //localCopyInfo.xOffset += boop(mt);
         }
 
         if (!localCopyInfo.yWrap)
@@ -1301,15 +1316,34 @@ RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const Ra
         }
     }
 
+    float xFrameOffset = copyInfo.xFrameOffset;
+    float yFrameOffset = copyInfo.yFrameOffset;
+
+    if (copyInfo.randomFrameOffset)
+    {
+        if ((copyInfo.xFrameOffset + copyInfo.yFrameOffset) > 0)
+        {
+            float magnitude = sqrtf(copyInfo.xFrameOffset * copyInfo.xFrameOffset + copyInfo.yFrameOffset * copyInfo.yFrameOffset);
+            // Choose a random angle
+            std::uniform_int_distribution<int32_t> distribution(copyInfo.minAngle, copyInfo.maxAngle);
+            int angle = distribution(mt);
+
+            xFrameOffset = cosf((float)angle / 360.0f * 3.141592f * 2.0f) * magnitude;
+            yFrameOffset = sinf((float)angle / 360.0f * 3.141592f * 2.0f) * magnitude;
+        }
+    }
+
+    float xBaseOffset = (float)localCopyInfo.xOffset;
+    float yBaseOffset = (float)localCopyInfo.yOffset;
     for (int i = 0; i < cCels; i++)
     {
         sourceIndex %= celsSource.size();
         destIndex %= celsDest.size();
 
-        AdvancedRasterCopyCel(localCopyInfo, celsSource[sourceIndex], celsDest[destIndex]);
+        localCopyInfo.xOffset = (int)roundf(xBaseOffset + xFrameOffset * (float)i);
+        localCopyInfo.yOffset = (int)roundf(yBaseOffset + yFrameOffset * (float)i);
 
-        localCopyInfo.xOffset += copyInfo.xFrameOffset;
-        localCopyInfo.yOffset += copyInfo.yFrameOffset;
+        AdvancedRasterCopyCel(localCopyInfo, celsSource[sourceIndex], celsDest[destIndex]);
 
         // Wrap cels:
         sourceIndex++;

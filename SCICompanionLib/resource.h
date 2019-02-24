@@ -470,7 +470,6 @@
 #define IDC_CHECKISSCALEABLE            1117
 #define IDC_CHECKISSCALABLE             1117
 #define IDC_PROPERTIES                  1118
-#define IDC_CHECKAPPLYTOALL2            1118
 #define IDC_CHECKQUANTIZEGAMMA          1118
 #define IDC_STATIC_CLASSNAME            1122
 #define IDC_METHODS                     1124
@@ -876,9 +875,13 @@
 #define IDC_CHECKYWRAP                  1432
 #define IDC_EDITFRAMEOFFSETX            1432
 #define IDC_CHECKCOLORMATCH             1433
+#define IDC_CHECKRANDOMOFFSETANGLE      1433
 #define IDC_CHECKXBLUR                  1434
 #define IDC_EDITFRAMEOFFSETY            1434
 #define IDC_CHECKYBLUR                  1435
+#define IDC_EDITANGLEMIN                1435
+#define IDC_EDITANGLEMIN2               1436
+#define IDC_EDITANGLEMAX                1436
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775

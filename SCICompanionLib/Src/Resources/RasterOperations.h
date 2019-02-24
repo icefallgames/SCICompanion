@@ -101,6 +101,9 @@ struct AdvancedRasterCopyInfo
     int yMarginBottom;
     int xFrameOffset; // offset on successive frames...
     int yFrameOffset;
+    BOOL randomFrameOffset;
+    int minAngle;
+    int maxAngle;
 };
 
 HBITMAP GetBitmap(const RasterComponent &raster, const PaletteComponent *palette, CelIndex celIndex, int cx, int cy, BitmapScaleOptions scaleOptions);
