@@ -103,7 +103,7 @@ struct GreyFormat
     }
     byte ToByte(const PaletteComponent &palette)
     {
-        return (byte)min(255, (int)(_value * 255.0f));
+        return (byte)min(255, max(0, (int)(_value * 255.0f)));
     }
 
     void Scale(float scale)
@@ -157,10 +157,11 @@ struct RGBFormat
 };
 
 
-template<class _TColorFormat>
-void BlurCel(const Cel &celSource, Cel &cel, std::array<float, KernelSize> &kernel, const BlurSettings &settings, const PaletteComponent &palette)
+template<class _TColorFormat, int _KernelSize>
+void BlurCel(const Cel &celSource, Cel &cel, std::array<float, _KernelSize> &kernel, const BlurSettings &settings, const PaletteComponent &palette)
 {
-    int k = KernelSize / 2;
+    int k = _KernelSize / 2;
+    int upperK = _KernelSize - k - 1;
     Cel celFirstPass = celSource;
     int width = celSource.size.cx;
     int widthMult = celSource.size.cx * k;
@@ -175,7 +176,7 @@ void BlurCel(const Cel &celSource, Cel &cel, std::array<float, KernelSize> &kern
             {
                 int indexDest = y * cel.GetStride() + x;
                 _TColorFormat value = _TColorFormat::Default();
-                for (int i = -k; i <= k; i++)
+                for (int i = -k; i <= upperK; i++)
                 {
                     int xTemp = (x + i);
                     xTemp = settings.fXWrap ? ((xTemp + widthMult) % width) : min((width - 1), max(0, xTemp));
@@ -201,7 +202,7 @@ void BlurCel(const Cel &celSource, Cel &cel, std::array<float, KernelSize> &kern
             {
                 int indexDest = y * cel.GetStride() + x;
                 _TColorFormat value = _TColorFormat::Default();
-                for (int i = -k; i <= k; i++)
+                for (int i = -k; i <= upperK; i++)
                 {
                     int yTemp = y + i;
                     yTemp = settings.fYWrap ? ((yTemp + heightMult) % height) : min((height - 1), max(0, yTemp));
@@ -271,6 +272,9 @@ void BlurDialog::_UpdateView()
 
     if (_rasterSnapshot)
     {
+        // Test for half-pixel offsets.
+        //std::array<float, 6> kernel = { 1.0f / 32.0f, -4.0f / 32.0f, 19.0f / 32.0f, 19.0f / 32.0f, -4.0f / 32.0f, 1.0f / 32.0f };
+
         std::array<float, KernelSize> kernel;
         GaussianKernel(sigma, kernel, boost);
 

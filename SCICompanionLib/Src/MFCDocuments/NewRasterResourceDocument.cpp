@@ -1121,17 +1121,22 @@ void CNewRasterResourceDocument::MakeFont(bool dialog, bool antiAlias, bool scal
         // Trying this
         // NOTE: Anti-aliasing may not work if fonts are small enough (common for SCI use cases)
         // Clear-type we don't want, because that's colored.
-        currentLogFont.lfQuality = antiAlias ? ANTIALIASED_QUALITY : NONANTIALIASED_QUALITY;
-        //currentLogFont.lfQuality = antiAlias ? ANTIALIASED_QUALITY : PROOF_QUALITY;
-        currentLogFont.lfOutPrecision = antiAlias ? OUT_DEFAULT_PRECIS : OUT_RASTER_PRECIS;
+        //currentLogFont.lfQuality = antiAlias ? ANTIALIASED_QUALITY : NONANTIALIASED_QUALITY;
+        currentLogFont.lfQuality = antiAlias ? PROOF_QUALITY : ANTIALIASED_QUALITY;
+
+        currentLogFont.lfOutPrecision = antiAlias ? OUT_RASTER_PRECIS : OUT_DEFAULT_PRECIS;
 
         // me override
         currentLogFont.lfCharSet = 1;
         currentLogFont.lfUnderline = 0;
         //currentLogFont.lfOutPrecision = 4; // OUT_TT_PRECIS?, ACtually, this might be 0
-        currentLogFont.lfOutPrecision = 0;
         currentLogFont.lfClipPrecision = 0;
-        currentLogFont.lfQuality = 0;
+
+
+//        currentLogFont.lfOutPrecision = 0;
+  //      currentLogFont.lfQuality = 0;
+
+
         currentLogFont.lfPitchAndFamily = 0;
 
         ApplyChanges<RasterComponent, FontComponent>(

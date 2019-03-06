@@ -220,7 +220,7 @@ void InitFontFromLOGFONT(RasterComponent &raster, FontComponent &fontComponent, 
 
 
     // Chevy Bird seed I know this looks good?
-    logFontLocal.lfHeight = -14;
+    //logFontLocal.lfHeight = -14;
 
     CDC dc;
     if (dc.CreateCompatibleDC(NULL))
