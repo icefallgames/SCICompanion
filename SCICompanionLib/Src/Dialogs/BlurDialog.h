@@ -17,19 +17,18 @@ GNU General Public License for more details.
 #include "ColorDialogCallback.h"
 #include "View.h"
 #include "ColorShiftCallback.h"
+#include "Resample.h"
 
 struct PaletteComponent;
 struct RasterComponent;
 
-struct BlurSettings
+struct BlurSettings : ResampleSettings
 {
+    BlurSettings(int theSigma, int theBoost, int theColorMatch, int xWrap, int yWrap, int xBlur, int yBlur) : sigma(theSigma), boost(theBoost), fColorMatch(theColorMatch), ResampleSettings(xWrap, yWrap, xBlur, yBlur) {}
+
     int sigma;
     int boost;
-    int fXWrap;
-    int fYWrap;
     int fColorMatch;
-    int fXBlur;
-    int fYBlur;
 };
 
 class BlurDialog : public CExtResizableDialog

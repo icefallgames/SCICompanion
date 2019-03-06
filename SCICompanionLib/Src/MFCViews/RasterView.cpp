@@ -38,6 +38,7 @@
 #include "NearestColors.h"
 #include "AdvancedPasteDialog.h"
 #include "BlurDialog.h"
+#include <array>
 
 using namespace std;
 
@@ -435,6 +436,10 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_SHIFTPIXELS_RIGHT, OnShiftRight)
     ON_COMMAND(ID_SHIFTPIXELS_UP, OnShiftUp)
     ON_COMMAND(ID_SHIFTPIXELS_DOWN, OnShiftDown)
+    ON_COMMAND(ID_SHIFTPIXELS_HALFLEFT, OnHalfShiftLeft)
+    ON_COMMAND(ID_SHIFTPIXELS_HALFRIGHT, OnHalfShiftRight)
+    ON_COMMAND(ID_SHIFTPIXELS_HALFUP, OnHalfShiftUp)
+    ON_COMMAND(ID_SHIFTPIXELS_HALFDOWN, OnHalfShiftDown)
     ON_COMMAND(ID_INVERT, OnInvert)
     ON_COMMAND(ID_GREYSCALE, OnGreyScale)
     ON_COMMAND(ID_VIEW_ZOOMIN, _OnZoomLClick)
@@ -3021,6 +3026,69 @@ void CRasterView::OnShiftDown()
     _OnShift(0, 1);
 }
 
+void CRasterView::OnHalfShiftLeft()
+{
+    _OnHalfShift(-1, true);
+}
+
+void CRasterView::OnHalfShiftRight()
+{
+    _OnHalfShift(1, true);
+}
+
+void CRasterView::OnHalfShiftUp()
+{
+    _OnHalfShift(1, false);
+}
+
+void CRasterView::OnHalfShiftDown()
+{
+    _OnHalfShift(-1, false);
+}
+
+void CRasterView::_OnHalfShift(int direction, bool horizontal)
+{
+
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        const PaletteComponent *palette = pDoc->GetCurrentPaletteComponent();
+        if (palette)
+        {
+            bool fApplyToAll = pDoc->GetApplyToAllCels();
+            CelIndex celIndex = pDoc->GetSelectedIndex();
+            pDoc->ApplyChanges<RasterComponent>(
+                [palette, celIndex, fApplyToAll, direction, horizontal](RasterComponent &raster)
+            {
+                // Test for half-pixel offsets.
+                std::array<float, 7> kernelRight = { 1.0f / 32.0f, -4.0f / 32.0f, 19.0f / 32.0f, 19.0f / 32.0f, -4.0f / 32.0f, 1.0f / 32.0f, 0.0f };
+                std::array<float, 7> kernelLeft = { 0.0f, 1.0f / 32.0f, -4.0f / 32.0f, 19.0f / 32.0f, 19.0f / 32.0f, -4.0f / 32.0f, 1.0f / 32.0f };
+
+                std::array<float, 7> &kernel = (direction > 0) ? kernelRight : kernelLeft;
+
+                ResampleSettings settings(true, true, horizontal, !horizontal);
+
+                RasterChangeHint hint = RasterChangeHint::Loop;
+                if (fApplyToAll)
+                {
+                    Loop &loop = raster.Loops[celIndex.loop];
+                    for (Cel &cel : loop.Cels)
+                    {
+                        Cel celSource = cel;
+                        BlurCel<RGBFormat>(celSource, cel, kernel, settings, *palette);
+                    }
+                }
+                else
+                {
+                    Cel celSource = raster.GetCel(celIndex);
+                    BlurCel<RGBFormat>(celSource, raster.GetCel(celIndex), kernel, settings, *palette);
+                }
+                return WrapHint(hint);
+            }
+            );
+        }
+    }
+}
 
 void CRasterView::_OnShift(int dx, int dy)
 {

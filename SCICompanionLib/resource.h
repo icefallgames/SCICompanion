@@ -880,7 +880,6 @@
 #define IDC_EDITFRAMEOFFSETY            1434
 #define IDC_CHECKYBLUR                  1435
 #define IDC_EDITANGLEMIN                1435
-#define IDC_EDITANGLEMIN2               1436
 #define IDC_EDITANGLEMAX                1436
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
@@ -1298,6 +1297,10 @@
 #define ID_VIEW_NEARESTCOLORS           33368
 #define ID_VIEW_PASTEADVANCED           33369
 #define ID_VIEW_BLUR                    33370
+#define ID_SHIFTPIXELS_HALFLEFT         33371
+#define ID_SHIFTPIXELS_HALFRIGHT        33372
+#define ID_SHIFTPIXELS_HALFUP           33373
+#define ID_SHIFTPIXELS_HALFDOWN         33374
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1306,7 +1309,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        417
-#define _APS_NEXT_COMMAND_VALUE         33371
+#define _APS_NEXT_COMMAND_VALUE         33375
 #define _APS_NEXT_CONTROL_VALUE         1432
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

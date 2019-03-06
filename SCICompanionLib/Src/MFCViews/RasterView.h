@@ -309,6 +309,10 @@ private:
     afx_msg void OnShiftRight();
     afx_msg void OnShiftUp();
     afx_msg void OnShiftDown();
+    afx_msg void OnHalfShiftLeft();
+    afx_msg void OnHalfShiftRight();
+    afx_msg void OnHalfShiftUp();
+    afx_msg void OnHalfShiftDown();
     afx_msg void OnGreyScale();
     afx_msg void EditVGAPalette();
     afx_msg void RemoveVGAPalette();
@@ -326,6 +330,7 @@ private:
     
     void _OnRotate(int degrees);
     void _OnShift(int x, int y);
+    void _OnHalfShift(int direction, bool horizontal);
     void _EnsureCelsLargeEnoughForPaste(size16 size);
     void _OnDrawCommand(ViewToolType type);
     void _OnDraw(CDC* pDC);

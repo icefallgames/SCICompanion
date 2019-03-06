@@ -19,12 +19,12 @@ GNU General Public License for more details.
 #include "View.h"
 #include <array>
 #include "format.h"
+#include "Resample.h"
 
 using namespace std;
 using namespace fmt;
 
-BlurSettings g_blurSettings = { 200, 100, TRUE, TRUE, FALSE, TRUE, TRUE };
-
+BlurSettings g_blurSettings(200, 100, FALSE, TRUE, TRUE, TRUE, TRUE);
 
 const int KernelSize = 7;
 
@@ -90,138 +90,6 @@ void BlurDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECKCOLORMATCH, _settings.fColorMatch);
 }
 
-struct GreyFormat
-{
-    GreyFormat(float f) : _value(f) {}
-    static GreyFormat ToFormat(byte b, const PaletteComponent &palette)
-    {
-        return GreyFormat((float)b / 255.0f);
-    }
-    static GreyFormat Default()
-    {
-        return GreyFormat(0);
-    }
-    byte ToByte(const PaletteComponent &palette)
-    {
-        return (byte)min(255, max(0, (int)(_value * 255.0f)));
-    }
-
-    void Scale(float scale)
-    {
-        _value *= scale;
-    }
-    void Add(const GreyFormat &other)
-    {
-        _value += other._value;
-    }
-
-    float _value;
-};
-
-
-struct RGBFormat
-{
-    RGBFormat(float r, float g, float b) : _r(r), _g(g), _b(b) {}
-    static RGBFormat ToFormat(byte b, const PaletteComponent &palette)
-    {
-        RGBQUAD rgb = palette.Colors[b];
-        return RGBFormat((float)rgb.rgbRed / 255.0f, (float)rgb.rgbGreen / 255.0f, (float)rgb.rgbBlue / 255.0f);
-    }
-    static RGBFormat Default()
-    {
-        return RGBFormat(0, 0, 0);
-    }
-    byte ToByte(const PaletteComponent &palette)
-    {
-        RGBQUAD color;
-        color.rgbRed = (byte)min(255, (int)(_r * 255.0f));
-        color.rgbGreen = (byte)min(255, (int)(_g * 255.0f));
-        color.rgbBlue = (byte)min(255, (int)(_b * 255.0f));
-        return FindBestPaletteIndexNoTx(palette, color);
-    }
-
-    void Scale(float scale)
-    {
-        _r *= scale;
-        _g *= scale;
-        _b *= scale;
-    }
-    void Add(const RGBFormat &other)
-    {
-        _r += other._r;
-        _g += other._g;
-        _b += other._b;
-    }
-
-    float _r, _g, _b;
-};
-
-
-template<class _TColorFormat, int _KernelSize>
-void BlurCel(const Cel &celSource, Cel &cel, std::array<float, _KernelSize> &kernel, const BlurSettings &settings, const PaletteComponent &palette)
-{
-    int k = _KernelSize / 2;
-    int upperK = _KernelSize - k - 1;
-    Cel celFirstPass = celSource;
-    int width = celSource.size.cx;
-    int widthMult = celSource.size.cx * k;
-    int heightMult = celSource.size.cy * k;
-    int height = celSource.size.cy;
-
-    if (settings.fXBlur)
-    {
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                int indexDest = y * cel.GetStride() + x;
-                _TColorFormat value = _TColorFormat::Default();
-                for (int i = -k; i <= upperK; i++)
-                {
-                    int xTemp = (x + i);
-                    xTemp = settings.fXWrap ? ((xTemp + widthMult) % width) : min((width - 1), max(0, xTemp));
-                    int indexSource = y * cel.GetStride() + xTemp;
-                    _TColorFormat temp = _TColorFormat::ToFormat(celSource.Data[indexSource], palette);
-                    temp.Scale(kernel[i + k]);
-                    value.Add(temp);
-                }
-                celFirstPass.Data[indexDest] = value.ToByte(palette);
-            }
-        }
-    }
-    else
-    {
-        celFirstPass = celSource;
-    }
-    
-    if (settings.fYBlur)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int indexDest = y * cel.GetStride() + x;
-                _TColorFormat value = _TColorFormat::Default();
-                for (int i = -k; i <= upperK; i++)
-                {
-                    int yTemp = y + i;
-                    yTemp = settings.fYWrap ? ((yTemp + heightMult) % height) : min((height - 1), max(0, yTemp));
-                    int indexSource = yTemp * cel.GetStride() + x;
-                    _TColorFormat temp = _TColorFormat::ToFormat(celFirstPass.Data[indexSource], palette);
-                    temp.Scale(kernel[i + k]);
-                    value.Add(temp);
-
-                }
-                cel.Data[indexDest] = value.ToByte(palette);
-            }
-        }
-    }
-    else
-    {
-        cel = celFirstPass;
-    }
-}
-
 void GaussianKernel(float sigma, std::array<float, KernelSize> &kernel, float boost)
 {
     float sigmaSqr2 = sigma * sigma * 2.0f;
@@ -272,9 +140,6 @@ void BlurDialog::_UpdateView()
 
     if (_rasterSnapshot)
     {
-        // Test for half-pixel offsets.
-        //std::array<float, 6> kernel = { 1.0f / 32.0f, -4.0f / 32.0f, 19.0f / 32.0f, 19.0f / 32.0f, -4.0f / 32.0f, 1.0f / 32.0f };
-
         std::array<float, KernelSize> kernel;
         GaussianKernel(sigma, kernel, boost);
 
