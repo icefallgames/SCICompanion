@@ -28,7 +28,7 @@ volatile int g_fChecked = 1; // write entire palette by default
 volatile int g_fPreview = 1; // Should be on by default
 
 CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, uint8_t paletteNumber, CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic), _viewport(paletteNumber)
+    : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic), _viewport(paletteNumber), _currentPaletteNumber(paletteNumber)
 {
     HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPALETTE), RT_ACCELERATOR);
     _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPALETTE));
@@ -92,7 +92,7 @@ void CPaletteDefinitionDialog::DoDataExchange(CDataExchange* pDX)
         StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), i);
         m_wndTab.InsertItem(i, szBuf);
     }
-    m_wndTab.SetCurSel(0); // Set first one active
+    m_wndTab.SetCurSel(_currentPaletteNumber); // Activate the tab corresponding to the current palette being shown
 
     DDX_Control(pDX, IDC_CHECK1, m_wndCheck);
     DDX_Control(pDX, IDC_CHECK2, m_wndPreview);
@@ -140,6 +140,8 @@ BEGIN_MESSAGE_MAP(CPaletteDefinitionDialog, CExtResizableDialog)
     ON_COMMAND(ID_EDIT_PASTE, OnPaste)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateCopyPaste)
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopyPaste)
+
+    ON_MESSAGE(WM_KICKIDLE, OnKickIdle)
 END_MESSAGE_MAP()
 
 void CPaletteDefinitionDialog::OnUpdateCopyPaste(CCmdUI* pCmdUI)
@@ -347,9 +349,15 @@ void CPaletteDefinitionDialog::OnVGAPaletteChanged()
     ApplyPreview();
 }
 
+// Force pic editor status bar to update while this dialog is up.
+LRESULT CPaletteDefinitionDialog::OnKickIdle(WPARAM, LPARAM lCount)
+{
+    return AfxGetApp()->OnIdle(lCount);
+}
+
 BOOL CPaletteDefinitionDialog::PreTranslateMessage(MSG* pMsg)
 {
-    BOOL fRet = FALSE;
+     BOOL fRet = FALSE;
     if (_hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
     {
         fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);

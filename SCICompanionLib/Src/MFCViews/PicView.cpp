@@ -1602,13 +1602,27 @@ void CPicView::SetOpacity(int iOpacity)
 //
 void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
 {
+    CPoint cursorPos;
+    if (::GetCursorPos(&cursorPos))
+    {
+        // This lets us display coordinate info while dialogs are up...
+        ScreenToClient(&cursorPos);
+        cursorPos = _MapClientPointToPic(cursorPos);
+        _SnapCoordinate(cursorPos);
+    }
+    else
+    {
+        // If for some reason that fails, fall back to what we had before
+        cursorPos = _ptCurrentHover;
+    }
+
     size16 picSize = _GetPicSize();
     TCHAR szText[50];
     szText[0] = 0;
     if (pCmdUI->m_nID == ID_INDICATOR_COORDS)
     {
-        int x = min(_ptCurrentHover.x, picSize.cx - 1);
-        int y = min(_ptCurrentHover.y, picSize.cy - 1);
+        int x = min(cursorPos.x, picSize.cx - 1);
+        int y = min(cursorPos.y, picSize.cy - 1);
         pCmdUI->Enable(); 
         point16 screenPosition = point16(x, y);
         point16 position = ScreenResolutionToGameResolution(screenPosition);
@@ -1631,18 +1645,18 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
         }
         else
         {
-            int y = min(_ptCurrentHover.y, picSize.cy - 1);
+            int y = min(cursorPos.y, picSize.cy - 1);
             pCmdUI->Enable();
             const ViewPort *pstate = _GetDrawManager().GetViewPort(PicPosition::PostPlugin);
             StringCchPrintf(szText, ARRAYSIZE(szText), "Pri bar: %2d", PriorityFromY((uint16_t)y, *pstate));
             pCmdUI->SetText(szText);
         }
     }
-    else if ((_ptCurrentHover.x >= 0) && (_ptCurrentHover.y >= 0) && (_ptCurrentHover.x < picSize.cx) && (_ptCurrentHover.y < picSize.cy))
+    else if ((cursorPos.x >= 0) && (cursorPos.y >= 0) && (cursorPos.x < picSize.cx) && (cursorPos.y < picSize.cy))
     {
         const uint8_t *picBits = _GetDrawManager().GetPicBits(_mainViewScreen, PicPosition::PrePlugin, _GetPicSize());
         size16 displaySize = _GetPicSize();
-        uint8_t bColor = *(picBits + BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, _ptCurrentHover.x, _ptCurrentHover.y));
+        uint8_t bColor = *(picBits + BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, cursorPos.x, cursorPos.y));
         if ((pCmdUI->m_nID == ID_INDICATOR_CONTROLCOLOR) && (_mainViewScreen == PicScreen::Control))
         {
             StringCchCopy(szText, ARRAYSIZE(szText), c_rgControlColourNames[bColor % 16]);
@@ -1672,7 +1686,7 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
                 // Can we show the index? That would be difficult.
                 // Nah, let's do it:
                 const uint8_t *indexBits = _GetDrawManager().GetPicBits(PicScreen::Index, PicPosition::PrePlugin, _GetPicSize());
-                uint8_t index = *(indexBits + BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, _ptCurrentHover.x, _ptCurrentHover.y));
+                uint8_t index = *(indexBits + BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, cursorPos.x, cursorPos.y));
                 StringCchPrintf(szText, ARRAYSIZE(szText), "Color: %2x (%x + %x), Idx: %d", bColor, bColor & 0xf, (bColor >> 4), index);
             }
         }

@@ -93,6 +93,7 @@ protected:
     ptrdiff_t _position;
     ViewPort _viewport;
     bool _changed;
+    int _currentPaletteNumber;
 
     std::unique_ptr<PaletteComponent> paletteComponentEGA;
 
@@ -102,4 +103,6 @@ protected:
 
 public:
     afx_msg void OnBnClickedButtonadjust();
+
+    afx_msg LRESULT OnKickIdle(WPARAM, LPARAM);
 };
