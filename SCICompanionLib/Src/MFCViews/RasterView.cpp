@@ -3061,10 +3061,10 @@ void CRasterView::_OnHalfShift(int direction, bool horizontal)
                 [palette, celIndex, fApplyToAll, direction, horizontal](RasterComponent &raster)
             {
                 // Test for half-pixel offsets.
-                std::array<float, 7> kernelRight = { 1.0f / 32.0f, -4.0f / 32.0f, 19.0f / 32.0f, 19.0f / 32.0f, -4.0f / 32.0f, 1.0f / 32.0f, 0.0f };
-                std::array<float, 7> kernelLeft = { 0.0f, 1.0f / 32.0f, -4.0f / 32.0f, 19.0f / 32.0f, 19.0f / 32.0f, -4.0f / 32.0f, 1.0f / 32.0f };
+                std::vector<float> kernelRight = { 1.0f / 32.0f, -4.0f / 32.0f, 19.0f / 32.0f, 19.0f / 32.0f, -4.0f / 32.0f, 1.0f / 32.0f, 0.0f };
+                std::vector<float> kernelLeft = { 0.0f, 1.0f / 32.0f, -4.0f / 32.0f, 19.0f / 32.0f, 19.0f / 32.0f, -4.0f / 32.0f, 1.0f / 32.0f };
 
-                std::array<float, 7> &kernel = (direction > 0) ? kernelRight : kernelLeft;
+                std::vector<float> &kernel = (direction > 0) ? kernelRight : kernelLeft;
 
                 ResampleSettings settings(true, true, horizontal, !horizontal);
 

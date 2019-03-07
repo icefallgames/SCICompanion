@@ -90,14 +90,20 @@ void BlurDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECKCOLORMATCH, _settings.fColorMatch);
 }
 
-void GaussianKernel(float sigma, std::array<float, KernelSize> &kernel, float boost)
+void GaussianKernel(float sigma, std::vector<float> &kernel, float boost)
 {
+    //int kernelSize = 7;
     float sigmaSqr2 = sigma * sigma * 2.0f;
     float sigmaSqr2piInv = 1.0f / sqrtf((float)3.141592f * sigmaSqr2);
 
-    int k = KernelSize / 2;
+    // Try to chooce a good kernel size...
+    float smallValue = 0.01f; // small number - weight near the ends of the kernel.
+    int tempK = -logf(smallValue / sigmaSqr2piInv) * sigmaSqr2;
+    tempK = (int)roundf(sqrt(tempK));
+    int kernelSize = tempK * 2 + 1;
+    int k = kernelSize / 2;
 
-    for (int x = 0; x < KernelSize; x++)
+    for (int x = 0; x < kernelSize; x++)
     {
         int kx = x - k;
         int y = k;
@@ -107,7 +113,7 @@ void GaussianKernel(float sigma, std::array<float, KernelSize> &kernel, float bo
         float expo = expf((-(((float)kx * (float)kx + (float)ky * (float)ky) / sigmaSqr2)));
         g = sigmaSqr2piInv * expo;
 
-        kernel[x] = g;
+        kernel.push_back(g);
     }
 
     float sum = 0.0f;
@@ -115,7 +121,7 @@ void GaussianKernel(float sigma, std::array<float, KernelSize> &kernel, float bo
     {
         sum += f;
     }
-    for (int x = 0; x < KernelSize; x++)
+    for (int x = 0; x < kernelSize; x++)
     {
         kernel[x] /= sum;
         kernel[x] *= boost;
@@ -140,7 +146,7 @@ void BlurDialog::_UpdateView()
 
     if (_rasterSnapshot)
     {
-        std::array<float, KernelSize> kernel;
+        std::vector<float> kernel;
         GaussianKernel(sigma, kernel, boost);
 
         if (_applyToAll) // To all cels in loop

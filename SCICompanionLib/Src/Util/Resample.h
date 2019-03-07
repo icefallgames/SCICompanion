@@ -87,12 +87,11 @@ struct RGBFormat
     float _r, _g, _b;
 };
 
-
-template<class _TColorFormat, int _KernelSize>
-void BlurCel(const Cel &celSource, Cel &cel, std::array<float, _KernelSize> &kernel, const ResampleSettings &settings, const PaletteComponent &palette)
+template<class _TColorFormat>
+void BlurCel(const Cel &celSource, Cel &cel, std::vector<float> &kernel, const ResampleSettings &settings, const PaletteComponent &palette)
 {
-    int k = _KernelSize / 2;
-    int upperK = _KernelSize - k - 1;
+    int k = (int)(kernel.size() / 2);
+    int upperK = (int)(kernel.size()) - k - 1;
     Cel celFirstPass = celSource;
     int width = celSource.size.cx;
     int widthMult = celSource.size.cx * k;
