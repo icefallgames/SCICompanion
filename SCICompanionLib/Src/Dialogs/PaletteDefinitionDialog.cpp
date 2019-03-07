@@ -28,7 +28,7 @@ volatile int g_fChecked = 1; // write entire palette by default
 volatile int g_fPreview = 1; // Should be on by default
 
 CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, uint8_t paletteNumber, CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic), _viewport(paletteNumber), _currentPaletteNumber(paletteNumber)
+    : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic), _viewport(paletteNumber), _iCurPalette(paletteNumber)
 {
     HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPALETTE), RT_ACCELERATOR);
     _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPALETTE));
@@ -55,7 +55,6 @@ CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback
 
     _bSelection = 0;
     _multiSelection[0] = true;
-    _iCurPalette = 0;
 
     // 40 things here.
     m_wndStaticPalette.ShowSelection(TRUE);
@@ -92,7 +91,7 @@ void CPaletteDefinitionDialog::DoDataExchange(CDataExchange* pDX)
         StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), i);
         m_wndTab.InsertItem(i, szBuf);
     }
-    m_wndTab.SetCurSel(_currentPaletteNumber); // Activate the tab corresponding to the current palette being shown
+    m_wndTab.SetCurSel(_iCurPalette); // Activate the tab corresponding to the current palette being shown
 
     DDX_Control(pDX, IDC_CHECK1, m_wndCheck);
     DDX_Control(pDX, IDC_CHECK2, m_wndPreview);

@@ -93,7 +93,6 @@ protected:
     ptrdiff_t _position;
     ViewPort _viewport;
     bool _changed;
-    int _currentPaletteNumber;
 
     std::unique_ptr<PaletteComponent> paletteComponentEGA;
 
