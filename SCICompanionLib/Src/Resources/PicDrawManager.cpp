@@ -33,12 +33,13 @@ PicPositionFlags PicPositionToFlags(PicPosition pos)
     return (PicPositionFlags)(0x1 << (int)pos);
 }
 
-PicDrawManager::PicDrawManager(const PicComponent *pPic, const PaletteComponent *pPalette, bool isEGAUndithered)
+PicDrawManager::PicDrawManager(const PicComponent *pPic, const PaletteComponent *pPalette, bool isEGAUndithered, bool isNewSCI)
     : _pPicWeak(pPic),
     _paletteVGA{},
     _isVGA(pPalette != nullptr),
     _isContinuousPri(pPic && pPic->Traits->ContinuousPriority),
 	_isUndithered(isEGAUndithered),
+    _isNewSCI(isNewSCI),
     _screenBuffers{}
 {
     _viewPorts = std::make_unique<ViewPort[]>(3);
@@ -89,11 +90,12 @@ void PicDrawManager::_Reset()
     _iInsertPos = -1;
 }
 
-void PicDrawManager::SetPic(const PicComponent *pPic, const PaletteComponent *pPalette, bool isEGAUndithered)
+void PicDrawManager::SetPic(const PicComponent *pPic, const PaletteComponent *pPalette, bool isEGAUndithered, bool isNewSCI)
 {
 	_isUndithered = isEGAUndithered;
     _isVGA = (pPalette != nullptr);
     _isContinuousPri = pPic && pPic->Traits->ContinuousPriority;
+    _isNewSCI = isNewSCI;
     if (!IsSame(pPic, _pPicWeak))
     {
         _Reset();
@@ -368,7 +370,8 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
             _isVGA,
 			_isUndithered,
             _GetPicSize(),
-            _isContinuousPri
+            _isContinuousPri,
+            _isNewSCI
         };
 
         // Now draw!
@@ -402,7 +405,8 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 _isVGA,
 				_isUndithered,
                 _GetPicSize(),
-                _isContinuousPri
+                _isContinuousPri,
+                _isNewSCI
             };
 
             // OutputDebugString("Drawing plguins\n");
@@ -447,7 +451,8 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 _isVGA,
 				_isUndithered,
                 _GetPicSize(),
-                _isContinuousPri
+                _isContinuousPri,
+                _isNewSCI
             };
 
             // Now draw!
@@ -719,7 +724,8 @@ ptrdiff_t PicDrawManager::PosFromPoint(int x, int y, ptrdiff_t iStart)
         _isVGA,
 		_isUndithered,
         _GetPicSize(),
-        _isContinuousPri
+        _isContinuousPri,
+        _isNewSCI
     };
 
     return GetLastChangedSpot(*_pPicWeak, data, state, x, y);

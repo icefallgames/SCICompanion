@@ -107,6 +107,7 @@ struct PicData
 	bool isUndithered;
     size16 size;
     bool isContinuousPriority;
+    bool isNewSCI;
 
     void EnsureInBounds(int &x, int &y);
 };

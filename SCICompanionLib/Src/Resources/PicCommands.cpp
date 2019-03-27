@@ -641,6 +641,13 @@ inline void _PlotPixI(int p, PicData *pData, int16_t x, int16_t y, PicScreenFlag
     }
 }
 
+struct WhiteIs16
+{
+    static bool IsColorWhite(EGACOLOR pixel) { return pixel.color1 == White && pixel.color2 == White; }
+    static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y) { return pixel == 0x0f; }
+    static const uint8_t White = 0xf;
+};
+
 struct PlotEGA
 {
     typedef EGACOLOR PixelType;
@@ -649,10 +656,6 @@ struct PlotEGA
     {
         return ((x^y) & 1) ? color.color1 : color.color2;
     }
-
-    static bool IsColorWhite(PixelType pixel) { return pixel.color1 == White && pixel.color2 == White; }
-
-	static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y) { return pixel == 0x0f; }
 
     // Guard against someone doing a fill with pure white, since this algorithm will hang in that case.
     // Hero's quest does this, when some pictures are drawn with some palettes.
@@ -665,10 +668,34 @@ struct PlotEGA
             (IsFlagSet(dwDrawEnable, PicScreenFlags::Control) && (controlValue == 0)) ||
             (IsFlagSet(dwDrawEnable, PicScreenFlags::Priority) && (priValue == 0));*/
     }
-
-    static const uint8_t White = 0xf;
 };
 
+struct PlotEGAOld : public PlotEGA, public WhiteIs16
+{
+
+};
+struct WhiteIs256
+{
+    static bool IsColorWhite(EGACOLOR pixel) { return pixel.color1 == White && pixel.color2 == White; }
+    static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y) { return pixel == 0xff; }
+    static const uint8_t White = 0xf;
+};
+struct PlotEGANew : public PlotEGA, public WhiteIs256
+{
+
+};
+
+struct WhiteIs16Undithered
+{
+    static bool IsColorWhite(EGACOLOR pixel) { return pixel.color1 == White && pixel.color2 == White; }
+
+    static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y)
+    {
+        // Even though we render undithered, in a color that is a mix with white, every odd pixel is actually considered white for fill purposes.
+        return ((x^y) & 1) ? ((pixel & 0xf0) == 0xf0) : ((pixel & 0x0f) == 0x0f);
+    }
+    static const uint8_t White = 0xff;
+};
 struct PlotEGAUndithered
 {
 	typedef EGACOLOR PixelType;
@@ -678,19 +705,29 @@ struct PlotEGAUndithered
 		return color.ToByte();
 	}
 
-	static bool IsColorWhite(PixelType pixel) { return pixel.color1 == White && pixel.color2 == White; }
-
-	static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y)
-	{
-		// Even though we render undithered, in a color that is a mix with white, every odd pixel is actually considered white for fill purposes.
-		return ((x^y) & 1) ? ((pixel & 0xf0) == 0xf0) : ((pixel & 0x0f) == 0x0f);
-	}
-
 	static bool EarlyBail(PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t priValue, uint8_t controlValue)
 	{
 		return (IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && ((color.color1 == 0xf) && (color.color2 == 0xf)));
 	}
-	static const uint8_t White = 0xff;
+};
+
+struct PlotEGAUnditheredOld : public PlotEGAUndithered, public WhiteIs16Undithered
+{
+
+};
+struct WhiteIs256Undithered
+{
+    static bool IsColorWhite(EGACOLOR pixel) { return pixel.color1 == White && pixel.color2 == White; }
+
+    static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y)
+    {
+        return pixel == White;
+    }
+    static const uint8_t White = 0xff;
+};
+struct PlotEGAUnditheredNew : public PlotEGAUndithered, public WhiteIs256Undithered
+{
+
 };
 
 struct PlotVGA
@@ -702,7 +739,7 @@ struct PlotVGA
         return color;
     }
 
-    static bool IsColorWhite(PixelType pixel) { return pixel == White; }
+    static bool IsColorWhite(uint8_t pixel) { return pixel == White; }
 
 	static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y) { return pixel == White; }
 
@@ -1658,15 +1695,33 @@ void LineCommand_DrawOnly(const PicCommand *pCommand, PicData *pData, const View
     }
 	else if (pData->isUndithered)
 	{
-		_DitherLine<PlotEGAUndithered>(pData,
-			pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
-			pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        if (pData->isNewSCI)
+        {
+            _DitherLine<PlotEGAUnditheredNew>(pData,
+                pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
+                pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        }
+        else
+        {
+            _DitherLine<PlotEGAUnditheredOld>(pData,
+                pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
+                pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        }
 	}
 	else
     {
-        _DitherLine<PlotEGA>(pData,
-            pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
-            pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        if (pData->isNewSCI)
+        {
+            _DitherLine<PlotEGANew>(pData,
+                pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
+                pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        }
+        else
+        {
+            _DitherLine<PlotEGAOld>(pData,
+                pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
+                pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        }
     }
 }
 
@@ -1675,7 +1730,7 @@ void LineCommand_DrawOnly(const PicCommand *pCommand, PicData *pData, const View
 //
 void LineCommand_DrawOverride(PicCommand *pCommand, PicData *pData, EGACOLOR color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
-    _DitherLine<PlotEGA>(pData,
+    _DitherLine<PlotEGAOld>(pData,
         pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
         color, index, bPriorityValue, bControlValue, dwDrawEnable);
 }
@@ -1788,23 +1843,49 @@ void PatternCommand_Draw_DrawOnly(const PicCommand *pCommand, PicData *pData, co
     }
 	else if (pData->isUndithered)
 	{
-		_DrawPattern<PlotEGAUndithered>(pData,
-			pCommand->drawPattern.x, pCommand->drawPattern.y,
-			pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
-			(pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
-			pCommand->drawPattern.bPatternSize,
-			pCommand->drawPattern.bPatternNR,
-			(pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE) != 0);
+        if (pData->isNewSCI)
+        {
+            _DrawPattern<PlotEGAUnditheredNew>(pData,
+                pCommand->drawPattern.x, pCommand->drawPattern.y,
+                pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
+                (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
+                pCommand->drawPattern.bPatternSize,
+                pCommand->drawPattern.bPatternNR,
+                (pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE) != 0);
+        }
+        else
+        {
+            _DrawPattern<PlotEGAUnditheredOld>(pData,
+                pCommand->drawPattern.x, pCommand->drawPattern.y,
+                pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
+                (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
+                pCommand->drawPattern.bPatternSize,
+                pCommand->drawPattern.bPatternNR,
+                (pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE) != 0);
+        }
 	}
     else
     {
-        _DrawPattern<PlotEGA>(pData,
-            pCommand->drawPattern.x, pCommand->drawPattern.y,
-            pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
-            (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
-            pCommand->drawPattern.bPatternSize,
-            pCommand->drawPattern.bPatternNR,
-            (pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE) != 0);
+        if (pData->isNewSCI)
+        {
+            _DrawPattern<PlotEGANew>(pData,
+                pCommand->drawPattern.x, pCommand->drawPattern.y,
+                pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
+                (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
+                pCommand->drawPattern.bPatternSize,
+                pCommand->drawPattern.bPatternNR,
+                (pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE) != 0);
+        }
+        else
+        {
+            _DrawPattern<PlotEGAOld>(pData,
+                pCommand->drawPattern.x, pCommand->drawPattern.y,
+                pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
+                (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
+                pCommand->drawPattern.bPatternSize,
+                pCommand->drawPattern.bPatternNR,
+                (pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE) != 0);
+        }
     }
 }
 
@@ -1942,11 +2023,25 @@ void FillCommand_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *pSta
     }
 	else if (pData->isUndithered)
 	{
-		_DitherFill<PlotEGAUndithered>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        if (pData->isNewSCI)
+        {
+            _DitherFill<PlotEGAUnditheredNew>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        }
+        else
+        {
+            _DitherFill<PlotEGAUnditheredOld>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        }
 	}
     else
     {
-        _DitherFill<PlotEGA>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        if (pData->isNewSCI)
+        {
+            _DitherFill<PlotEGANew>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        }
+        else
+        {
+            _DitherFill<PlotEGAOld>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+        }
     }
 }
 

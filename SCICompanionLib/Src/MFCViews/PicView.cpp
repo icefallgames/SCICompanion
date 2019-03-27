@@ -2635,6 +2635,7 @@ void CPicView::_EnsurateCoordinates(PicCommand::CommandType commandType, _Functi
             false,
             false,
             size16(),
+            false,
             false
         };
 

@@ -100,7 +100,7 @@ const char *c_rgControlColourNames[16] =
 
 void CPicDoc::InvokeDialog(UINT nID, RECT *prcButton)
 {
-    _pdm.SetPic(_GetPic(), GetCurrentPaletteComponent(), _isUndithered);
+    _pdm.SetPic(_GetPic(), GetCurrentPaletteComponent(), _isUndithered, appState->GetVersion().NewSCI);
     switch (nID)
     {
     case IDC_SETVISUAL:
@@ -527,7 +527,7 @@ const PicComponent *CPicDoc::_GetPic() const
 
 PicDrawManager &CPicDoc::GetDrawManager()
 {
-    _pdm.SetPic(_GetPic(), _previewPalette ? _previewPalette : GetCurrentPaletteComponent(), _isUndithered);
+    _pdm.SetPic(_GetPic(), _previewPalette ? _previewPalette : GetCurrentPaletteComponent(), _isUndithered, appState->GetVersion().NewSCI);
     return _pdm;
 };
 
