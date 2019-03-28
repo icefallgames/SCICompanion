@@ -108,7 +108,7 @@ BOOL PicPreviewer::OnSetPalette(UINT nID)
 {
     ASSERT((IDC_BUTTON4 - IDC_BUTTON1) == 3);
     _paletteNumber = (BYTE)(nID - IDC_BUTTON1);
-    PicDrawManager pdm(&_pic->GetComponent<PicComponent>(), _pic->TryGetComponent<PaletteComponent>());
+    PicDrawManager pdm(&_pic->GetComponent<PicComponent>(), _pic->TryGetComponent<PaletteComponent>(), true, appState->GetVersion().NewSCI);
 
     pdm.SetPalette(_paletteNumber);
     _ResetVisualBitmap(_pic->GetComponent<PicComponent>(), pdm);
@@ -163,7 +163,7 @@ void PicPreviewer::SetResource(const ResourceBlob &blob)
     m_wndButton4.ShowWindow(showSCI0PaletteControls);
     m_wndStaticPalette.ShowWindow(showSCI0PaletteControls);
 
-    PicDrawManager pdm(&pic, _pic->TryGetComponent<PaletteComponent>());
+    PicDrawManager pdm(&pic, _pic->TryGetComponent<PaletteComponent>(), true, appState->GetVersion().NewSCI);
     pdm.SetPalette(_paletteNumber);
     pdm.RefreshAllScreens(PicScreenFlags::All, PicPositionFlags::Final); // Be efficient - we're going to get all 3 screens.
     _ResetVisualBitmap(pic, pdm);

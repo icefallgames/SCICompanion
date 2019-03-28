@@ -46,7 +46,7 @@ size_t GetCommandCount(const PicComponent &pic) { return pic.commands.size(); }
 
 HBITMAP GetPicBitmap(PicScreen screen, const PicComponent &pic, const PaletteComponent *palette, int cx, int cy, SCIBitmapInfo *pbmi, uint8_t **pBitsDest)
 {
-    return PicDrawManager(&pic, palette).CreateBitmap(screen, PicPosition::Final, pic.Size, cx, cy, pbmi, pBitsDest);
+    return PicDrawManager(&pic, palette, true, appState->GetVersion().NewSCI).CreateBitmap(screen, PicPosition::Final, pic.Size, cx, cy, pbmi, pBitsDest);
 }
 
 EGACOLOR g_egaColorChooserPalette[] =

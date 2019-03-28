@@ -283,8 +283,7 @@ CRoomExplorerWorkResult *CRoomExplorerWorkResult::CreateFromWorkItem(CRoomExplor
             //std::copy(std::begin(g_egaColorsMixed), std::end(g_egaColorsMixed), std::begin(egaPalette.Colors));
             //palette = &egaPalette;
         }
-        PicDrawManager pdm(&pic, palette, true);
-        //PicDrawManager pdm(&pic, palette, false); // Can't get it to use 256-color palette.
+        PicDrawManager pdm(&pic, palette, true, appState->GetVersion().NewSCI);
 		std::unique_ptr<BYTE[]> dataDisplay = std::make_unique<BYTE[]>(pic.Size.cx * pic.Size.cy);
         std::unique_ptr<BYTE[]> dataAux = std::make_unique<BYTE[]>(pic.Size.cx * pic.Size.cy);
         fOk = TRUE;
