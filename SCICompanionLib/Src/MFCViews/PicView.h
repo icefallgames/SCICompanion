@@ -47,6 +47,7 @@ private: // create from serialization only
         Zoom         = 0x00000003,
         Pasting      = 0x00000004, // We're currently pasting commands
         Polygons     = 0x00000005,
+        NamedPositions = 0x00000006,
     };
     const static key_value_pair<ToolType, UINT> c_toolToID [];
     static ToolType _IDToTool(UINT nID);
@@ -238,6 +239,7 @@ protected:
     afx_msg void OnShowPalette3();
     afx_msg void OnTogglePriorityLines();
     afx_msg void OnPolyPath();
+    afx_msg void OnNamedPositions();
     afx_msg void OnToggleEgo();
     afx_msg void OnLightUpCoords();
     afx_msg void OnSetPalette();

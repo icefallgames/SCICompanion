@@ -34,12 +34,18 @@ protected:
     void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 };
 
+class PositionListBox : public CListBox
+{
+protected:
+    void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+};
+
 // PicCommandSidePane dialog
 
 class PicCommandSidePane : public CExtDialogFwdCmd, public INonViewClient
 {
 public:
-    PicCommandSidePane(bool showPalette, bool usePoly, CWnd* pParent = NULL);   // standard constructor
+    PicCommandSidePane(bool showPalette, bool usePoly, bool usePositions, CWnd* pParent = NULL);   // standard constructor
 	virtual ~PicCommandSidePane();
 
 // Dialog Data
@@ -70,13 +76,14 @@ protected:
     LRESULT OnOcmDrawItem(WPARAM wParam, LPARAM lParam);
     afx_msg void OnSelChange();
     afx_msg void OnPolySelChange();
+    afx_msg void OnPositionSelChange();
     afx_msg void OnGotoScript();
-    afx_msg void OnClickPolygons();
-    afx_msg void OnClickCommands();
     afx_msg void OnBnClickedShowPolys();
+    afx_msg void OnBnClickedShowPositions();
     afx_msg void OnCbnSelchangeComboPolyType();
     afx_msg void PushEditPointsToPoly();
     afx_msg void PushNameToPoly();
+    afx_msg void CreateNewPosition();
     afx_msg void OnTcnSelchangeTabWhichList(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnPaletteSelection();
     BOOL OnEraseBkgnd(CDC *pDC);
@@ -92,13 +99,16 @@ private:
     void _UpdateItemCount();
     void _UpdatePolyItemCount();
     const PicComponent *_GetEditPic();
-    void _InvalidateCurrentCaretPos();
     void _UpdatePalette();
     void _SyncPolyTypeCombo();
     void _SyncPolyChoice();
     const SCIPolygon *_GetCurrentPolygon();
     void _UpdatePaletteChoices();
     bool _ShowingPolygons();
+    bool _ShowingPositions();
+    void _SyncPositionChoice();
+    void _UpdatePositionItemCount();
+
     
     CPicDoc *_pDoc;
     int _iUserSelectedPos;
@@ -111,6 +121,7 @@ private:
     CExtNoFlickerStatic m_wndPalette;
     bool _showPalette;
     bool _showPolygons;
+    bool _showPositions;
 
     PolygonListBox m_wndListPolygons;
     CExtLabel m_wndStaticPolyType;
@@ -119,6 +130,11 @@ private:
     CExtCheckBox m_wndCheckShowPolys;
     CExtEdit m_wndEditPolyPoints;
     CExtEdit m_wndEditPolyName;
+
+    CExtCheckBox m_wndCheckShowPositions;
+    PositionListBox m_wndListPositions;
+    CExtButton m_wndCreateNewPosition;
+    CExtEdit m_wndEditPositionName;
 
     CExtHyperLinkButton m_wndGotoScript;
 

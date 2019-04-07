@@ -48,6 +48,14 @@ private:
     std::vector<point16> _points;
 };
 
+struct NamedPosition
+{
+public:
+    std::string Name;
+    point16 Position;
+    int16_t Z;
+};
+
 bool operator==(const SCIPolygon &one, const SCIPolygon &two);
 bool operator!=(const SCIPolygon &one, const SCIPolygon &two);
 
@@ -70,6 +78,8 @@ public:
     void DeletePolygon(size_t index);
     std::string GetPolyFilePath() const;
     std::string GetPolyFilename() const;
+
+    std::vector<NamedPosition> NamedPositions;
 
 private:
 

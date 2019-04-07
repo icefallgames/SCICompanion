@@ -63,6 +63,7 @@ const key_value_pair<CPicView::ToolType, UINT> CPicView::c_toolToID [] =
     { History, ID_HISTORY },
     { Zoom, ID_ZOOM },
     { Polygons, ID_POLYPATH },
+    { NamedPositions, ID_NAMEDPOSITIONS},
     { None, ID_DRAWOFF },
     // Add more here...
 };
@@ -354,6 +355,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_SHOWPALETTE3, CPicView::OnShowPalette3)
     ON_COMMAND(ID_TOGGLEPRIORITYLINES, CPicView::OnTogglePriorityLines)
     ON_COMMAND(ID_POLYPATH, CPicView::OnPolyPath)
+    ON_COMMAND(ID_NAMEDPOSITIONS, CPicView::OnNamedPositions)
     ON_COMMAND(ID_TOGGLEEGO, CPicView::OnToggleEgo)
     ON_COMMAND(ID_LIGHTUPCOORDS, CPicView::OnLightUpCoords)
     ON_COMMAND(ID_DEFINEPALETTES, CPicView::OnSetPalette)
@@ -400,6 +402,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_SHOWPRIORITYSCREEN, CPicView::OnUpdateShowScreenControl)
     ON_UPDATE_COMMAND_UI(ID_SHOWCONTROLSCREEN, CPicView::OnUpdateShowScreenControl)
     ON_UPDATE_COMMAND_UI(ID_POLYPATH, CPicView::OnUpdateAllPicCommands)
+    ON_UPDATE_COMMAND_UI(ID_NAMEDPOSITIONS, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_TOGGLEPRIORITYLINES, CPicView::OnUpdateTogglePriorityLines)
     ON_UPDATE_COMMAND_UI(ID_TOGGLEGRIDLINES, CPicView::OnUpdateToggleGridLines)
     ON_UPDATE_COMMAND_UI(ID_SHOWPALETTE0, CPicView::OnUpdateShowPaletteControl)
@@ -1083,6 +1086,18 @@ void CPicView::OnPolyPath()
     if (GetDocument())
     {
         GetDocument()->SetShowPolygons(true);
+    }
+}
+
+void CPicView::OnNamedPositions()
+{
+    // When this is pressed, choose it.
+    _currentTool = NamedPositions;
+    _UpdateCursor();
+    _OnCommandChanged();
+    if (GetDocument())
+    {
+        GetDocument()->SetShowNamedPositions(true);
     }
 }
 
@@ -1839,6 +1854,7 @@ const key_value_pair<UINT, int> c_IDToCursor [] =
     { ID_LINE, IDC_CURSORLINE },
     { ID_ZOOM, IDC_CURSORZOOM },
     { ID_POLYPATH, IDC_CURSORPOLYGON },
+    { ID_NAMEDPOSITIONS, IDC_CURSORLINE },
 };
 int _IDToCursor(UINT nID)
 {
@@ -2092,6 +2108,10 @@ void CPicView::OnUpdateAllPicCommands(CCmdUI *pCmdUI)
     if (pCmdUI->m_nID == ID_POLYPATH)
     {
         enabled = appState->GetVersion().UsesPolygons;
+    }
+    if (pCmdUI->m_nID == ID_NAMEDPOSITIONS)
+    {
+        enabled = appState->GetVersion().UsesPolygons && appState->GetVersion().NewSCI;
     }
 
     if (!_GetEditPic()->Traits->SupportsVectorCommands)
@@ -3336,7 +3356,7 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
         InvalidateOurselvesImmediately();
     }
 
-    if (IsFlagSet(hint, PicChangeHint::PolygonChoice | PicChangeHint::PolygonsChanged))
+    if (IsFlagSet(hint, PicChangeHint::PolygonChoice | PicChangeHint::PolygonsChanged | PicChangeHint::NamedPositionChoice | PicChangeHint::NamedPositionsChanged))
     {
         InvalidateOurselves();
     }

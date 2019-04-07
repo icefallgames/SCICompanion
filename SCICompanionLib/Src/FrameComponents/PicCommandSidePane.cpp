@@ -30,18 +30,20 @@
 
 const int CommandTabIndex = 0;
 const int PolyTabIndex = 1;
+const int PositionTabIndex = 2;
 
 char c_szPolyNamePrefix[] = "P_";
 
 // PicCommandSidePane dialog
 
-PicCommandSidePane::PicCommandSidePane(bool showPalette, bool usePoly, CWnd* pParent /*=NULL*/)
+PicCommandSidePane::PicCommandSidePane(bool showPalette, bool usePoly, bool usePositions, CWnd* pParent /*=NULL*/)
     : CExtDialogFwdCmd(showPalette ? PicCommandSidePane::IDD_VGA : (usePoly ? PicCommandSidePane::IDD_EGAPOLY : PicCommandSidePane::IDD), pParent),
     _fAttached(FALSE),
     _iUserSelectedPos(LB_ERR),
     _iCurrentPicPos(LB_ERR),
     _showPalette(showPalette),
-    _showPolygons(usePoly)
+    _showPolygons(usePoly),
+    _showPositions(usePositions)
 {
     // Load our accelerators
     HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
@@ -78,6 +80,13 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, ID_EDIT_IMPORTPICBACKGROUND, m_wndSetBackground);
     }
 
+    if (GetDlgItem(IDC_LISTPOSITIONS) || _showPolygons)
+    {
+        DDX_Control(pDX, ID_UPLOADNAME, m_wndUploadNameButton);
+        m_wndUploadNameButton.SetIcon(IDI_UPLOAD, 0, 0, 0, 24, 24);
+        DDX_Control(pDX, IDC_STATICNAME, m_wndStaticPolyName);
+    }
+
     if (_showPolygons)
     {
         DDX_Control(pDX, IDC_TABWHICHLIST, m_wndTabWhichList);
@@ -88,20 +97,31 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKSHOWPOLYS, m_wndCheckShowPolys);
         DDX_Control(pDX, IDC_EDIT_POLYPOINTS, m_wndEditPolyPoints);
         DDX_Control(pDX, ID_UPLOAD, m_wndUploadPointsButton);
-        m_wndUploadPointsButton.SetIcon(IDI_UPLOAD, 0, 0, 0, 24, 24);
-        DDX_Control(pDX, ID_UPLOADNAME, m_wndUploadNameButton);
-        m_wndUploadNameButton.SetIcon(IDI_UPLOAD, 0, 0, 0, 24, 24);
-        DDX_Control(pDX, IDC_STATICNAME, m_wndStaticPolyName);
         DDX_Control(pDX, IDC_EDITNAME, m_wndEditPolyName);
+        m_wndUploadPointsButton.SetIcon(IDI_UPLOAD, 0, 0, 0, 24, 24);
 
         // Show polygons by default
         TCITEM tcitem = {};
         tcitem.mask = TCIF_TEXT;
-        tcitem.pszText = "Commands";
+        tcitem.pszText = "Cmd";
         m_wndTabWhichList.InsertItem(CommandTabIndex, &tcitem);
-        tcitem.pszText = "Polygons";
+        tcitem.pszText = "Poly";
         m_wndTabWhichList.InsertItem(PolyTabIndex, &tcitem);
+        tcitem.pszText = "Pos";
+        m_wndTabWhichList.InsertItem(PositionTabIndex, &tcitem);
         m_wndTabWhichList.SetCurSel(PolyTabIndex);
+    }
+
+    if (GetDlgItem(IDC_LISTPOSITIONS))
+    {
+        DDX_Control(pDX, IDC_CHECKSHOWPOSITIONS, m_wndCheckShowPositions);
+        DDX_Control(pDX, IDC_LISTPOSITIONS, m_wndListPositions);
+        DDX_Control(pDX, ID_CREATE, m_wndCreateNewPosition);
+        DDX_Control(pDX, IDC_EDITPOSNAME, m_wndEditPositionName);
+    }
+
+    if (_showPolygons || _showPositions)
+    {
         _ShowPolyOrCommands();
     }
 }
@@ -111,6 +131,7 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_WM_DRAWITEM()
     ON_LBN_SELCHANGE(IDC_LISTCOMMANDS, OnSelChange)
     ON_LBN_SELCHANGE(IDC_LISTPOLYGONS, OnPolySelChange)
+    ON_LBN_SELCHANGE(IDC_LISTPOSITIONS, OnPositionSelChange)
     ON_COMMAND(ID_CROPCOMMANDS, OnCropCommands)
     // The pic document's ID_EDIT_COPY copies the pic background to the clipboard,
     // so we handle our own.
@@ -122,8 +143,10 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_WM_ERASEBKGND()
     ON_COMMAND(IDC_GOTOSCRIPT, OnGotoScript)
     ON_BN_CLICKED(IDC_CHECKSHOWPOLYS, OnBnClickedShowPolys)
+    ON_BN_CLICKED(IDC_CHECKSHOWPOSITIONS, OnBnClickedShowPositions)
     ON_BN_CLICKED(ID_UPLOAD, PushEditPointsToPoly)
     ON_BN_CLICKED(ID_UPLOADNAME, PushNameToPoly)
+    ON_BN_CLICKED(ID_CREATE, CreateNewPosition)
     ON_CBN_SELCHANGE(IDC_COMBOPOLYTYPE, OnCbnSelchangeComboPolyType)
     ON_NOTIFY(TCN_SELCHANGE, IDC_TABWHICHLIST, OnTcnSelchangeTabWhichList)
     ON_CBN_SELCHANGE(IDC_COMBO_PALETTE, OnPaletteSelection)
@@ -131,23 +154,41 @@ END_MESSAGE_MAP()
 
 void PicCommandSidePane::_ShowPolyOrCommands()
 {
-    if (m_wndListPolygons.GetSafeHwnd())
+    bool hasPolygonStuff = m_wndListPolygons.GetSafeHwnd();
+    bool hasPositionStuff = m_wndListPositions.GetSafeHwnd();
+    bool showCommands = (m_wndTabWhichList.GetCurSel() == CommandTabIndex);
+    bool showPolys = (m_wndTabWhichList.GetCurSel() == PolyTabIndex) && _showPolygons;
+    bool showPositions = (m_wndTabWhichList.GetCurSel() == PositionTabIndex) && _showPositions;
+    int cmdCommand = showCommands ? SW_SHOW : SW_HIDE;
+    int cmdPoly = showPolys ? SW_SHOW : SW_HIDE;
+    int cmdPosition = showPositions ? SW_SHOW : SW_HIDE;
+    int cmdPositionOrPoly = (showPositions || showPolys) ? SW_SHOW : SW_HIDE;
+
+    m_wndListCommands.ShowWindow(cmdCommand);
+    m_wndCopy.ShowWindow(cmdCommand);
+    m_wndCrop.ShowWindow(cmdCommand);
+
+    if (hasPolygonStuff)
     {
-        bool showPolys = (m_wndTabWhichList.GetCurSel() == 1);
-        int cmdCommand = showPolys ? SW_HIDE : SW_SHOW;
-        int cmdPoly = showPolys ? SW_SHOW : SW_HIDE;
-        m_wndListCommands.ShowWindow(cmdCommand);
-        m_wndCopy.ShowWindow(cmdCommand);
-        m_wndCrop.ShowWindow(cmdCommand);
         m_wndListPolygons.ShowWindow(cmdPoly);
         m_wndStaticPolyType.ShowWindow(cmdPoly);
         m_wndComboPolyType.ShowWindow(cmdPoly);
         m_wndCheckShowPolys.ShowWindow(cmdPoly);
         m_wndEditPolyPoints.ShowWindow(cmdPoly);
         m_wndUploadPointsButton.ShowWindow(cmdPoly);
-        m_wndStaticPolyName.ShowWindow(cmdPoly);
         m_wndEditPolyName.ShowWindow(cmdPoly);
-        m_wndUploadNameButton.ShowWindow(cmdPoly);
+    }
+    if (hasPositionStuff || hasPolygonStuff)
+    {
+        m_wndStaticPolyName.ShowWindow(cmdPositionOrPoly);
+        m_wndUploadNameButton.ShowWindow(cmdPositionOrPoly);
+    }
+    if (hasPositionStuff)
+    {
+        m_wndCheckShowPositions.ShowWindow(showPositions);
+        m_wndListPositions.ShowWindow(showPositions);
+        m_wndEditPositionName.ShowWindow(showPositions);
+        m_wndCreateNewPosition.ShowWindow(showPositions);
     }
 }
 
@@ -166,35 +207,83 @@ void PicCommandSidePane::OnBnClickedShowPolys()
     }
 }
 
+void PicCommandSidePane::OnBnClickedShowPositions()
+{
+    if (GetDocument())
+    {
+        GetDocument()->SetShowNamedPositions(m_wndCheckShowPositions.GetCheck() == BST_CHECKED);
+    }
+}
+
+void PicCommandSidePane::CreateNewPosition()
+{
+    int posIndex = GetDocument()->GetCurrentNamedPositionIndex();
+    GetDocument()->ApplyChanges<PolygonComponent>(
+        [posIndex](PolygonComponent &polygonComponent)
+    {
+        string name = fmt::format("pos{0}", polygonComponent.NamedPositions.size());
+        NamedPosition position = { name, point16(160, 100), 0  } ;
+        polygonComponent.NamedPositions.insert(polygonComponent.NamedPositions.begin() + (posIndex + 1), position);
+        return WrapHint(PicChangeHint::NamedPositionsChanged);
+    }
+    );
+}
+
 void PicCommandSidePane::PushNameToPoly()
 {
-    const SCIPolygon *polygon = _GetCurrentPolygon();
-    int polyIndex = GetDocument()->GetCurrentPolygonIndex();
-    if (polygon)
+    if (_ShowingPolygons())
     {
-        CString nameTemp;
-        m_wndEditPolyName.GetWindowText(nameTemp);
-        string name;
-        if (!nameTemp.IsEmpty())
+        const SCIPolygon *polygon = _GetCurrentPolygon();
+        int polyIndex = GetDocument()->GetCurrentPolygonIndex();
+        if (polygon)
         {
-            name = c_szPolyNamePrefix;
-            name += (PCSTR)nameTemp;
-        }
-        // If empty, restore to default...
-
-        if (name != polygon->Name)
-        {
-            // They are different - push the points to the polygon
-            GetDocument()->ApplyChanges<PolygonComponent>(
-                [&name, polyIndex](PolygonComponent &polygonComponent)
+            CString nameTemp;
+            m_wndEditPolyName.GetWindowText(nameTemp);
+            string name;
+            if (!nameTemp.IsEmpty())
             {
-                SCIPolygon *thePoly = polygonComponent.GetAt(polyIndex);
-                thePoly->Name = name;
-                return WrapHint(PicChangeHint::PolygonsChanged);
+                name = c_szPolyNamePrefix;
+                name += (PCSTR)nameTemp;
             }
-            );
+            // If empty, restore to default...
+
+            if (name != polygon->Name)
+            {
+                // They are different - push the points to the polygon
+                GetDocument()->ApplyChanges<PolygonComponent>(
+                    [&name, polyIndex](PolygonComponent &polygonComponent)
+                {
+                    SCIPolygon *thePoly = polygonComponent.GetAt(polyIndex);
+                    thePoly->Name = name;
+                    return WrapHint(PicChangeHint::PolygonsChanged);
+                }
+                );
+            }
         }
     }
+    else if (_ShowingPositions())
+    {
+        const PolygonComponent *source = GetDocument()->GetPolygonComponent();
+        if (source)
+        {
+            int posIndex = GetDocument()->GetCurrentNamedPositionIndex();
+            CString nameTemp;
+            m_wndEditPositionName.GetWindowText(nameTemp);
+            string name = (PCSTR)nameTemp;
+            if (name != source->NamedPositions[posIndex].Name)
+            {
+                // They are different - push the points to the polygon
+                GetDocument()->ApplyChanges<PolygonComponent>(
+                    [&name, posIndex](PolygonComponent &polygonComponent)
+                {
+                    polygonComponent.NamedPositions[posIndex].Name = name;
+                    return WrapHint(PicChangeHint::NamedPositionsChanged);
+                }
+                );
+            }
+        }
+    }
+
 }
 
 void PicCommandSidePane::PushEditPointsToPoly()
@@ -281,7 +370,7 @@ void PicCommandSidePane::OnDeleteCommands()
         // Cut, don't copy
         _OnDelete(TRUE, FALSE);
     }
-    else
+    else if (m_wndListPolygons.IsWindowVisible())
     {
         CPicDoc *pDoc = GetDocument();
         if (pDoc)
@@ -294,6 +383,21 @@ void PicCommandSidePane::OnDeleteCommands()
                 return WrapHint(PicChangeHint::PolygonsChanged);
             }
                 );
+        }
+    }
+    else
+    {
+        CPicDoc *pDoc = GetDocument();
+        if (pDoc)
+        {
+            int currentPos = pDoc->GetCurrentNamedPositionIndex();
+            pDoc->ApplyChanges<PolygonComponent>(
+                [currentPos](PolygonComponent &polygonComponent)
+            {
+                polygonComponent.NamedPositions.erase(polygonComponent.NamedPositions.begin() + currentPos);
+                return WrapHint(PicChangeHint::NamedPositionsChanged);
+            }
+            );
         }
     }
 }
@@ -321,13 +425,26 @@ bool PicCommandSidePane::_ShowingPolygons()
         return false;
     }
 }
-
+bool PicCommandSidePane::_ShowingPositions()
+{
+    if (m_wndTabWhichList.GetSafeHwnd())
+    {
+        return m_wndTabWhichList.GetCurSel() == PositionTabIndex;
+    }
+    else
+    {
+        return false;
+    }
+}
 void PicCommandSidePane::_OnUpdateCommands()
 {
     bool showingPolys = _ShowingPolygons();
-    BOOL areCommandsSelected = !showingPolys && (m_wndListCommands.SendMessage(LB_GETSELCOUNT, 0, 0) > 0);
+    bool showingPositions = _ShowingPositions();
+    bool showingCommands = !showingPolys && !showingPositions;
+    BOOL areCommandsSelected = showingCommands && (m_wndListCommands.SendMessage(LB_GETSELCOUNT, 0, 0) > 0);
     BOOL arePolysSelected = showingPolys && (m_wndListPolygons.GetCurSel() != -1);
-    BOOL enableDelete = areCommandsSelected || arePolysSelected;
+    BOOL arePositionsSelected = showingPositions && (m_wndListPositions.GetCurSel() != -1);
+    BOOL enableDelete = areCommandsSelected || arePolysSelected || arePositionsSelected;
     if (m_wndCopy.IsWindowEnabled() != areCommandsSelected)
     {
         m_wndCopy.EnableWindow(areCommandsSelected);
@@ -368,6 +485,18 @@ BOOL PicCommandSidePane::PreTranslateMessage(MSG* pMsg)
             }
         }
     }
+    if (!fRet && (GetFocus() == static_cast<CWnd*>(&m_wndEditPositionName)))
+    {
+        fRet = HandleEditBoxCommands(pMsg, m_wndEditPositionName);
+        if (!fRet)
+        {
+            if ((pMsg->message == WM_KEYDOWN) && (pMsg->wParam == VK_RETURN))
+            {
+                PushNameToPoly();
+                fRet = TRUE;
+            }
+        }
+    }
     if (!fRet && _hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
     {
         fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);
@@ -385,6 +514,7 @@ BOOL PicCommandSidePane::OnInitDialog()
 
     // Set up anchoring for resize
     AddAnchor(IDC_LISTCOMMANDS, CPoint(0, 0), CPoint(100, 100));
+    AddAnchor(IDC_TABWHICHLIST, CPoint(0, 0), CPoint(100, 100));
     // This doesn't seem to work for this control, and causes weird resizing.
     //AddAnchor(IDC_GOTOSCRIPT, CPoint(100, 0), CPoint(100, 0));        
     if (GetDlgItem(IDC_LISTPOLYGONS))
@@ -406,6 +536,13 @@ BOOL PicCommandSidePane::OnInitDialog()
         AddAnchor(IDC_STATIC2, CPoint(0, 100), CPoint(100, 100));
         AddAnchor(ID_PIC_EDITPALETTE, CPoint(0, 100), CPoint(0, 100));
         AddAnchor(IDC_COMBO_PALETTE, CPoint(0, 100), CPoint(100, 100));
+    }
+    if (_showPositions)
+    {
+        AddAnchor(IDC_LISTPOSITIONS, CPoint(0, 0), CPoint(100, 100));
+        AddAnchor(IDC_CHECKSHOWPOSITIONS, CPoint(0, 0), CPoint(100, 0));
+        AddAnchor(IDC_EDITPOSNAME, CPoint(0, 0), CPoint(100, 0));
+        // Create button is ok?
     }
 
     return fRet;
@@ -440,6 +577,16 @@ void PicCommandSidePane::OnPolySelChange()
         // Fix: http://stackoverflow.com/questions/21032850/losing-selecteditem-when-clicking-on-a-empty-space-in-a-listbox
         int curSel = (int)m_wndListPolygons.SendMessage(LB_GETCURSEL, 0, 0);
         pDoc->SetCurrentPolygonIndex(curSel);
+    }
+}
+
+void PicCommandSidePane::OnPositionSelChange()
+{
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        int curSel = (int)m_wndListPositions.SendMessage(LB_GETCURSEL, 0, 0);
+        pDoc->SetCurrentNamedPositionIndex(curSel);
     }
 }
 
@@ -572,6 +719,61 @@ void PolygonListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
                 const SCIPolygon *polygon = polygonSource->GetAt(pDrawItemStruct->itemID);
 
                 string text = fmt::format("{0}: {1}", (polygon->Name.empty() ? "Default" : polygon->Name), g_PolyTypes[(int)polygon->Type]);
+                pDC->DrawText(
+                    text.c_str(),
+                    -1,
+                    &pDrawItemStruct->rcItem,
+                    DT_SINGLELINE | DT_LEFT);
+            }
+
+            pDC->SelectObject(hFontOld);
+            pDC->SetTextColor(crOldTextColor);
+            pDC->SetBkColor(crOldBkColor);
+            pDC->SetBkMode(iMode);
+        }
+    }
+}
+
+void PositionListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
+{
+    PicCommandSidePane *pParent = static_cast<PicCommandSidePane*>(GetParent());
+    CPicDoc* pDoc = pParent->GetDocument();
+    if (pDoc)
+    {
+        const PolygonComponent *polygonSource = pDoc->GetPolygonComponent();
+        if (polygonSource)
+        {
+            int currentPosition = pDoc->GetCurrentNamedPositionIndex();
+
+            CDC *pDC = CDC::FromHandle(pDrawItemStruct->hDC);
+
+            // REVIEW: We need to use this font when measuring too.
+            HGDIOBJ hFontOld = pDC->SelectObject(&g_PaintManager->m_FontNormalBC);
+            // Save these values to restore them when done drawing.
+            COLORREF crOldTextColor = pDC->GetTextColor();
+            COLORREF crOldBkColor = pDC->GetBkColor();
+            int iMode = pDC->GetBkMode();
+
+            // If this item is selected, set the background color 
+            // and the text color to appropriate values. Also, erase
+            // rect by filling it with the background color.
+            bool bSelected = (pDrawItemStruct->itemAction | ODA_SELECT) && (pDrawItemStruct->itemState & ODS_SELECTED);
+            if (bSelected)
+            {
+                pDC->SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
+                pDC->SetBkColor(::GetSysColor(COLOR_HIGHLIGHT));
+                pDC->FillSolidRect(&pDrawItemStruct->rcItem, ::GetSysColor(COLOR_HIGHLIGHT));
+            }
+            else
+            {
+                pDC->FillSolidRect(&pDrawItemStruct->rcItem, crOldBkColor);
+            }
+
+            if (pDrawItemStruct->itemID != -1)
+            {
+                NamedPosition position = polygonSource->NamedPositions[pDrawItemStruct->itemID];
+
+                string text = position.Name;
                 pDC->DrawText(
                     text.c_str(),
                     -1,
@@ -733,6 +935,22 @@ void PicCommandSidePane::_UpdatePolyItemCount()
             m_wndListPolygons.SendMessage(LB_SETCOUNT, polygonSource->Polygons().size(), 0);
             // Restore selection
             m_wndListPolygons.SetCurSel(selection);
+        }
+    }
+}
+
+void PicCommandSidePane::_UpdatePositionItemCount()
+{
+    if (m_wndListPositions.GetSafeHwnd() && _pDoc)
+    {
+        const PolygonComponent *polygonSource = _pDoc->GetPolygonComponent();
+        if (polygonSource)
+        {
+            // Store off the selection
+            int selection = (int)m_wndListPositions.GetCurSel();
+            m_wndListPositions.SendMessage(LB_SETCOUNT, polygonSource->NamedPositions.size(), 0);
+            // Restore selection
+            m_wndListPositions.SetCurSel(selection);
         }
     }
 }
@@ -901,6 +1119,20 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
         }
     }
 
+    if (_showPositions)
+    {
+        if (IsFlagSet(hint, PicChangeHint::NamedPositionsChanged))
+        {
+            _UpdatePositionItemCount();
+            hint |= PicChangeHint::NamedPositionChoice;
+        }
+
+        if (IsFlagSet(hint, PicChangeHint::NamedPositionChoice))
+        {
+            _SyncPositionChoice();
+        }
+    }
+
     _OnUpdateCommands();
 }
 
@@ -940,6 +1172,31 @@ void PicCommandSidePane::_SyncPolyChoice()
     }
 }
 
+
+void PicCommandSidePane::_SyncPositionChoice()
+{
+    if (_showPositions && GetDocument())
+    {
+        int index = GetDocument()->GetCurrentNamedPositionIndex();
+        std::string name;
+        if (index != -1)
+        {
+            m_wndListPositions.SetCurSel(index);
+            m_wndCheckShowPositions.SetCheck(GetDocument()->GetShowNamedPositions() ? BST_CHECKED : BST_UNCHECKED);
+
+            const PolygonComponent *polygonSource = GetDocument()->GetPolygonComponent();
+            if (polygonSource)
+            {
+                const NamedPosition &namedPos = polygonSource->NamedPositions[index];
+                name = namedPos.Name;
+            }
+        }
+        m_wndEditPositionName.SetWindowText(name.c_str());
+        m_wndEditPositionName.EnableWindow(index != -1);
+        m_wndUploadNameButton.EnableWindow(index != -1);
+    }
+}
+
 const PicComponent *PicCommandSidePane::_GetEditPic()
 {
     const PicComponent *pepic = nullptr;
@@ -961,6 +1218,7 @@ void PicCommandSidePane::SetDocument(CDocument *pDoc)
         _pDoc->AddNonViewClient(this);
 
         _SyncPolyChoice();
+        _SyncPositionChoice();
 
         // Update the script link.
         std::string text = "script: ";

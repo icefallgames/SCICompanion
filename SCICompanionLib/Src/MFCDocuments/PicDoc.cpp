@@ -50,7 +50,7 @@ END_MESSAGE_MAP()
 
 // CPicDoc construction/destruction
 
-CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1), _fakeEgoResourceNumber(-1), _dependencyTracker(nullptr), _isUndithered(false)
+CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1), _showNamedPositions(false), _currentNamedPositionIndex(-1), _fakeEgoResourceNumber(-1), _dependencyTracker(nullptr), _isUndithered(false)
 {
     // Add ourselves as a sync
     CResourceMap &map = appState->GetResourceMap();
@@ -463,6 +463,25 @@ void CPicDoc::SetShowPolygons(bool showPolygons)
     {
         _showPolygons = showPolygons;
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice));
+    }
+}
+
+
+void CPicDoc::SetCurrentNamedPositionIndex(int index)
+{
+    if (index != _currentNamedPositionIndex)
+    {
+        _currentNamedPositionIndex = index;
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::NamedPositionChoice));
+    }
+}
+
+void CPicDoc::SetShowNamedPositions(bool showNamedPositions)
+{
+    if (showNamedPositions != _showNamedPositions)
+    {
+        _showNamedPositions = showNamedPositions;
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::NamedPositionChoice));
     }
 }
 

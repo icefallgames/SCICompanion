@@ -71,6 +71,8 @@ enum class PicChangeHint
     PolygonChoice = 0x00001000,
     PolygonsChanged = 0x00002000,
     FakeEgo = 0x00004000,
+    NamedPositionChoice = 0x00008000,
+    NamedPositionsChanged = 0x00010000
 };
 
 
@@ -110,6 +112,10 @@ public:
     void SetCurrentPolygonIndex(int index);
     bool GetShowPolygons() const { return _showPolygons; }
     void SetShowPolygons(bool showPolygons);
+    int GetCurrentNamedPositionIndex() const { return _currentNamedPositionIndex; }
+    void SetCurrentNamedPositionIndex(int index);
+    bool GetShowNamedPositions() const { return _showNamedPositions; }
+    void SetShowNamedPositions(bool showNamedPosition);
 
     void v_OnUndoRedo();
 
@@ -187,6 +193,8 @@ private:
     // For resources with PolygonComponent
     int _currentPolyIndex;
     bool _showPolygons;
+    int _currentNamedPositionIndex;
+    bool _showNamedPositions;
 
 	bool _isUndithered;
 

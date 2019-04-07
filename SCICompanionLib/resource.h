@@ -386,6 +386,8 @@
 #define IDC_LISTUSES                    1037
 #define IDC_EDITNAME                    1042
 #define IDC_CHECKSCRIPT                 1043
+#define IDC_EDITNAME2                   1043
+#define IDC_EDITPOSNAME                 1043
 #define IDC_OBJECTTYPE                  1044
 #define IDC_EDITAC                      1045
 #define IDC_WORD                        1046
@@ -526,6 +528,7 @@
 #define IDC_STATIC12                    1165
 #define IDC_STATICVISUAL                1166
 #define IDC_STATIC13                    1166
+#define IDC_LISTPOSITIONS               1166
 #define IDC_STATICCONTROL               1167
 #define IDC_STATIC14                    1167
 #define IDC_STATICPRIORITY              1168
@@ -707,6 +710,7 @@
 #define IDC_STATICPOLYTYPE              1286
 #define IDC_CHECKSHOWPOLYS              1287
 #define IDC_STATICRESNUM                1288
+#define IDC_CHECKSHOWPOSITIONS          1288
 #define IDC_EDIT_POLYPOINTS             1289
 #define IDC_STATICVERSION               1290
 #define IDI_UPLOAD                      1291
@@ -921,6 +925,7 @@
 #define ID_NEWSCRIPT                    32843
 #define ID_COMPILEALL                   32844
 #define ID_EDIT_DELETE                  32847
+#define ID_CREATE                       32848
 #define ID_MAIN_ADDAS                   32854
 #define ID_ADDAS_NOUN                   32855
 #define ID_ADDAS_IMPERATIVEVERB         32856
@@ -1301,6 +1306,7 @@
 #define ID_SHIFTPIXELS_HALFRIGHT        33372
 #define ID_SHIFTPIXELS_HALFUP           33373
 #define ID_SHIFTPIXELS_HALFDOWN         33374
+#define ID_NAMEDPOSITIONS               33375
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1309,7 +1315,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        417
-#define _APS_NEXT_COMMAND_VALUE         33375
+#define _APS_NEXT_COMMAND_VALUE         33376
 #define _APS_NEXT_CONTROL_VALUE         1432
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

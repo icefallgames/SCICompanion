@@ -1374,7 +1374,7 @@ void CMainFrame::_PreparePicCommands()
         { ID_PICCLIPS, IDI_STAMP },
         { ID_TOGGLEEGO, IDI_FAKEEGO },
         { ID_POLYPATH, IDI_POLYPATH },
-        { ID_NAMEDPOSITIONS, IDI_PLACEMENT },
+        { ID_NAMEDPOSITIONS, IDI_POLYPATH }, // TODO maybe different icon, like placement.
         { ID_TOGGLEPRIORITYLINES, IDI_PRIORITYLINES },
         { ID_LIGHTUPCOORDS, IDI_LIGHTUP },
         { ID_SHOWPALETTE0, IDI_PALETTE0 },

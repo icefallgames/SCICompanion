@@ -70,7 +70,7 @@ const string AccessType[] =
 unique_ptr<ProcedureCall> GetSetUpPolyProcedureCall(int picResource)
 {
     unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(c_szAddPolysToRoomFunction);
-    _AddStatement(*procCall, make_unique<PropertyValue>(fmt::format("{0}{1}", c_szDefaultPolyName, picResource), ValueType::Pointer));
+    _AddStatement(*procCall, make_unique<PropertyValue>(fmt::format("{0}{1}", c_szDefaultPolyName, picResource), ValueType::Token));
     return procCall;
 }
 
@@ -218,15 +218,28 @@ public:
             TupleDefine *tupleDefine = SafeSyntaxNode<TupleDefine>(&node);
             if (tupleDefine)
             {
-                if (startsWith(tupleDefine->_label, c_szDefaultPolyName))
+                if ((tupleDefine->_members.size() >= 3) &&
+                    (get<0>(tupleDefine->_members[0]) == "x") &&
+                    (get<0>(tupleDefine->_members[1]) == "y") &&
+                    (get<0>(tupleDefine->_members[2]) == "z"))
                 {
-                    // It's the default un-named polygons
-                    _ExtractPolygonsFromTuple("", _polySource, tupleDefine->_members);
+                    // Named position
+                    NamedPosition np = { tupleDefine->_label, point16(static_cast<int16_t>(get<1>(tupleDefine->_members[0])), static_cast<int16_t>(get<1>(tupleDefine->_members[1]))), static_cast<int16_t>(get<1>(tupleDefine->_members[2])) };
+                    _polySource.NamedPositions.push_back(np);
                 }
                 else
                 {
-                    // Named poly
-                    _ExtractPolygonsFromTuple(tupleDefine->_label, _polySource, tupleDefine->_members);
+                    // Polygon
+                    if (startsWith(tupleDefine->_label, c_szDefaultPolyName))
+                    {
+                        // It's the default un-named polygons
+                        _ExtractPolygonsFromTuple("", _polySource, tupleDefine->_members);
+                    }
+                    else
+                    {
+                        // Named poly
+                        _ExtractPolygonsFromTuple(tupleDefine->_label, _polySource, tupleDefine->_members);
+                    }
                 }
             }
 
@@ -319,6 +332,21 @@ void _ApplyPolygonToTuple(TupleDefine &tupleDefine, const SCIPolygon &poly)
     {
         tupleDefine._members.emplace_back("", (uint16_t)point.x);
         tupleDefine._members.emplace_back("", (uint16_t)point.y);
+    }
+}
+
+void _ApplyNamedPositionsToScriptAsTuples(Script &script, const vector<NamedPosition> &positions)
+{
+    for (const NamedPosition &np : positions)
+    {
+        unique_ptr<TupleDefine> tupleDefine = make_unique<TupleDefine>();
+
+        tupleDefine->_label = np.Name;
+        tupleDefine->_members.emplace_back("x", static_cast<uint16_t>(np.Position.x));
+        tupleDefine->_members.emplace_back("y", static_cast<uint16_t>(np.Position.y));
+        tupleDefine->_members.emplace_back("z", static_cast<uint16_t>(np.Z));
+
+        script.Tuples.push_back(move(tupleDefine));
     }
 }
 
@@ -415,6 +443,7 @@ void PolygonComponent::Commit(int picNumber)
         if (appState->GetVersion().NewSCI)
         {
             _ApplyPolygonsToScriptAsTuples(picNumber, script, _polygons);
+            _ApplyNamedPositionsToScriptAsTuples(script, NamedPositions);
         }
         else
         {
