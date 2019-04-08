@@ -1059,7 +1059,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_wndTab.Create(WS_VISIBLE | WS_CHILD | TCS_OWNERDRAWFIXED, CRect(0, 0, 0, 0), this, AFX_IDW_DIALOGBAR);
 
     // Seems like we need to set this desired size prior to creating the control.
-    m_wndResizableBarGeneral.SetInitDesiredSizeVertical(CSize(180, 100));
+    //m_wndResizableBarGeneral.SetInitDesiredSizeVertical(CSize(180, 100));
+    m_wndResizableBarGeneral.SetInitDesiredSizeVertical(CSize(200, 100));
     if (!m_wndResizableBarGeneral.Create("Toolbox", this, ID_BAR_TOOLBOX))
     {
         TRACE0("Failed to create m_wndResizableBar_View\n");

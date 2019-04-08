@@ -449,6 +449,19 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_MESSAGE(WM_MOUSELEAVE, OnMouseLeave)
 END_MESSAGE_MAP()
 
+// Small font for rendering in sci-space.
+void InitCoordLogFont(LOGFONT *plogFont)
+{
+    ZeroMemory(plogFont, sizeof(*plogFont));
+    StringCchCopy(plogFont->lfFaceName, ARRAYSIZE(plogFont->lfFaceName), TEXT("Lucida Console"));
+    plogFont->lfHeight = -7;
+    plogFont->lfWeight = FW_REGULAR;
+    plogFont->lfCharSet = DEFAULT_CHARSET;
+    plogFont->lfQuality = NONANTIALIASED_QUALITY; // Doubt this does anything.
+    plogFont->lfPitchAndFamily = VARIABLE_PITCH | FF_DONTCARE;
+}
+
+
 // CPicView construction/destruction
 
 CPicView::CPicView()
@@ -509,6 +522,10 @@ CPicView::CPicView()
     _bRandomNR = 0;
     _transformingCoords = false;
     _iTraceAlpha = 50;
+
+    LOGFONT logFont;
+    InitCoordLogFont(&logFont);
+    _coordFont.CreateFontIndirect(&logFont);
 }
 
 // Scrolling
@@ -2268,8 +2285,29 @@ void CPicView::_GenerateTraceImage(CDC *pDC)
     }
 }
 
-void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing, bool showName)
+
+void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing, COLORREF color, bool sciCoordinates, bool showName)
 {
+    HGDIOBJ oldFont = nullptr;
+    if (sciCoordinates)
+    {
+        oldFont = pDC->SelectObject(_coordFont);
+    }
+
+    if (sciCoordinates && (thing.Z != 0))
+    {
+        // Show where it's actually rooted.
+        int yVisual = thing.Position.y - thing.Z;
+        int yActual = thing.Position.y;
+        int x = thing.Position.x;
+        int lineWidth = 3;
+
+        pDC->MoveTo(x, yVisual);
+        pDC->LineTo(x, yActual);
+        pDC->MoveTo(x - lineWidth, yActual);
+        pDC->LineTo(x + lineWidth + 1, yActual);
+    }
+
     // The cursor is over the ego.  Draw the coordinates.
     // First we need to convert the ego coordinates to "client" coordinates
     std::string zValue;
@@ -2280,7 +2318,7 @@ void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition 
     std::string name;
     if (showName)
     {
-        name = fmt::format("{0}: ", thing.Name);
+        name = fmt::format("{0}\n", thing.Name);
     }
     char szCoords[100];
     if (useBox)
@@ -2301,46 +2339,55 @@ void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition 
         }
     }
     CRect rectTextSize;
-    int cyText = pDC->DrawText(szCoords, &rectTextSize, DT_SINGLELINE | DT_CALCRECT);
+    UINT extraFlags = 0; // DT_SINGLELINE
+    int cyText = pDC->DrawText(szCoords, &rectTextSize, extraFlags | DT_CALCRECT);
 
     // Center the text:
-    CPoint ptEgoCenter = _MapPicPointToClient(_FindCenterOfFakeEgo(thing));
+    CPoint ptEgoCenter = sciCoordinates ? _FindCenterOfFakeEgo(thing) : _MapPicPointToClient(_FindCenterOfFakeEgo(thing));
     int cxHalf = rectTextSize.Width() / 2;
     cyText /= 2;
     CRect rectFinal(ptEgoCenter.x - cxHalf, ptEgoCenter.y - cyText, ptEgoCenter.x + cxHalf, ptEgoCenter.y + cyText);
 
-    // darken the area under the letters so we can see them better.
-    HBITMAP hbmOverlay = LoadBitmap(AfxGetResourceHandle(), MAKEINTRESOURCE(IDB_ALPHABLEND));
-    if (hbmOverlay)
+    // darken the area under the letters so we can see them better (only works on SCI bitmap)
+    if (sciCoordinates)
     {
-        CDC dcMem;
-        if (dcMem.CreateCompatibleDC(pDC))
+        HBITMAP hbmOverlay = LoadBitmap(AfxGetResourceHandle(), MAKEINTRESOURCE(IDB_ALPHABLEND));
+        if (hbmOverlay)
         {
-            HGDIOBJ hOld = dcMem.SelectObject(hbmOverlay);
-            BLENDFUNCTION blend = { 0 };
-            blend.AlphaFormat = 0;
-            blend.SourceConstantAlpha = 128;
-            blend.BlendFlags = 0;
-            blend.BlendOp = AC_SRC_OVER;
-            pDC->AlphaBlend(rectFinal.left, rectFinal.top, rectFinal.Width(), rectFinal.Height(),
-                &dcMem, 0, 0, 32, 4, blend);
-            dcMem.SelectObject(hOld);
+            CDC dcMem;
+            if (dcMem.CreateCompatibleDC(pDC))
+            {
+                HGDIOBJ hOld = dcMem.SelectObject(hbmOverlay);
+                BLENDFUNCTION blend = { 0 };
+                blend.AlphaFormat = 0;
+                blend.SourceConstantAlpha = 128;
+                blend.BlendFlags = 0;
+                blend.BlendOp = AC_SRC_OVER;
+                pDC->AlphaBlend(rectFinal.left, rectFinal.top, rectFinal.Width(), rectFinal.Height(),
+                    &dcMem, 0, 0, 32, 4, blend);
+                dcMem.SelectObject(hOld);
+            }
+            DeleteObject(hbmOverlay);
         }
-        DeleteObject(hbmOverlay);
     }
 
     // Draw it
     int iOldMode = pDC->SetBkMode(TRANSPARENT);
     COLORREF crOld = pDC->SetTextColor(RGB(0, 0, 0));
-    pDC->DrawText(szCoords, &rectFinal, DT_SINGLELINE);
+    pDC->DrawText(szCoords, &rectFinal, extraFlags | DT_CENTER);
     // Offset 1x1, and draw in white (or red, if we can't be here)
     rectFinal.OffsetRect(-1, -1);
-    pDC->SetTextColor(_fCanBeHere ? RGB(255, 255, 255) : RGB(250, 0, 0));
-    pDC->DrawText(szCoords, &rectFinal, DT_SINGLELINE);
+    pDC->SetTextColor(color);
+    pDC->DrawText(szCoords, &rectFinal, extraFlags | DT_CENTER);
 
     // Restore stuff
     pDC->SetTextColor(crOld);
     pDC->SetBkMode(iOldMode);
+
+    if (sciCoordinates)
+    {
+        pDC->SelectObject(oldFont);
+    }
 }
 
 
@@ -2348,7 +2395,7 @@ void CPicView::_DrawEgoCoordinates(CDC *pDC)
 {
     if ((appState->_fUseBoxEgo && (_fakeEgoAttributes.back().Pri != -1)) || (!appState->_fUseBoxEgo && _GetFakeEgo()))
     {
-        _DrawThingCoordinates(pDC, appState->_fUseBoxEgo, _fakeEgoAttributes.back());
+        _DrawThingCoordinates(pDC, appState->_fUseBoxEgo, _fakeEgoAttributes.back(), _fCanBeHere ? RGB(255, 255, 255) : RGB(250, 0, 0), false, false);
     }
 }
 
@@ -2359,13 +2406,13 @@ void CPicView::_DrawNamedPositionCoordinates(CDC *pDC, CPoint ptHitTest)
     if (polygonComponent)
     {
         int selectedNamedPosition = pDoc->GetCurrentNamedPositionIndex();
-        if ((_hoverIndexNamedPosition != -1) && (_hoverIndexNamedPosition < (int)polygonComponent->NamedPositions.size()))
+        if (selectedNamedPosition != -1)
         {
-            _DrawThingCoordinates(pDC, false, polygonComponent->NamedPositions[_hoverIndexNamedPosition], true);
+            _DrawThingCoordinates(pDC, false, _fCapturing ? _capturedNamedPosition : polygonComponent->NamedPositions[selectedNamedPosition], RGB(255, 255, 255), true, true);
         }
-        if ((selectedNamedPosition != -1) && (_hoverIndexNamedPosition != selectedNamedPosition))
+        if ((_hoverIndexNamedPosition != -1) && (_hoverIndexNamedPosition < (int)polygonComponent->NamedPositions.size()) && (_hoverIndexNamedPosition != selectedNamedPosition))
         {
-            _DrawThingCoordinates(pDC, false, polygonComponent->NamedPositions[selectedNamedPosition], true);
+            _DrawThingCoordinates(pDC, false, polygonComponent->NamedPositions[_hoverIndexNamedPosition], RGB(0, 255, 255), true, true);
         }
     }
 }
@@ -2878,7 +2925,11 @@ void CPicView::OnDraw(CDC *pDC)
 
             _DrawPolygons(&dcMem);
 
-            //_DrawNamedPositionsEGA
+            // doesn't show up.
+            if ((_currentTool == NamedPositions) && GetDocument()->GetShowNamedPositions())
+            {
+                _DrawNamedPositionCoordinates(&dcMem, _ptCurrentHover);
+            }
         }
 
         // Now blt back to the real DC.
@@ -2971,10 +3022,6 @@ void CPicView::OnDraw(CDC *pDC)
     if (_fShowingEgo && _HitTestFakeEgo(_ptCurrentHover))
     {
         _DrawEgoCoordinates(pDC);
-    }
-    if ((_currentTool == NamedPositions) && GetDocument()->GetShowNamedPositions())
-    {
-        _DrawNamedPositionCoordinates(pDC, _ptCurrentHover);
     }
     __super::OnDraw(pDC);
 }
@@ -4642,7 +4689,7 @@ bool CPicView::_HitTestViewThing(CPoint ptPic, const NamedPosition &thing)
     bool fHitTest = false;
     if (!appState->_fUseBoxEgo && _GetViewResourceForThing(thing))
     {
-        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetViewResourceForThing(thing), thing.Loop, thing.Cel);
+        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)(thing.Position.y - thing.Z), _GetViewResourceForThing(thing), thing.Loop, thing.Cel);
     }
     else
     {
