@@ -146,6 +146,7 @@ protected:
     void _EndNamedPositionDrag(CPoint point);
     void _PushMousePositionToNamedPosition(CPoint point);
     void _OnPolyMouseMove(CPoint point);
+    void _OnNamedPositionMouseMove(CPoint point);
     UINT _GetCurrentToolOrCommand();
     void _UpdateCursor();
     void _OnCommandChanged();
@@ -185,7 +186,8 @@ protected:
     void _InitCommandAdjust(PICCOMMAND_ADJUST *pAdjust);
     void _DrawPasteCommands(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawEgoCoordinates(CDC *pDC);
-    void _DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing);
+    void _DrawNamedPositionCoordinates(CDC *pDC, CPoint ptHitTest);
+    void _DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing, bool showName = false);
     void _MakeRandomNR();
     void _MakeNewMasterTraceImage(PCTSTR pszFileName, BITMAPINFO *pbmi, void *pBits);
     void _InsertPastedCommands();
@@ -399,6 +401,7 @@ private:
     point16 _currentDragPolyPoint;
 
     NamedPosition _capturedNamedPosition;
+    int _hoverIndexNamedPosition;
     unordered_map<int16_t, unique_ptr<ResourceEntity>> _namedPositionViews;
 };
 

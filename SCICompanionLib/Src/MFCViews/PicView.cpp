@@ -461,6 +461,7 @@ CPicView::CPicView()
     _currentHoverPolyPointIndex = -1;
     _currentHoverPolyEdgeIndex = -1;
     _polyDragPointIndex = -1;
+    _hoverIndexNamedPosition = -1;
 
     _priBarMoveIndex = -1;
     _originalPriValue = -1;
@@ -671,13 +672,24 @@ void CPicView::_OnFakeEgoViewChosen(int resourceNumber)
 
 void CPicView::OnSetEgoPriority(UINT nID)
 {
-    if (nID == ID_DEFAULTPRIORITY)
+    int priority = (nID == ID_DEFAULTPRIORITY) ? -1 : (nID - ID_MAIN_PRI0);
+    if (_currentTool == NamedPositions)
     {
-        _fakeEgoAttributes.back().Pri = -1;
+        int index = GetDocument()->GetCurrentNamedPositionIndex();
+        if (index != -1)
+        {
+            GetDocument()->ApplyChanges<PolygonComponent>(
+                [priority, index](PolygonComponent &polygonComponent)
+            {
+                polygonComponent.NamedPositions[index].Pri = (int16_t)priority;
+                return WrapHint(PicChangeHint::NamedPositionsChanged);
+            }
+            );
+        }
     }
     else
     {
-        _fakeEgoAttributes.back().Pri = (nID - ID_MAIN_PRI0);
+        _fakeEgoAttributes.back().Pri = priority;
     }
 }
 
@@ -2051,6 +2063,11 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
             _OnPolyMouseMove(ScreenResolutionToGameResolution(_ptCurrentHover));
         }
 
+        if (_currentTool == NamedPositions)
+        {
+            _OnNamedPositionMouseMove(_ptCurrentHover);
+        }
+
         if (_fShowPriorityLines)
         {
             _HitTestPriorityBar(_ptCurrentHover, &_priBarMoveIndex);
@@ -2251,11 +2268,21 @@ void CPicView::_GenerateTraceImage(CDC *pDC)
     }
 }
 
-void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing)
+void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing, bool showName)
 {
     // The cursor is over the ego.  Draw the coordinates.
     // First we need to convert the ego coordinates to "client" coordinates
-    TCHAR szCoords[20];
+    std::string zValue;
+    if (thing.Z != 0)
+    {
+        zValue = fmt::format(",{0}", thing.Z);
+    }
+    std::string name;
+    if (showName)
+    {
+        name = fmt::format("{0}: ", thing.Name);
+    }
+    char szCoords[100];
     if (useBox)
     {
         assert(pri != -1);
@@ -2266,11 +2293,11 @@ void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition 
     {
         if (thing.Pri == -1)
         {
-            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d)"), thing.Position.x, thing.Position.y);
+            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("%s(%d,%d%s)"), name.c_str(), thing.Position.x, thing.Position.y, zValue.c_str());
         }
         else
         {
-            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d) - pri %d"), thing.Position.x, thing.Position.y, thing.Pri);
+            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("%s(%d,%d%s) - pri %d"), name.c_str(), thing.Position.x, thing.Position.y, zValue.c_str(), thing.Pri);
         }
     }
     CRect rectTextSize;
@@ -2322,6 +2349,24 @@ void CPicView::_DrawEgoCoordinates(CDC *pDC)
     if ((appState->_fUseBoxEgo && (_fakeEgoAttributes.back().Pri != -1)) || (!appState->_fUseBoxEgo && _GetFakeEgo()))
     {
         _DrawThingCoordinates(pDC, appState->_fUseBoxEgo, _fakeEgoAttributes.back());
+    }
+}
+
+void CPicView::_DrawNamedPositionCoordinates(CDC *pDC, CPoint ptHitTest)
+{
+    CPicDoc *pDoc = GetDocument();
+    const PolygonComponent *polygonComponent = pDoc->GetPolygonComponent();
+    if (polygonComponent)
+    {
+        int selectedNamedPosition = pDoc->GetCurrentNamedPositionIndex();
+        if ((_hoverIndexNamedPosition != -1) && (_hoverIndexNamedPosition < (int)polygonComponent->NamedPositions.size()))
+        {
+            _DrawThingCoordinates(pDC, false, polygonComponent->NamedPositions[_hoverIndexNamedPosition], true);
+        }
+        if ((selectedNamedPosition != -1) && (_hoverIndexNamedPosition != selectedNamedPosition))
+        {
+            _DrawThingCoordinates(pDC, false, polygonComponent->NamedPositions[selectedNamedPosition], true);
+        }
     }
 }
 
@@ -2927,6 +2972,10 @@ void CPicView::OnDraw(CDC *pDC)
     {
         _DrawEgoCoordinates(pDC);
     }
+    if ((_currentTool == NamedPositions) && GetDocument()->GetShowNamedPositions())
+    {
+        _DrawNamedPositionCoordinates(pDC, _ptCurrentHover);
+    }
     __super::OnDraw(pDC);
 }
 
@@ -2953,12 +3002,12 @@ CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVi
         if (!appState->_fUseBoxEgo && _GetViewResourceForThing(thing))
         {
             // Draw a view.
-            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetViewResourceForThing(thing), thing.Loop, thing.Cel, _HitTestViewThing(_ptCurrentHover, thing), GetDocument()->IsUndithered());
+            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)thing.Position.x, (uint16_t)(thing.Position.y - thing.Z), _GetViewResourceForThing(thing), thing.Loop, thing.Cel, _HitTestViewThing(_ptCurrentHover, thing), GetDocument()->IsUndithered());
         }
         else
         {
             // Just draw a box.
-            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, appState->_cxFakeEgo, appState->_cyFakeEgo, !GetDocument()->IsUndithered());
+            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)thing.Position.x, (uint16_t)(thing.Position.y - thing.Z), appState->_cxFakeEgo, appState->_cyFakeEgo, !GetDocument()->IsUndithered());
         }
     }
     return rc;
@@ -3807,11 +3856,20 @@ void CPicView::_PushMousePositionToNamedPosition(CPoint pt)
             NamedPosition orig = polygonComponent->NamedPositions[selectedNamedPosition];
             int xDelta = orig.Position.x - _pointCapture.x;
             int yDelta = orig.Position.y - _pointCapture.y;
+            int zDelta = _pointCapture.y - pt.y;
 
-            
-            // TODO: Will be more complicated once we include z
-            _capturedNamedPosition.Position.x = (int16_t)(pt.x + xDelta);
-            _capturedNamedPosition.Position.y = (int16_t)(pt.y + yDelta);
+            if (GetKeyState(VK_SHIFT) & 0x8000)
+            {
+                // Move along Z instead.
+                _capturedNamedPosition.Z = (int16_t)(orig.Z + zDelta);
+                _capturedNamedPosition.Position = orig.Position;
+            }
+            else
+            {
+                _capturedNamedPosition.Z = orig.Z;
+                _capturedNamedPosition.Position.x = (int16_t)(pt.x + xDelta);
+                _capturedNamedPosition.Position.y = (int16_t)(pt.y + yDelta);
+            }
         }
     }
 }
@@ -4039,6 +4097,38 @@ int CPicView::_HitTestCurrentPolyEdge(CPoint point)
         }
     }
     return currentEdge;
+}
+
+void CPicView::_OnNamedPositionMouseMove(CPoint point)
+{
+    CPicDoc *pDoc = GetDocument();
+    const PolygonComponent *polygonComponent = pDoc->GetPolygonComponent();
+    int hoverIndex = -1;
+    if (polygonComponent)
+    {
+        int selectedNamedPosition = pDoc->GetCurrentNamedPositionIndex();
+        // Hittest and select. Stash off
+        for (int i = 0; i < (int)polygonComponent->NamedPositions.size(); i++)
+        {
+            bool hit = _HitTestViewThing(point, polygonComponent->NamedPositions[i]);
+            if (hit)
+            {
+                hoverIndex = i;
+            }
+            if (hit && (i == selectedNamedPosition))
+            {
+                // If one of the ones hit was already selected, keep it selected.
+                break;
+            }
+        }
+    }
+
+    if (hoverIndex != _hoverIndexNamedPosition)
+    {
+        _hoverIndexNamedPosition = hoverIndex;
+        InvalidateOurselves();
+    }
+
 }
 
 void CPicView::_OnPolyMouseMove(CPoint point)
@@ -4577,7 +4667,7 @@ CPoint CPicView::_FindCenterOfFakeEgo(const NamedPosition &thing)
     }
     else
     {
-        return FindCenterOfView((uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetFakeEgo(), thing.Loop, thing.Cel);
+        return FindCenterOfView((uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetViewResourceForThing(thing), thing.Loop, thing.Cel);
     }
 }
 
@@ -4794,6 +4884,34 @@ void CPicView::OnRButtonDown(UINT nFlags, CPoint point)
     case Polygons:
     {
         _OnPolygonRClick(ScreenResolutionToGameResolution(ptPic));
+        break;
+    }
+
+    case NamedPositions:
+    {
+        if (GetDocument()->GetShowNamedPositions())
+        {
+            int index = GetDocument()->GetCurrentNamedPositionIndex();
+            if (index != -1)
+            {
+                NamedPosition _contextMenuNamedPosition = GetDocument()->GetPolygonComponent()->NamedPositions[index];
+                if (_HitTestViewThing(ptPic, _contextMenuNamedPosition))
+                {
+                    // Bring up a menu that let's us choose the thing's pri
+                    CMenu contextMenu;
+                    contextMenu.LoadMenu(IDR_MENUNAMEDPOSITION);
+                    CMenu* pTracker;
+                    pTracker = contextMenu.GetSubMenu(0);
+                    CPoint ptScreen = point;
+                    ClientToScreen(&ptScreen);
+                    if (pTracker)
+                    {
+                        BOOL fRet = pTracker->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
+                            ptScreen.x, ptScreen.y, AfxGetMainWnd());
+                    }
+                }
+            }
+        }
         break;
     }
 

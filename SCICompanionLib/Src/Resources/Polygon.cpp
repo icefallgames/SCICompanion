@@ -28,6 +28,16 @@ enum class WindingOrder
     CCW
 };
 
+
+bool NamedPosition::operator == (const NamedPosition &src)
+{
+    return 0 == memcmp(this, &src, sizeof(*this));
+}
+bool NamedPosition::operator != (const NamedPosition &src)
+{
+    return 0 != memcmp(this, &src, sizeof(*this));
+}
+
 WindingOrder DetermineWindingOrder(const std::vector<point16> &points)
 {
     long totalProduct = 0;
@@ -190,6 +200,18 @@ bool startsWith(const std::string &text, const std::string &prefix)
     return text.length() > prefix.length() && std::equal(prefix.begin(), prefix.end(), text.begin());
 }
 
+int16_t GetValueFromTuple(const sci::TupleDefine *tupleDefine, const std::string &property)
+{
+    for (const auto &pair : tupleDefine->_members)
+    {
+        if (get<0>(pair) == property)
+        {
+            return static_cast<int16_t>(get<1>(pair));
+        }
+    }
+    return 0;
+}
+
 class ExtractPolygonsFromHeader : public IExploreNode
 {
 public:
@@ -226,8 +248,12 @@ public:
                     // Named position
                     NamedPosition np;
                     np.Name = tupleDefine->_label;
-                    np.Position = point16(static_cast<int16_t>(get<1>(tupleDefine->_members[0])), static_cast<int16_t>(get<1>(tupleDefine->_members[1])));
-                    np.Z = static_cast<int16_t>(get<1>(tupleDefine->_members[2]));
+                    np.Position = point16(GetValueFromTuple(tupleDefine, "x"), GetValueFromTuple(tupleDefine, "y"));
+                    np.Z = GetValueFromTuple(tupleDefine, "z");
+                    np.View = GetValueFromTuple(tupleDefine, "view");
+                    np.Loop = GetValueFromTuple(tupleDefine, "loop");
+                    np.Cel = GetValueFromTuple(tupleDefine, "cel");
+                    np.Pri = GetValueFromTuple(tupleDefine, "priority");
                     _polySource.NamedPositions.push_back(np);
                 }
                 else
@@ -348,6 +374,10 @@ void _ApplyNamedPositionsToScriptAsTuples(Script &script, const vector<NamedPosi
         tupleDefine->_members.emplace_back("x", static_cast<uint16_t>(np.Position.x));
         tupleDefine->_members.emplace_back("y", static_cast<uint16_t>(np.Position.y));
         tupleDefine->_members.emplace_back("z", static_cast<uint16_t>(np.Z));
+        tupleDefine->_members.emplace_back("view", static_cast<uint16_t>(np.View));
+        tupleDefine->_members.emplace_back("loop", static_cast<uint16_t>(np.Loop));
+        tupleDefine->_members.emplace_back("cel", static_cast<uint16_t>(np.Cel));
+        tupleDefine->_members.emplace_back("priority", static_cast<uint16_t>(np.Pri));
 
         script.Tuples.push_back(move(tupleDefine));
     }

@@ -3,7 +3,7 @@
 
 struct NamedPosition
 {
-    NamedPosition() : View(0), Loop(0), Cel(0), Z(0) {}
+    NamedPosition() : View(0), Loop(0), Cel(0), Z(0), Pri(-1) {}
 
     std::string Name;
     point16 Position;
@@ -14,4 +14,7 @@ struct NamedPosition
     int16_t Loop;
     int16_t Cel;
     int16_t Pri;
+
+    bool operator == (const NamedPosition &src);
+    bool operator != (const NamedPosition &src);
 };

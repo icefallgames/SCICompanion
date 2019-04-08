@@ -296,6 +296,8 @@
 #define IDD_AUDIOEDIT                   392
 #define IDR_MENUMESSAGEVALUES           392
 #define IDI_MONITOR                     393
+#define IDR_MENUFAKEEGO1                393
+#define IDR_MENUNAMEDPOSITION           393
 #define ID_INDICATOR_AUDIOSIZE          394
 #define IDI_CD                          395
 #define IDD_PHONEMEEDITOR               397
@@ -1307,6 +1309,7 @@
 #define ID_SHIFTPIXELS_HALFUP           33373
 #define ID_SHIFTPIXELS_HALFDOWN         33374
 #define ID_NAMEDPOSITIONS               33375
+#define ID_Menu33376                    33376
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1315,7 +1318,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        417
-#define _APS_NEXT_COMMAND_VALUE         33376
+#define _APS_NEXT_COMMAND_VALUE         33377
 #define _APS_NEXT_CONTROL_VALUE         1432
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

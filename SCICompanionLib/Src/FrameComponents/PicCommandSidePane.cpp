@@ -394,9 +394,13 @@ void PicCommandSidePane::OnDeleteCommands()
         {
             int currentPos = pDoc->GetCurrentNamedPositionIndex();
             pDoc->ApplyChanges<PolygonComponent>(
-                [currentPos](PolygonComponent &polygonComponent)
+                [pDoc, currentPos](PolygonComponent &polygonComponent)
             {
                 polygonComponent.NamedPositions.erase(polygonComponent.NamedPositions.begin() + currentPos);
+                if (currentPos >= (int)polygonComponent.NamedPositions.size())
+                {
+                    pDoc->SetCurrentNamedPositionIndex((int)polygonComponent.NamedPositions.size() - 1); // -1 is valid
+                }
                 return WrapHint(PicChangeHint::NamedPositionsChanged);
             }
             );
@@ -1057,7 +1061,7 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
         _UpdatePaletteChoices();
         // Selection changed.  Show a new pic.
 
-        hint |= PicChangeHint::EditPicPos | PicChangeHint::PolygonsChanged | PicChangeHint::Palette | PicChangeHint::PreviewPalette; // New pic, so we'll update pos changed too.
+        hint |= PicChangeHint::EditPicPos | PicChangeHint::PolygonsChanged | PicChangeHint::NamedPositionsChanged | PicChangeHint::Palette | PicChangeHint::PreviewPalette; // New pic, so we'll update pos changed too.
     }
 
     if (IsFlagSet(hint, PicChangeHint::EditPicInvalid))

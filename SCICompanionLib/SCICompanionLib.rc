@@ -962,6 +962,34 @@ BEGIN
     END
 END
 
+IDR_MENUNAMEDPOSITION MENU
+BEGIN
+    POPUP "main"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Observe control lines",       ID_OBSERVECONTROLLINES
+        MENUITEM "Observe polygons",            ID_OBSERVEPOLYGONS
+        MENUITEM "Default priority",            ID_DEFAULTPRIORITY
+        MENUITEM SEPARATOR
+        MENUITEM "Pri 0",                       ID_MAIN_PRI0
+        MENUITEM "Pri 1",                       ID_MAIN_PRI1
+        MENUITEM "Pri 2",                       ID_MAIN_PRI2
+        MENUITEM "Pri 3",                       ID_MAIN_PRI3
+        MENUITEM "Pri 4",                       ID_MAIN_PRI4
+        MENUITEM "Pri 5",                       ID_MAIN_PRI5
+        MENUITEM "Pri 6",                       ID_MAIN_PRI6
+        MENUITEM "Pri 7",                       ID_MAIN_PRI7
+        MENUITEM "Pri 8",                       ID_MAIN_PRI8
+        MENUITEM "Pri 9",                       ID_MAIN_PRI9
+        MENUITEM "Pri 10",                      ID_MAIN_PRI10
+        MENUITEM "Pri 11",                      ID_MAIN_PRI11
+        MENUITEM "Pri 12",                      ID_MAIN_PRI12
+        MENUITEM "Pri 13",                      ID_MAIN_PRI13
+        MENUITEM "Pri 14",                      ID_MAIN_PRI14
+        MENUITEM "Pri 15",                      ID_MAIN_PRI15
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
