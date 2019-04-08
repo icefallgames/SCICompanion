@@ -797,7 +797,7 @@ void FinishClassA(MatchResult &match, const _TParser *pParser, SyntaxContext *pC
 {
     if (match.Result())
     {
-        pContext->Script().AddClass(pContext->GetClass());
+        pContext->Script().AddClass(pContext->PopClass());
     }
 }
 

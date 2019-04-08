@@ -547,7 +547,7 @@ vector<species_property> CompileContext::GetSpeciesProperties(const string &spec
                 const vector<CSCOObjectProperty> &properties = pClass->GetProperties();
                 for (auto &theProp : properties)
                 {
-                    species_property specProp = { theProp.GetSelector(), theProp.GetValue(), DataTypeAny, false };
+                    species_property specProp = { theProp.GetSelector(), theProp.GetValue(), DataTypeAny, false, false };
                     propertiesRet.push_back(specProp);
                 }
                 break;
@@ -566,7 +566,7 @@ vector<species_property> CompileContext::GetSpeciesProperties(const string &spec
         {
             WORD wSelector = 0;
             _tables.Selectors().ReverseLookup(commonProps[i], wSelector);
-            species_property commonProp = { wSelector, 0, commonPropsTypes[i], false };
+            species_property commonProp = { wSelector, 0, commonPropsTypes[i], false, false };
             propertiesRet.push_back(commonProp);
         }
     }

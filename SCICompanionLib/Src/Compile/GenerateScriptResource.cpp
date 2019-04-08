@@ -1043,7 +1043,10 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
                 // This error is not comprehensive - the user might have added a new property
                 // on an instance, and there is already a selector for this property.  Hence, the caller
                 // of this function needs to compare against the species props too.
-                context.ReportError(classProperty.get(), "Unknown property '%s'.  Instances can not define new properties.", selectorName.c_str());
+                if (!classProperty->IsOptional)
+                {
+                    context.ReportError(classProperty.get(), "Unknown property '%s'.  Instances can not define new properties.", selectorName.c_str());
+                }
             }
             else
             {
@@ -1137,7 +1140,7 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
             }
         }
 
-        species_property newProp = { wSelectorIndex, wValue, wType, fTrackRelocation };
+        species_property newProp = { wSelectorIndex, wValue, wType, fTrackRelocation, classProperty->IsOptional };
         propRet.push_back(newProp);
     }
     return propRet;
@@ -1319,8 +1322,11 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
                     if (classDef->IsInstance())
                     {
                         // User tried to declare a new property on an instance.
-                        string propName = context.LookupSelectorName(newProp.wSelector);
-                        context.ReportError(classDef.get(), "Instances can not declare new properties: '%s'.", propName.c_str());
+                        if (!newProp.IsOptional)
+                        {
+                            string propName = context.LookupSelectorName(newProp.wSelector);
+                            context.ReportError(classDef.get(), "Instances can not declare new properties: '%s'.", propName.c_str());
+                        }
                     }
                     else
                     {

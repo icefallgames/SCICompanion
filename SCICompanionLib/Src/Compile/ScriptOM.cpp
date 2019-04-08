@@ -384,7 +384,7 @@ void VariableDecl::AddSimpleInitializer(const PropertyValue &value)
 }
 VariableDecl::VariableDecl(const std::string &name) : StatementsNode(), TypedNode(), _size(1), _unspecifiedSize(false), _name(name), _isPersistable(false) {}
 
-ClassProperty::ClassProperty(const std::string &str, WORD wValue) : NamedNode(), TypedNode()
+ClassProperty::ClassProperty(const std::string &str, WORD wValue) : NamedNode(), TypedNode(), IsOptional(false)
 {
     _innerName = str;
     PropertyValue value;
@@ -392,7 +392,7 @@ ClassProperty::ClassProperty(const std::string &str, WORD wValue) : NamedNode(),
     SetValue(value);
 }
 
-ClassProperty::ClassProperty(const std::string &str, const std::string &value) : NamedNode(), TypedNode()
+ClassProperty::ClassProperty(const std::string &str, const std::string &value) : NamedNode(), TypedNode(), IsOptional(false)
 {
 	_innerName = str;
     PropertyValue valueTemp;
@@ -400,7 +400,7 @@ ClassProperty::ClassProperty(const std::string &str, const std::string &value) :
     SetValue(valueTemp);
 }
 
-ClassProperty::ClassProperty(const std::string &str, const PropertyValue &value) : NamedNode(), TypedNode()
+ClassProperty::ClassProperty(const std::string &str, const PropertyValue &value) : NamedNode(), TypedNode(), IsOptional(false)
 {
     _innerName = str;
     SetValue(value);

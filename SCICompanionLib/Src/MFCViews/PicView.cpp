@@ -2323,7 +2323,7 @@ void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition 
     char szCoords[100];
     if (useBox)
     {
-        assert(pri != -1);
+        assert(thing.Pri != -1);
         // The only time we draw anything for "box" egos is if the user set a pri.
         StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("pri %d"), thing.Pri);
     }

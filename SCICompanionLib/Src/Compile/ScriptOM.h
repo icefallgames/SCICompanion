@@ -718,7 +718,7 @@ namespace sci
         ClassProperty(const ClassProperty &cp) = default;
         ClassProperty& operator=(const ClassProperty& src) = default;
 
-        ClassProperty() : NamedNode(), TypedNode() {};
+        ClassProperty() : NamedNode(), TypedNode(), IsOptional(false) {};
         ClassProperty(const std::string &str, WORD wValue);
         ClassProperty(const std::string &str, const std::string &value);
         ClassProperty(const std::string &str, const PropertyValue &value);
@@ -734,6 +734,9 @@ namespace sci
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
         void OutputSourceCode(SourceCodeWriter &out) const;
+
+        // Because of property inherits from tuples...
+        bool IsOptional;
     };
 
     typedef std::vector<std::unique_ptr<ClassProperty>> ClassPropertyVector;
@@ -1002,6 +1005,9 @@ namespace sci
 
         // Unimplemented (unneeded) Sierra syntax method forward decls
         std::vector<std::string> MethodForwards;
+
+        // Inherit values from a tuple
+        std::string PropertyInherit;
 
     private:
         std::string _superClass;

@@ -932,10 +932,21 @@ void AnonymousDelegateCloseA(MatchResult &match, const ParserSCI *pParser, Synta
     {
         // Get rid of our function and class, so they don't corrupt future things.
         auto deleteThisFunction = pContext->GetFunctionAs<MethodDefinition>();
-        auto deleteThisClass = pContext->GetClass();
+        auto deleteThisClass = pContext->PopClass();
     }
 }
 
+void PropertyInheritA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CurrentClassPtr()->PropertyInherit = pContext->ScratchString();
+    }
+    else
+    {
+        pContext->ReportError("Expected tuple name.", stream);
+    }
+}
 
 
 SCISyntaxParser::SCISyntaxParser() :
@@ -1388,8 +1399,11 @@ void SCISyntaxParser::Load()
         // >> // Todo, allow for temp vars I guess. Not sure how though.
         >> *verb_clause[FunctionStatementA];
 
+    properties_tuple_inherit = colon >> alphanumNK_p[{PropertyInheritA, ParseAutoCompleteContext::DefineValue}];
+    
+
     // The properties thing in a class or instance
-    properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *property_decl >> clpar;
+    properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> -properties_tuple_inherit >> *property_decl >> clpar;
     
     classbase_decl =
         alphanumNK_p[ClassNameA]

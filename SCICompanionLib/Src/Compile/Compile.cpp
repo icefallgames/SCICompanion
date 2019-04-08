@@ -3604,6 +3604,38 @@ void ClassDefinition::PreScan(CompileContext &context)
     // Notify about our name
     context.GetTempToken(ValueType::String, _innerName);
 
+
+    if (!PropertyInherit.empty())
+    {
+        sci::TupleDefine tuple;
+        if (!context.LookupTuple(PropertyInherit, tuple))
+        {
+            context.ReportError(this, "Can't find property tuple '%s'.", PropertyInherit.c_str());
+        }
+        else
+        {
+            // Copy these into the actual props! Replacing any and marking any you add as optional.
+            for (const auto &entry : tuple._members)
+            {
+                auto it = find_if(_properties.begin(), _properties.end(),
+                    [&entry](std::unique_ptr<ClassProperty> &prop) {  return prop->GetName() == get<0>(entry); });
+                if (it == _properties.end())
+                {
+                    // Add it
+                    _properties.push_back(make_unique<ClassProperty>(get<0>(entry), get<1>(entry)));
+                    _properties.back()->IsOptional = true;          // Since it came from a tuple.
+                    _properties.back()->SetPosition(GetPosition()); // I guess?
+                }
+                else
+                {
+                    // Replace the value provided. Actually no, make an error.
+                    context.ReportError(this, "Tuple '%s' already defines property '%s'.", PropertyInherit.c_str(), get<0>(entry).c_str());
+                }
+            }
+        }
+    }
+
+
     ForwardPreScan2(_properties, context);
     ForwardPreScan2(_methods, context);
 

@@ -142,7 +142,7 @@ public:
     {
         return ClassPtrStack.back();
     }
-    std::unique_ptr<sci::ClassDefinition> GetClass()
+    std::unique_ptr<sci::ClassDefinition> PopClass()
     {
         std::unique_ptr<sci::ClassDefinition> result = std::move(ClassPtrStack.back());
         ClassPtrStack.pop_back();

@@ -85,6 +85,7 @@ struct species_property
     uint16_t wValue;
     SpeciesIndex wType; // DataTypeNone means no type was specified.
     bool fTrackRelocation;
+    bool IsOptional;
 };
 
 

@@ -61,6 +61,7 @@ private:
     ParserSCI instance_decl;
     ParserSCI classbase_decl;
     ParserSCI properties_decl;
+    ParserSCI properties_tuple_inherit;
     ParserSCI property_decl;
     ParserSCI method_decl;
     ParserSCI method_base;

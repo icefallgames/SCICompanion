@@ -753,7 +753,7 @@ scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, 
     _fForceWord = false;
     _fUndetermined = false;
     _bOpcode = bOpcode;
-    assert(_bOpcode <= Opcode::LastOne);
+    //assert(_bOpcode <= Opcode::LastOne);
     _wOperands[0] = w1;
     _wOperands[1] = w2;
     _wOperands[2] = w3;
