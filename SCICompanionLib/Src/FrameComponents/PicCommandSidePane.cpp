@@ -222,7 +222,9 @@ void PicCommandSidePane::CreateNewPosition()
         [posIndex](PolygonComponent &polygonComponent)
     {
         string name = fmt::format("pos{0}", polygonComponent.NamedPositions.size());
-        NamedPosition position = { name, point16(160, 100), 0  } ;
+        NamedPosition position;
+        position.Position = point16(160, 100);
+        position.Name = name;
         polygonComponent.NamedPositions.insert(polygonComponent.NamedPositions.begin() + (posIndex + 1), position);
         return WrapHint(PicChangeHint::NamedPositionsChanged);
     }
@@ -1177,12 +1179,12 @@ void PicCommandSidePane::_SyncPositionChoice()
 {
     if (_showPositions && GetDocument())
     {
+        m_wndCheckShowPositions.SetCheck(GetDocument()->GetShowNamedPositions() ? BST_CHECKED : BST_UNCHECKED);
         int index = GetDocument()->GetCurrentNamedPositionIndex();
         std::string name;
         if (index != -1)
         {
             m_wndListPositions.SetCurSel(index);
-            m_wndCheckShowPositions.SetCheck(GetDocument()->GetShowNamedPositions() ? BST_CHECKED : BST_UNCHECKED);
 
             const PolygonComponent *polygonSource = GetDocument()->GetPolygonComponent();
             if (polygonSource)

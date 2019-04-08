@@ -1201,6 +1201,13 @@ const Cel &GetCel(const ResourceEntity *pvr, int &nLoop, int &nCel)
     nCel = mod(nCel, (int)raster.Loops[nLoop].Cels.size());
     return raster.Loops[nLoop].Cels[nCel];
 }
+const Cel &GetCel(const ResourceEntity *pvr, int16_t &nLoop, int16_t &nCel)
+{
+    const RasterComponent &raster = pvr->GetComponent<RasterComponent>();
+    nLoop = mod(nLoop, (int16_t)raster.Loops.size());
+    nCel = mod(nCel, (int16_t)raster.Loops[nLoop].Cels.size());
+    return raster.Loops[nLoop].Cels[nCel];
+}
 
 //
 // Give a view, and its position, returns the point that is at the

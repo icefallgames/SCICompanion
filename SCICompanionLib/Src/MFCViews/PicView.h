@@ -22,7 +22,7 @@
 #include "PaletteDefinitionCallback.h"
 #include "Pic.h"
 #include "PaletteOperations.h"
-#include "FakeEgo.h"
+#include "NamedPosition.h"
 
 class PicDrawManager;
 class PicClipsDialog;
@@ -125,6 +125,7 @@ protected:
     size16 _GetPicSize() const;
     const PaletteComponent *_GetPalette();
     void _OnHistoryLClick(CPoint point);
+    void _OnNamedPositionsLClick(CPoint point);
     void _OnHistoryRClick(CPoint point);
     void _OnPatternLClick(CPoint point);
     void _OnPatternRClick();
@@ -142,6 +143,8 @@ protected:
     void _OnPolygonRClick(CPoint point);
     void _EndNewPoly();
     void _EndPolyDrag();
+    void _EndNamedPositionDrag(CPoint point);
+    void _PushMousePositionToNamedPosition(CPoint point);
     void _OnPolyMouseMove(CPoint point);
     UINT _GetCurrentToolOrCommand();
     void _UpdateCursor();
@@ -170,8 +173,9 @@ protected:
     void _DrawPolygons(CDC *pDC);
     void _DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive);
     void _DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags);
+    void _DrawNamedPositionsEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags);
     void _DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm);
-    CRect _DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags);
+    CRect _DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags, const NamedPosition &thing);
     void _DrawLineDraw(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawCircleDraw(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawPenPreview(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
@@ -181,6 +185,7 @@ protected:
     void _InitCommandAdjust(PICCOMMAND_ADJUST *pAdjust);
     void _DrawPasteCommands(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawEgoCoordinates(CDC *pDC);
+    void _DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing);
     void _MakeRandomNR();
     void _MakeNewMasterTraceImage(PCTSTR pszFileName, BITMAPINFO *pbmi, void *pBits);
     void _InsertPastedCommands();
@@ -189,13 +194,16 @@ protected:
     void _CleanUpPaste();
     void _OnMouseWheel(UINT nFlags, BOOL fForward, CPoint pt, short nNotches);
     bool _HitTestFakeEgo(CPoint pt);
-    CPoint _FindCenterOfFakeEgo();
+    bool _HitTestViewThing(CPoint pt, const NamedPosition &thing);
+    CPoint _FindCenterOfFakeEgo(const NamedPosition &thing);
     bool _NearPasteCorners();
     bool _EvaluateCanBeHere(CPoint pt);
     bool _CanBeInPolygons(CPoint pt);
+    void _OnFakeEgoViewChosen(int resourceNumber);
     PicDrawManager &_GetDrawManager();
     const SCIPolygon *_GetCurrentPolygon();
     ResourceEntity *_GetFakeEgo();
+    ResourceEntity *_GetViewResourceForThing(const NamedPosition &thing);
     void _OnCopyFakeEgoAttributesHelper();
 
     // Scrolling
@@ -303,8 +311,7 @@ private:
 
     BOOL _fShowingEgo;
 
-    std::vector<FakeEgo> _fakeEgoAttributes;
-    std::unique_ptr<ResourceEntity> _fakeEgo;
+    std::vector<NamedPosition> _fakeEgoAttributes;
     BOOL _fCapturing;
     CPoint _pointEgoOrig;
     CPoint _pointCapture;
@@ -390,6 +397,9 @@ private:
     int _polyDragPointIndex;
     point16 _startDragPolyPoint;
     point16 _currentDragPolyPoint;
+
+    NamedPosition _capturedNamedPosition;
+    unordered_map<int16_t, unique_ptr<ResourceEntity>> _namedPositionViews;
 };
 
 #ifndef _DEBUG  // debug version in PicEditorView.cpp

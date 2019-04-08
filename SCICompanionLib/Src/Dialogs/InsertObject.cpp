@@ -24,7 +24,7 @@
 #include "CrystalScriptStream.h"
 #include "OutputCodeHelper.h"
 #include "ClipboardUtil.h"
-#include "FakeEgo.h"
+#include "NamedPosition.h"
 
 using namespace sci;
 using namespace std;
@@ -165,11 +165,11 @@ void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &bu
     }
 
     // Grab any properties from the "fake ego"
-    std::unique_ptr<FakeEgo> fakeEgo;
+    std::unique_ptr<NamedPosition> fakeEgo;
     ProcessClipboardDataIfAvailable(appState->ViewAttributesClipboardFormat, AfxGetMainWnd(),
         [&fakeEgo](sci::istream &data)
     {
-        fakeEgo = std::make_unique<FakeEgo>();
+        fakeEgo = std::make_unique<NamedPosition>();
         size_t count;
         data >> count;
         assert(count >= 1);
@@ -207,11 +207,11 @@ void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &bu
             }
             else if (prop->GetName() == "x")
             {
-                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Location.x, true));
+                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Position.x, true));
             }
             else if (prop->GetName() == "y")
             {
-                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Location.y, true));
+                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Position.y, true));
             }
             else if (prop->GetName() == "priority")
             {

@@ -360,7 +360,6 @@
     <ClInclude Include="Src\LipSync\sapi_lipsync.h" />
     <ClInclude Include="Src\LipSync\sapi_util.h" />
     <ClInclude Include="Src\MFCDocuments\DocumentWithPaletteChoices.h" />
-    <ClInclude Include="Src\MFCViews\FakeEgo.h" />
     <ClInclude Include="Src\r8brain\CDSPBlockConvolver.h" />
     <ClInclude Include="Src\r8brain\CDSPFIRFilter.h" />
     <ClInclude Include="Src\r8brain\CDSPFracInterpolator.h" />
@@ -375,6 +374,7 @@
     <ClInclude Include="Src\Resources\AudioCacheResourceSource.h" />
     <ClInclude Include="Src\Resources\AudioNegative.h" />
     <ClInclude Include="Src\Resources\AudioResourceSource.h" />
+    <ClInclude Include="Src\Resources\NamedPosition.h" />
     <ClInclude Include="Src\Resources\NounsAndCases.h" />
     <ClInclude Include="Src\Resources\PatchResourceSource.h" />
     <ClInclude Include="Src\Resources\Polygon.h" />

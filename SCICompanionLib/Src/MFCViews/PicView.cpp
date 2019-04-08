@@ -47,6 +47,7 @@
 const int PicGutter = 5;
 using namespace Gdiplus;
 
+
 std::unique_ptr<PicClipsDialog> g_PicClipsDialog;
 
 #ifdef _DEBUG
@@ -479,8 +480,8 @@ CPicView::CPicView()
     _fCapturing = FALSE;
     _pointCapture.x = 0;
     _pointCapture.y = 0;
-    _fakeEgoAttributes.back().Location.x = 140; // Good starting values.
-    _fakeEgoAttributes.back().Location.y = 80;
+    _fakeEgoAttributes.back().Position.x = 140; // Good starting values.
+    _fakeEgoAttributes.back().Position.y = 80;
     _fCanBeHere = false;
 
     _fDrawingLine = FALSE;
@@ -639,11 +640,34 @@ void CPicView::OnEnableFakeEgo(UINT nID)
     if (GetDocument())
     {
         int resourceNumber = appState->GetRecentViews()[nID - ID_FAKEEGO0];
+        _OnFakeEgoViewChosen(resourceNumber);
+    }
+}
+
+void CPicView::_OnFakeEgoViewChosen(int resourceNumber)
+{
+    if (_currentTool == NamedPositions)
+    {
+        int selectedNamedPosition = GetDocument()->GetCurrentNamedPositionIndex();
+        if (selectedNamedPosition != -1)
+        {
+            GetDocument()->ApplyChanges<PolygonComponent>(
+                [selectedNamedPosition, resourceNumber](PolygonComponent &polygonComponent)
+            {
+                polygonComponent.NamedPositions[selectedNamedPosition].View = resourceNumber;
+                return WrapHint(PicChangeHint::NamedPositionsChanged);
+            }
+            );
+        }
+    }
+    else
+    {
         GetDocument()->SetFakeEgo(resourceNumber);
         _fShowingEgo = false;
         OnToggleEgo();
     }
 }
+
 
 void CPicView::OnSetEgoPriority(UINT nID)
 {
@@ -743,9 +767,7 @@ void CPicView::OnEnableFakeEgoCustom()
         resourceNumDialog.Label = "View number:";
         if (resourceNumDialog.DoModal() == IDOK)
         {
-            GetDocument()->SetFakeEgo(resourceNumDialog.GetLineNumber());
-            _fShowingEgo = false;
-            OnToggleEgo();
+            _OnFakeEgoViewChosen(resourceNumDialog.GetLineNumber());
         }
     }
 }
@@ -1956,6 +1978,12 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
         {
             _MovePriorityBar(false, dy);
         }
+        else if (_currentTool == NamedPositions)
+        {
+            _PushMousePositionToNamedPosition(_ptCurrentHover);
+            _GetDrawManager().InvalidatePlugins();
+            needsImmediateUpdate = true;
+        }
         else if (_currentTool == Pasting)
         {
             if (_fRotating)
@@ -2003,8 +2031,8 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
             if (fCanBeHere)
             {
                 _fCanBeHere = fCanBeHere;
-                _fakeEgoAttributes.back().Location = ptNew;
-                appState->_ptFakeEgo = _fakeEgoAttributes.back().Location;
+                _fakeEgoAttributes.back().Position = CPointToPoint(ptNew);
+                appState->_ptFakeEgo = PointToCPoint(_fakeEgoAttributes.back().Position);
                 InvalidateOurselves();
             }
             else if (fCanBeHere != _fCanBeHere)
@@ -2223,72 +2251,77 @@ void CPicView::_GenerateTraceImage(CDC *pDC)
     }
 }
 
+void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing)
+{
+    // The cursor is over the ego.  Draw the coordinates.
+    // First we need to convert the ego coordinates to "client" coordinates
+    TCHAR szCoords[20];
+    if (useBox)
+    {
+        assert(pri != -1);
+        // The only time we draw anything for "box" egos is if the user set a pri.
+        StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("pri %d"), thing.Pri);
+    }
+    else
+    {
+        if (thing.Pri == -1)
+        {
+            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d)"), thing.Position.x, thing.Position.y);
+        }
+        else
+        {
+            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d) - pri %d"), thing.Position.x, thing.Position.y, thing.Pri);
+        }
+    }
+    CRect rectTextSize;
+    int cyText = pDC->DrawText(szCoords, &rectTextSize, DT_SINGLELINE | DT_CALCRECT);
+
+    // Center the text:
+    CPoint ptEgoCenter = _MapPicPointToClient(_FindCenterOfFakeEgo(thing));
+    int cxHalf = rectTextSize.Width() / 2;
+    cyText /= 2;
+    CRect rectFinal(ptEgoCenter.x - cxHalf, ptEgoCenter.y - cyText, ptEgoCenter.x + cxHalf, ptEgoCenter.y + cyText);
+
+    // darken the area under the letters so we can see them better.
+    HBITMAP hbmOverlay = LoadBitmap(AfxGetResourceHandle(), MAKEINTRESOURCE(IDB_ALPHABLEND));
+    if (hbmOverlay)
+    {
+        CDC dcMem;
+        if (dcMem.CreateCompatibleDC(pDC))
+        {
+            HGDIOBJ hOld = dcMem.SelectObject(hbmOverlay);
+            BLENDFUNCTION blend = { 0 };
+            blend.AlphaFormat = 0;
+            blend.SourceConstantAlpha = 128;
+            blend.BlendFlags = 0;
+            blend.BlendOp = AC_SRC_OVER;
+            pDC->AlphaBlend(rectFinal.left, rectFinal.top, rectFinal.Width(), rectFinal.Height(),
+                &dcMem, 0, 0, 32, 4, blend);
+            dcMem.SelectObject(hOld);
+        }
+        DeleteObject(hbmOverlay);
+    }
+
+    // Draw it
+    int iOldMode = pDC->SetBkMode(TRANSPARENT);
+    COLORREF crOld = pDC->SetTextColor(RGB(0, 0, 0));
+    pDC->DrawText(szCoords, &rectFinal, DT_SINGLELINE);
+    // Offset 1x1, and draw in white (or red, if we can't be here)
+    rectFinal.OffsetRect(-1, -1);
+    pDC->SetTextColor(_fCanBeHere ? RGB(255, 255, 255) : RGB(250, 0, 0));
+    pDC->DrawText(szCoords, &rectFinal, DT_SINGLELINE);
+
+    // Restore stuff
+    pDC->SetTextColor(crOld);
+    pDC->SetBkMode(iOldMode);
+}
+
+
 void CPicView::_DrawEgoCoordinates(CDC *pDC)
 {
     if ((appState->_fUseBoxEgo && (_fakeEgoAttributes.back().Pri != -1)) || (!appState->_fUseBoxEgo && _GetFakeEgo()))
     {
-        // The cursor is over the ego.  Draw the coordinates.
-        // First we need to convert the ego coordinates to "client" coordinates
-        CPoint ptEgoClient = _MapPicPointToClient(_fakeEgoAttributes.back().Location);
-        TCHAR szCoords[20];
-        if (appState->_fUseBoxEgo)
-        {
-            assert(_fakeEgoAttributes.back().Pri != -1);
-            // The only time we draw anything for "box" egos is if the user set a pri.
-            StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("pri %d"), _fakeEgoAttributes.back().Pri);
-        }
-        else
-        {
-            if (_fakeEgoAttributes.back().Pri == -1)
-            {
-                StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d)"), _fakeEgoAttributes.back().Location.x, _fakeEgoAttributes.back().Location.y);
-            }
-            else
-            {
-                StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("(%d,%d) - pri %d"), _fakeEgoAttributes.back().Location.x, _fakeEgoAttributes.back().Location.y, _fakeEgoAttributes.back().Pri);
-            }
-        }
-        CRect rectTextSize;
-        int cyText = pDC->DrawText(szCoords, &rectTextSize, DT_SINGLELINE | DT_CALCRECT);
-
-        // Center the text:
-        CPoint ptEgoCenter = _MapPicPointToClient(_FindCenterOfFakeEgo());
-        int cxHalf = rectTextSize.Width() / 2;
-        cyText /= 2;
-        CRect rectFinal(ptEgoCenter.x - cxHalf, ptEgoCenter.y - cyText, ptEgoCenter.x + cxHalf, ptEgoCenter.y + cyText);
-
-        // darken the area under the letters so we can see them better.
-        HBITMAP hbmOverlay = LoadBitmap(AfxGetResourceHandle(), MAKEINTRESOURCE(IDB_ALPHABLEND));
-        if (hbmOverlay)
-        {
-            CDC dcMem;
-            if (dcMem.CreateCompatibleDC(pDC))
-            {
-                HGDIOBJ hOld = dcMem.SelectObject(hbmOverlay);
-                BLENDFUNCTION blend = { 0 };
-                blend.AlphaFormat = 0;
-                blend.SourceConstantAlpha = 128;
-                blend.BlendFlags = 0;
-                blend.BlendOp = AC_SRC_OVER;
-                pDC->AlphaBlend(rectFinal.left, rectFinal.top, rectFinal.Width(), rectFinal.Height(),
-                    &dcMem, 0, 0, 32, 4, blend);
-                dcMem.SelectObject(hOld);
-            }
-            DeleteObject(hbmOverlay);
-        }
-
-        // Draw it
-        int iOldMode = pDC->SetBkMode(TRANSPARENT);
-        COLORREF crOld = pDC->SetTextColor(RGB(0, 0, 0));
-        pDC->DrawText(szCoords, &rectFinal, DT_SINGLELINE);
-        // Offset 1x1, and draw in white (or red, if we can't be here)
-        rectFinal.OffsetRect(-1, -1);
-        pDC->SetTextColor(_fCanBeHere ? RGB(255, 255, 255) : RGB(250, 0, 0));
-        pDC->DrawText(szCoords, &rectFinal, DT_SINGLELINE);
-
-        // Restore stuff
-        pDC->SetTextColor(crOld);
-        pDC->SetBkMode(iOldMode);
+        _DrawThingCoordinates(pDC, appState->_fUseBoxEgo, _fakeEgoAttributes.back());
     }
 }
 
@@ -2799,6 +2832,8 @@ void CPicView::OnDraw(CDC *pDC)
             }
 
             _DrawPolygons(&dcMem);
+
+            //_DrawNamedPositionsEGA
         }
 
         // Now blt back to the real DC.
@@ -2895,19 +2930,19 @@ void CPicView::OnDraw(CDC *pDC)
     __super::OnDraw(pDC);
 }
 
-CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags)
+CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags, const NamedPosition &thing)
 {
-    int16_t egoPriority = PriorityFromY((uint16_t)_fakeEgoAttributes.back().Location.y, viewPort);
+    int16_t egoPriority = PriorityFromY((uint16_t)thing.Position.y, viewPort);
     if (_GetEditPic() && _GetEditPic()->Traits->ContinuousPriority)
     {
         // TODO: Don't use global DefaultResolution, but instead pic resolution
-        point16 position = ScreenResolutionToGameResolution(CPointToPoint(_fakeEgoAttributes.back().Location));
+        point16 position = ScreenResolutionToGameResolution(thing.Position);
         egoPriority = position.y;
         // Now turn it into something we can compare with the priority screen
         egoPriority = PriorityValueToColorIndex(true, egoPriority);
     }
     
-    uint8_t bEgoPriority = (_fakeEgoAttributes.back().Pri) == -1 ? (uint8_t)egoPriority : (uint8_t)_fakeEgoAttributes.back().Pri;
+    uint8_t bEgoPriority = (thing.Pri) == -1 ? (uint8_t)egoPriority : (uint8_t)thing.Pri;
     // Now we need to draw a box (or whatever), but only where
     // the bEgoPriority is equal to or greater than the priority
     // of the priority screen.
@@ -2915,15 +2950,15 @@ CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVi
     if (pdataPriority)
     {
         // Alright, we're part way there.
-        if (!appState->_fUseBoxEgo && _GetFakeEgo())
+        if (!appState->_fUseBoxEgo && _GetViewResourceForThing(thing))
         {
             // Draw a view.
-            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, _GetFakeEgo(), _fakeEgoAttributes.back().Loop, _fakeEgoAttributes.back().Cel, _HitTestFakeEgo(_ptCurrentHover), GetDocument()->IsUndithered());
+            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetViewResourceForThing(thing), thing.Loop, thing.Cel, _HitTestViewThing(_ptCurrentHover, thing), GetDocument()->IsUndithered());
         }
         else
         {
             // Just draw a box.
-            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, appState->_cxFakeEgo, appState->_cyFakeEgo, !GetDocument()->IsUndithered());
+            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, appState->_cxFakeEgo, appState->_cyFakeEgo, !GetDocument()->IsUndithered());
         }
     }
     return rc;
@@ -2932,7 +2967,7 @@ CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVi
 void CPicView::_DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags)
 {
     // EGA uses the same palette for display, control and priority. Easy.
-    _DrawShowingEgoWorker(viewPort, picData.pdataVisual, picData.pdataPriority, flags);
+    _DrawShowingEgoWorker(viewPort, picData.pdataVisual, picData.pdataPriority, flags, _fakeEgoAttributes.back());
 }
 
 void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
@@ -2973,7 +3008,7 @@ void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
                 if ((HBITMAP)bitmap)
                 {
                     memset(pBitsDest, transparentColor, _GetPicSize().cx * _GetPicSize().cy);
-                    _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), pBitsDest, _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin, _GetPicSize()), PicScreenFlags::Visual);
+                    _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), pBitsDest, _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin, _GetPicSize()), PicScreenFlags::Visual, _fakeEgoAttributes.back());
 
                     // Now blt it
                     HGDIOBJ hold = dcMem.SelectObject(bitmap);
@@ -2989,7 +3024,7 @@ void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
                 // ego is opaque and the pic is no longer visible. Instead, we'll need to use AlphaBlend.
                 std::unique_ptr<uint8_t[]> bitsDest = std::make_unique<uint8_t[]>(_GetPicSize().cx * _GetPicSize().cy);
                 memset(bitsDest.get(), transparentColor, _GetPicSize().cx * _GetPicSize().cy);
-                CRect rcEgo = _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), bitsDest.get(), _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin, _GetPicSize()), PicScreenFlags::Visual);
+                CRect rcEgo = _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), bitsDest.get(), _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin, _GetPicSize()), PicScreenFlags::Visual, _fakeEgoAttributes.back());
                 if (!rcEgo.IsRectEmpty())
                 {
                     CBitmap bitmap;
@@ -3163,7 +3198,7 @@ void CPicView::_DrawPasteCommands(const ViewPort &viewPort, PicData data, PicScr
 PicScreenFlags CPicView::GetRequiredScreens()
 {
     PicScreenFlags flags = PicScreenToFlags(_mainViewScreen);
-    if (_fShowingEgo)
+    if (_fShowingEgo || (GetDocument() && GetDocument()->GetShowNamedPositions()))
     {
         flags |= PicScreenFlags::Priority;
     }
@@ -3173,7 +3208,7 @@ PicScreenFlags CPicView::GetRequiredScreens()
 // This is useful for a performance optimization
 bool CPicView::WillDrawOnPic()
 {
-    if (_fShowingEgo || _fDrawingLine || _fDrawingCircle)
+    if (_fShowingEgo || _fDrawingLine || _fDrawingCircle || (GetDocument() && GetDocument()->GetShowNamedPositions()))
     {
         return true;
     }
@@ -3187,11 +3222,35 @@ bool CPicView::WillDrawOnPic()
     return !_pastedCommands.empty();
 }
 
+void CPicView::_DrawNamedPositionsEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags)
+{
+    int index = 0;
+    for (const NamedPosition &thing : GetDocument()->GetPolygonComponent()->NamedPositions)
+    {
+        if (_fCapturing && (_currentTool == NamedPositions) && (index == GetDocument()->GetCurrentNamedPositionIndex()))
+        {
+            // When dragging we use the one being dragged, not the official one.
+            _DrawShowingEgoWorker(viewPort, picData.pdataVisual, picData.pdataPriority, flags, _capturedNamedPosition);
+        }
+        else
+        {
+            _DrawShowingEgoWorker(viewPort, picData.pdataVisual, picData.pdataPriority, flags, thing);
+        }
+        index++;
+    }
+}
+
 void CPicView::DrawOnPic(ViewPort &viewPort, PicData &picData, PicScreenFlags flags)
 {
     if (_fShowingEgo && !_GetEditPic()->Traits->IsVGA)
     {
         _DrawShowingEgoEGA(viewPort, picData, flags);
+    }
+
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc && pDoc->GetShowNamedPositions())
+    {
+        _DrawNamedPositionsEGA(viewPort, picData, flags);
     }
 
     if (_fDrawingLine)
@@ -3358,7 +3417,15 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 
     if (IsFlagSet(hint, PicChangeHint::PolygonChoice | PicChangeHint::PolygonsChanged | PicChangeHint::NamedPositionChoice | PicChangeHint::NamedPositionsChanged))
     {
-        InvalidateOurselves();
+        if (IsFlagSet(hint, PicChangeHint::NamedPositionChoice | PicChangeHint::NamedPositionsChanged))
+        {
+            _GetDrawManager().InvalidatePlugins();
+            InvalidateOurselvesImmediately();
+        }
+        else
+        {
+            InvalidateOurselves();
+        }
     }
 
     if (IsFlagSet(hint, PicChangeHint::Preferences))
@@ -3377,7 +3444,7 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     if (IsFlagSet(hint, PicChangeHint::FakeEgo))
     {
         // Force ourselves to get it again...
-        _fakeEgo.reset(nullptr);
+        _namedPositionViews.clear();
         InvalidateOurselves();
     }
 }
@@ -3402,6 +3469,44 @@ void CPicView::_OnHistoryLClick(CPoint point)
 
     // We'll set the pos!
     GetDocument()->SeekToPos(iPos);
+}
+
+void CPicView::_OnNamedPositionsLClick(CPoint point)
+{
+    CPicDoc *pDoc = GetDocument();
+    const PolygonComponent *polygonComponent = pDoc->GetPolygonComponent();
+    if (polygonComponent)
+    {
+        int selectedNamedPosition = pDoc->GetCurrentNamedPositionIndex();
+        int newSelectedNamedPosition = -1;
+        // Hittest and select. Stash off
+        for (int i = 0; i < (int)polygonComponent->NamedPositions.size(); i++)
+        {
+            bool hit = _HitTestViewThing(point, polygonComponent->NamedPositions[i]);
+            if (hit)
+            {
+                newSelectedNamedPosition = i;
+            }
+            if (hit && (i == selectedNamedPosition))
+            {
+                // If one of the ones hit was already selected, keep it selected.
+                break;
+            }
+        }
+
+        if ((selectedNamedPosition != newSelectedNamedPosition) && (newSelectedNamedPosition != -1))
+        {
+            pDoc->SetCurrentNamedPositionIndex(newSelectedNamedPosition);
+        }
+
+        if (newSelectedNamedPosition != -1)
+        {
+            _capturedNamedPosition = polygonComponent->NamedPositions[newSelectedNamedPosition];
+            _fCapturing = TRUE;
+            _pointCapture = point;
+            SetCapture();
+        }
+    }
 }
 
 void CPicView::_OnHistoryRClick(CPoint point)
@@ -3568,14 +3673,36 @@ void CPicView::_OnCircleRClick(CPoint point)
     _yOld = -1;
 }
 
+
 ResourceEntity *CPicView::_GetFakeEgo()
 {
-    if (!_fakeEgo && GetDocument())
+    ResourceEntity *result = nullptr;
+    if (GetDocument())
     {
         _fakeEgoAttributes.back().View = GetDocument()->GetFakeEgo();
-        _fakeEgo = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, _fakeEgoAttributes.back().View);
+        result = _GetViewResourceForThing(_fakeEgoAttributes.back());
     }
-    return _fakeEgo.get();
+    return result;
+}
+
+ResourceEntity *CPicView::_GetViewResourceForThing(const NamedPosition &thing)
+{
+    ResourceEntity *result = nullptr;
+    if (GetDocument())
+    {
+        auto it = _namedPositionViews.find(thing.View);
+        if (it == _namedPositionViews.end())
+        {
+            auto resourceEntity = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, thing.View);
+            result = resourceEntity.get();
+            _namedPositionViews[thing.View] = move(resourceEntity);
+        }
+        else
+        {
+            result = it->second.get();
+        }
+    }
+    return result;
 }
 
 const SCIPolygon *CPicView::_GetCurrentPolygon()
@@ -3667,6 +3794,49 @@ int CalcTotalAngle(const std::vector<point16> &points)
         prevAngle = curAngle;
     }
     return (int)(totalAngle * 180.0 / PI);
+}
+
+void CPicView::_PushMousePositionToNamedPosition(CPoint pt)
+{
+    int selectedNamedPosition = GetDocument()->GetCurrentNamedPositionIndex();
+    if (selectedNamedPosition != -1) // It shouldn't!
+    {
+        const PolygonComponent *polygonComponent = GetDocument()->GetPolygonComponent();
+        if (polygonComponent)
+        {
+            NamedPosition orig = polygonComponent->NamedPositions[selectedNamedPosition];
+            int xDelta = orig.Position.x - _pointCapture.x;
+            int yDelta = orig.Position.y - _pointCapture.y;
+
+            
+            // TODO: Will be more complicated once we include z
+            _capturedNamedPosition.Position.x = (int16_t)(pt.x + xDelta);
+            _capturedNamedPosition.Position.y = (int16_t)(pt.y + yDelta);
+        }
+    }
+}
+
+void CPicView::_EndNamedPositionDrag(CPoint pt)
+{
+    CPicDoc *pDoc = GetDocument();
+    const PolygonComponent *polygonComponent = pDoc->GetPolygonComponent();
+    if (polygonComponent)
+    {
+        _PushMousePositionToNamedPosition(pt);
+
+        int selectedNamedPosition = pDoc->GetCurrentNamedPositionIndex();
+        if (selectedNamedPosition != -1) // It shouldn't!
+        {
+            NamedPosition poop = _capturedNamedPosition;
+            pDoc->ApplyChanges<PolygonComponent>(
+                [selectedNamedPosition, poop](PolygonComponent &polygonComponent)
+            {
+                polygonComponent.NamedPositions[selectedNamedPosition] = poop;
+                return WrapHint(PicChangeHint::NamedPositionsChanged);
+            }
+            );
+        }
+    }
 }
 
 void CPicView::_EndPolyDrag()
@@ -4170,7 +4340,7 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
         // The ego is showing.  Start capture.
         _fCapturing = TRUE;
         _pointCapture = ptPic;
-        _pointEgoOrig = _fakeEgoAttributes.back().Location;
+        _pointEgoOrig = PointToCPoint(_fakeEgoAttributes.back().Position);
         _fCanBeHere = _EvaluateCanBeHere(_pointEgoOrig);
         SetCapture();
         InvalidateOurselves();
@@ -4190,6 +4360,13 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
         _ClampPoint(ptPic);
         switch (_currentTool)
         {
+        case NamedPositions:
+        {
+            _OnNamedPositionsLClick(ptPic);
+            break;
+        }
+         
+
             case History:
             {
                 _OnHistoryLClick(ptPic);
@@ -4370,32 +4547,37 @@ bool CPicView::_EvaluateCanBeHere(CPoint pt)
     return canBe;
 }
 
-bool CPicView::_HitTestFakeEgo(CPoint ptPic)
+bool CPicView::_HitTestViewThing(CPoint ptPic, const NamedPosition &thing)
 {
     bool fHitTest = false;
-    if (!appState->_fUseBoxEgo && _GetFakeEgo())
+    if (!appState->_fUseBoxEgo && _GetViewResourceForThing(thing))
     {
-        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, _GetFakeEgo(), _fakeEgoAttributes.back().Loop, _fakeEgoAttributes.back().Cel);
+        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetViewResourceForThing(thing), thing.Loop, thing.Cel);
     }
     else
     {
-        fHitTest = HitTestEgoBox((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
+        fHitTest = HitTestEgoBox((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
     }
     return fHitTest;
+}
+
+bool CPicView::_HitTestFakeEgo(CPoint ptPic)
+{
+    return _HitTestViewThing(ptPic, _fakeEgoAttributes.back());
 }
 
 //
 // Center of ego in pic coords.
 //
-CPoint CPicView::_FindCenterOfFakeEgo()
+CPoint CPicView::_FindCenterOfFakeEgo(const NamedPosition &thing)
 {
     if (appState->_fUseBoxEgo)
     {
-        return CPoint(_fakeEgoAttributes.back().Location.x, _fakeEgoAttributes.back().Location.y - appState->_cyFakeEgo / 2);
+        return CPoint(thing.Position.x, thing.Position.y - appState->_cyFakeEgo / 2);
     }
     else
     {
-        return FindCenterOfView((uint16_t)_fakeEgoAttributes.back().Location.x, (uint16_t)_fakeEgoAttributes.back().Location.y, _GetFakeEgo(), _fakeEgoAttributes.back().Loop, _fakeEgoAttributes.back().Cel);
+        return FindCenterOfView((uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetFakeEgo(), thing.Loop, thing.Cel);
     }
 }
 
@@ -4412,6 +4594,10 @@ void CPicView::OnLButtonUp(UINT nFlags, CPoint point)
         {
             // Commit this point to the polygon
             _EndPolyDrag();
+        }
+        else if (_currentTool == NamedPositions)
+        {
+            _EndNamedPositionDrag(ptPic);
         }
         else if (_transformingCoords && (_currentTool != None))
         {
@@ -4486,10 +4672,10 @@ void CPicView::OnLButtonDblClk(UINT nFlags, CPoint point)
             if (_fShowingEgo)
             {
                 // The ego is showing - double click centers it around the mouse again.
-                _fakeEgoAttributes.back().Location = ptPic;
-                _fakeEgoAttributes.back().Location.y += appState->_cyFakeEgo / 2;
-                _fCanBeHere = _EvaluateCanBeHere(_fakeEgoAttributes.back().Location);
-                appState->_ptFakeEgo = _fakeEgoAttributes.back().Location;
+                _fakeEgoAttributes.back().Position = CPointToPoint(ptPic);
+                _fakeEgoAttributes.back().Position.y += appState->_cyFakeEgo / 2;
+                _fCanBeHere = _EvaluateCanBeHere(PointToCPoint(_fakeEgoAttributes.back().Position));
+                appState->_ptFakeEgo = PointToCPoint(_fakeEgoAttributes.back().Position);
                 InvalidateOurselves();
             }
             break;
@@ -4721,6 +4907,40 @@ void CPicView::_OnMouseWheel(UINT nFlags, BOOL fForward, CPoint pt, short nNotch
     }
 }
 
+bool _ModifyNamedPosition(int nChar, NamedPosition &thing)
+{
+    bool fHandled = true;
+    switch (nChar)
+    {
+    case VK_RIGHT:
+    {
+        thing.Cel++;
+        break;
+    }
+    case VK_LEFT:
+    {
+        thing.Cel--;
+        break;
+    }
+    case VK_UP:
+    {
+        thing.Loop--;
+        break;
+    }
+    case VK_DOWN:
+    {
+        thing.Loop++;
+        break;
+    }
+    default:
+    {
+        fHandled = false;
+        break;
+    }
+    }
+    return fHandled;
+}
+
 //
 // This just controls the cel/loop of the fake ego.
 //
@@ -4780,36 +5000,35 @@ void CPicView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             InvalidateOurselves();
         }
     }
-    else
+    else if (_currentTool == NamedPositions)
     {
-        switch (nChar)
+        int namedPosIndex = GetDocument()->GetCurrentNamedPositionIndex();
+        if (namedPosIndex != -1)
         {
-        case VK_RIGHT:
+            NamedPosition position = GetDocument()->GetPolygonComponent()->NamedPositions[namedPosIndex];
+            fHandled = _ModifyNamedPosition(nChar, position);
+            if (fHandled)
             {
-                _fakeEgoAttributes.back().Cel++;
-                break;
-            }
-        case VK_LEFT:
-            {
-                _fakeEgoAttributes.back().Cel--;
-                break;
-            }
-        case VK_UP:
-            {
-                _fakeEgoAttributes.back().Loop--;
-                break;
-            }
-        case VK_DOWN:
-            {
-                _fakeEgoAttributes.back().Loop++;
-                break;
-            }
-        default:
-            {
-                fHandled = FALSE;
-                break;
+                // I guess this changes the pic!
+                GetDocument()->ApplyChanges<PolygonComponent>(
+                    [position, namedPosIndex](PolygonComponent &polygonComponent)
+                {
+                    polygonComponent.NamedPositions[namedPosIndex] = position;
+                    return WrapHint(PicChangeHint::NamedPositionsChanged);
+                }
+                );
+
+                // Hopefully we'll update!
+                // We changed cel/loop
+                //_GetDrawManager().InvalidatePlugins();
+                //InvalidateOurselves();
             }
         }
+    }
+    else
+    {
+        // Change fake ego cel/loop
+        fHandled = _ModifyNamedPosition(nChar, _fakeEgoAttributes.back());
         if (fHandled && _fShowingEgo)
         {
             // We changed cel/loop

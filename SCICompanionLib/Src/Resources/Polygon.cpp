@@ -224,7 +224,10 @@ public:
                     (get<0>(tupleDefine->_members[2]) == "z"))
                 {
                     // Named position
-                    NamedPosition np = { tupleDefine->_label, point16(static_cast<int16_t>(get<1>(tupleDefine->_members[0])), static_cast<int16_t>(get<1>(tupleDefine->_members[1]))), static_cast<int16_t>(get<1>(tupleDefine->_members[2])) };
+                    NamedPosition np;
+                    np.Name = tupleDefine->_label;
+                    np.Position = point16(static_cast<int16_t>(get<1>(tupleDefine->_members[0])), static_cast<int16_t>(get<1>(tupleDefine->_members[1])));
+                    np.Z = static_cast<int16_t>(get<1>(tupleDefine->_members[2]));
                     _polySource.NamedPositions.push_back(np);
                 }
                 else

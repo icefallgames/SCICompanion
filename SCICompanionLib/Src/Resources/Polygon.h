@@ -14,6 +14,7 @@
 #pragma once
 
 #include "Components.h"
+#include "NamedPosition.h"
 
 enum class PolygonType
 {
@@ -46,14 +47,6 @@ public:
 
 private:
     std::vector<point16> _points;
-};
-
-struct NamedPosition
-{
-public:
-    std::string Name;
-    point16 Position;
-    int16_t Z;
 };
 
 bool operator==(const SCIPolygon &one, const SCIPolygon &two);

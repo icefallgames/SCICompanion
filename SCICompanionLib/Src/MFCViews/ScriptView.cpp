@@ -45,7 +45,7 @@
 #include "ParserCommon.h"
 #include "ParserActions.h"
 #include "ClipboardUtil.h"
-#include "FakeEgo.h"
+#include "NamedPosition.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -1654,9 +1654,9 @@ void CScriptView::OnPasteCoord()
 
         for (size_t i = 0; i < count; i++)
         {
-            FakeEgo fakeEgo;
+            NamedPosition fakeEgo;
             data >> fakeEgo;
-            text += fmt::format(" {0} {1}", fakeEgo.Location.x, fakeEgo.Location.y);
+            text += fmt::format(" {0} {1}", fakeEgo.Position.x, fakeEgo.Position.y);
         }
     }
     );
@@ -1676,9 +1676,9 @@ void CScriptView::_OnPasteXYHelper(const std::string &formatString)
         data >> count;
         assert(count >= 1);
 
-        FakeEgo fakeEgo;
+        NamedPosition fakeEgo;
         data >> fakeEgo;
-        text += fmt::format(formatString, fakeEgo.Location.x, fakeEgo.Location.y);
+        text += fmt::format(formatString, fakeEgo.Position.x, fakeEgo.Position.y);
     }
     );
     if (!text.empty())

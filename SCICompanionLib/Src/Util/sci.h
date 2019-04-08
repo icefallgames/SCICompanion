@@ -579,6 +579,7 @@ bool IsCodeFile(const std::string &text);
 class ResourceEntity;
 struct Cel;
 const Cel &GetCel(const ResourceEntity *pvr, int &nLoop, int &nCel);
+const Cel &GetCel(const ResourceEntity *pvr, int16_t &nLoop, int16_t &nCel);
 
 enum class PicScreen
 {
