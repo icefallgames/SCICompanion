@@ -189,6 +189,13 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                             return theDefine->GetName();
                         }
                         );
+
+                        MergeResults(result->choices, prefix, AutoCompleteIconIndex::Define, headerScript->Tuples,
+                            [](const std::unique_ptr<TupleDefine> &theTuple)
+                        {
+                            return theTuple->_label;
+                        }
+                        );
                     }
                 }
             }
