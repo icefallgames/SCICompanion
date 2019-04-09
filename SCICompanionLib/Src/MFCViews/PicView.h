@@ -186,6 +186,7 @@ protected:
     void _InitCommandAdjust(PICCOMMAND_ADJUST *pAdjust);
     void _DrawPasteCommands(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawEgoCoordinates(CDC *pDC);
+    void _DrawNamedPositionMarkers(CDC *pDC);
     void _DrawNamedPositionCoordinates(CDC *pDC, CPoint ptHitTest);
     void _DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition &thing, COLORREF color, bool sciCoordinates, bool showName);
     void _MakeRandomNR();

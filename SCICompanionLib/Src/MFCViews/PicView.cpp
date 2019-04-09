@@ -467,6 +467,7 @@ void InitCoordLogFont(LOGFONT *plogFont)
 CPicView::CPicView()
 {
     _fakeEgoAttributes.emplace_back();
+    _fakeEgoAttributes.back().Type = NamedPositionType::Full;
 
     _fGridLines = false;
     _transformCommandMod = std::make_unique<CommandModifier>();
@@ -2360,7 +2361,7 @@ void CPicView::_DrawThingCoordinates(CDC *pDC, bool useBox, const NamedPosition 
                 HGDIOBJ hOld = dcMem.SelectObject(hbmOverlay);
                 BLENDFUNCTION blend = { 0 };
                 blend.AlphaFormat = 0;
-                blend.SourceConstantAlpha = 128;
+                blend.SourceConstantAlpha = 64;
                 blend.BlendFlags = 0;
                 blend.BlendOp = AC_SRC_OVER;
                 pDC->AlphaBlend(rectFinal.left, rectFinal.top, rectFinal.Width(), rectFinal.Height(),
@@ -2397,6 +2398,57 @@ void CPicView::_DrawEgoCoordinates(CDC *pDC)
     {
         _DrawThingCoordinates(pDC, appState->_fUseBoxEgo, _fakeEgoAttributes.back(), _fCanBeHere ? RGB(255, 255, 255) : RGB(250, 0, 0), false, false);
     }
+}
+
+void CPicView::_DrawNamedPositionMarkers(CDC *pDC)
+{
+    CPen penWhite(PS_SOLID, 1, RGB(255, 255, 255));
+    CPen penBlack(PS_SOLID, 1, RGB(0, 0, 0));
+
+    HGDIOBJ hOldPen = pDC->SelectObject(penBlack);
+
+    int index = 0;
+    for (const NamedPosition &thing : GetDocument()->GetPolygonComponent()->NamedPositions)
+    {
+        // When dragging we use the one being dragged, not the official one.
+        const NamedPosition &toDraw = (_fCapturing && (_currentTool == NamedPositions) && (index == GetDocument()->GetCurrentNamedPositionIndex())) ?
+            _capturedNamedPosition : thing;
+
+        switch (toDraw.Type)
+        {
+        case NamedPositionType::Full:
+            // Nothing to draw here.
+            break;
+
+        case NamedPositionType::Approach:
+            pDC->SelectObject(penBlack);
+            pDC->MoveTo(toDraw.Position.x - 2, toDraw.Position.y - 2);
+            pDC->LineTo(toDraw.Position.x, toDraw.Position.y - 0);
+            pDC->LineTo(toDraw.Position.x + 3, toDraw.Position.y - 3);
+            pDC->SelectObject(penWhite);
+            pDC->MoveTo(toDraw.Position.x - 2, toDraw.Position.y - 3);
+            pDC->LineTo(toDraw.Position.x, toDraw.Position.y - 1);
+            pDC->LineTo(toDraw.Position.x + 3, toDraw.Position.y - 4);
+
+            break;
+        case NamedPositionType::PositionOnly:
+            pDC->SelectObject(penBlack);
+            pDC->MoveTo(toDraw.Position.x - 1, toDraw.Position.y - 1);
+            pDC->LineTo(toDraw.Position.x + 1, toDraw.Position.y - 1);
+            pDC->LineTo(toDraw.Position.x + 1, toDraw.Position.y + 1);
+            pDC->LineTo(toDraw.Position.x - 1, toDraw.Position.y + 1);
+            pDC->LineTo(toDraw.Position.x - 1, toDraw.Position.y - 1);
+            pDC->SelectObject(penWhite);
+            pDC->MoveTo(toDraw.Position.x, toDraw.Position.y - 2);
+            pDC->LineTo(toDraw.Position.x, toDraw.Position.y + 3);
+            pDC->MoveTo(toDraw.Position.x - 2, toDraw.Position.y);
+            pDC->LineTo(toDraw.Position.x + 3, toDraw.Position.y);
+            break;
+        }
+        index++;
+    }
+
+    pDC->SelectObject(hOldPen);
 }
 
 void CPicView::_DrawNamedPositionCoordinates(CDC *pDC, CPoint ptHitTest)
@@ -2928,6 +2980,7 @@ void CPicView::OnDraw(CDC *pDC)
             // doesn't show up.
             if ((_currentTool == NamedPositions) && GetDocument()->GetShowNamedPositions())
             {
+                _DrawNamedPositionMarkers(&dcMem);
                 _DrawNamedPositionCoordinates(&dcMem, _ptCurrentHover);
             }
         }
@@ -3323,14 +3376,20 @@ void CPicView::_DrawNamedPositionsEGA(ViewPort &viewPort, PicData &picData, PicS
     int index = 0;
     for (const NamedPosition &thing : GetDocument()->GetPolygonComponent()->NamedPositions)
     {
-        if (_fCapturing && (_currentTool == NamedPositions) && (index == GetDocument()->GetCurrentNamedPositionIndex()))
+        // When dragging we use the one being dragged, not the official one.
+        const NamedPosition &toDraw = (_fCapturing && (_currentTool == NamedPositions) && (index == GetDocument()->GetCurrentNamedPositionIndex())) ?
+            _capturedNamedPosition : thing;
+
+        switch (toDraw.Type)
         {
-            // When dragging we use the one being dragged, not the official one.
-            _DrawShowingEgoWorker(viewPort, picData.pdataVisual, picData.pdataPriority, flags, _capturedNamedPosition);
-        }
-        else
-        {
-            _DrawShowingEgoWorker(viewPort, picData.pdataVisual, picData.pdataPriority, flags, thing);
+        case NamedPositionType::Full:
+            _DrawShowingEgoWorker(viewPort, picData.pdataVisual, picData.pdataPriority, flags, toDraw);
+            break;
+
+        case NamedPositionType::Approach:
+            break;
+        case NamedPositionType::PositionOnly:
+            break;
         }
         index++;
     }
@@ -4684,16 +4743,37 @@ bool CPicView::_EvaluateCanBeHere(CPoint pt)
     return canBe;
 }
 
+const uint16_t HitTestDefaultCx = 20;
+const uint16_t HitTestDefaultCy = 20;
+const int NamedPositionMarkerCenterDy = -10;
+
 bool CPicView::_HitTestViewThing(CPoint ptPic, const NamedPosition &thing)
 {
     bool fHitTest = false;
-    if (!appState->_fUseBoxEgo && _GetViewResourceForThing(thing))
+    switch (thing.Type)
     {
-        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)(thing.Position.y - thing.Z), _GetViewResourceForThing(thing), thing.Loop, thing.Cel);
+    case NamedPositionType::Full:
+    {
+        ResourceEntity *viewResource = nullptr;
+        if (!appState->_fUseBoxEgo && thing.Type == NamedPositionType::Full)
+        {
+            viewResource = _GetViewResourceForThing(thing);
+        }
+
+        if (viewResource)
+        {
+            fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)(thing.Position.y - thing.Z), viewResource, thing.Loop, thing.Cel);
+        }
+        else
+        {
+            fHitTest = HitTestEgoBox((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
+        }
+        break;
     }
-    else
-    {
-        fHitTest = HitTestEgoBox((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
+    default:
+        // For positions and approaches
+        fHitTest = HitTestEgoBox((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)thing.Position.x, (uint16_t)thing.Position.y, HitTestDefaultCx, HitTestDefaultCy);
+        break;
     }
     return fHitTest;
 }
@@ -4708,13 +4788,22 @@ bool CPicView::_HitTestFakeEgo(CPoint ptPic)
 //
 CPoint CPicView::_FindCenterOfFakeEgo(const NamedPosition &thing)
 {
-    if (appState->_fUseBoxEgo)
+    if (thing.Type == NamedPositionType::Full)
     {
-        return CPoint(thing.Position.x, thing.Position.y - appState->_cyFakeEgo / 2);
+        if (appState->_fUseBoxEgo)
+        {
+            return CPoint(thing.Position.x, thing.Position.y - appState->_cyFakeEgo / 2);
+        }
+        else
+        {
+            return FindCenterOfView((uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetViewResourceForThing(thing), thing.Loop, thing.Cel);
+        }
     }
     else
     {
-        return FindCenterOfView((uint16_t)thing.Position.x, (uint16_t)thing.Position.y, _GetViewResourceForThing(thing), thing.Loop, thing.Cel);
+        // There's no view... just put it up a bit
+        return CPoint(thing.Position.x, thing.Position.y + NamedPositionMarkerCenterDy);
+
     }
 }
 

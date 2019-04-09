@@ -715,6 +715,8 @@
 #define IDC_CHECKSHOWPOSITIONS          1288
 #define IDC_EDIT_POLYPOINTS             1289
 #define IDC_STATICVERSION               1290
+#define IDC_COMBOPOLYTYPE2              1290
+#define IDC_COMBOPOSITIONTYPE           1290
 #define IDI_UPLOAD                      1291
 #define IDC_STATICNAME                  1292
 #define IDC_TABWHICHLIST                1293

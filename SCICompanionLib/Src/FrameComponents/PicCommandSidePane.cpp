@@ -118,6 +118,7 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_LISTPOSITIONS, m_wndListPositions);
         DDX_Control(pDX, ID_CREATE, m_wndCreateNewPosition);
         DDX_Control(pDX, IDC_EDITPOSNAME, m_wndEditPositionName);
+        DDX_Control(pDX, IDC_COMBOPOSITIONTYPE, m_wndComboPositionType);
     }
 
     if (_showPolygons || _showPositions)
@@ -148,6 +149,7 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_BN_CLICKED(ID_UPLOADNAME, PushNameToPoly)
     ON_BN_CLICKED(ID_CREATE, CreateNewPosition)
     ON_CBN_SELCHANGE(IDC_COMBOPOLYTYPE, OnCbnSelchangeComboPolyType)
+    ON_CBN_SELCHANGE(IDC_COMBOPOSITIONTYPE, OnCbnSelchangeComboPositionType)
     ON_NOTIFY(TCN_SELCHANGE, IDC_TABWHICHLIST, OnTcnSelchangeTabWhichList)
     ON_CBN_SELCHANGE(IDC_COMBO_PALETTE, OnPaletteSelection)
 END_MESSAGE_MAP()
@@ -171,7 +173,6 @@ void PicCommandSidePane::_ShowPolyOrCommands()
     if (hasPolygonStuff)
     {
         m_wndListPolygons.ShowWindow(cmdPoly);
-        m_wndStaticPolyType.ShowWindow(cmdPoly);
         m_wndComboPolyType.ShowWindow(cmdPoly);
         m_wndCheckShowPolys.ShowWindow(cmdPoly);
         m_wndEditPolyPoints.ShowWindow(cmdPoly);
@@ -181,6 +182,7 @@ void PicCommandSidePane::_ShowPolyOrCommands()
     if (hasPositionStuff || hasPolygonStuff)
     {
         m_wndStaticPolyName.ShowWindow(cmdPositionOrPoly);
+        m_wndStaticPolyType.ShowWindow(cmdPositionOrPoly);
         m_wndUploadNameButton.ShowWindow(cmdPositionOrPoly);
     }
     if (hasPositionStuff)
@@ -189,6 +191,7 @@ void PicCommandSidePane::_ShowPolyOrCommands()
         m_wndListPositions.ShowWindow(showPositions);
         m_wndEditPositionName.ShowWindow(showPositions);
         m_wndCreateNewPosition.ShowWindow(showPositions);
+        m_wndComboPositionType.ShowWindow(showPositions);
     }
 }
 
@@ -348,6 +351,26 @@ void PicCommandSidePane::OnCbnSelchangeComboPolyType()
             return WrapHint(PicChangeHint::PolygonsChanged);
         }
             );
+    }
+}
+
+
+void PicCommandSidePane::OnCbnSelchangeComboPositionType()
+{
+    int selection = m_wndComboPositionType.GetCurSel();
+    if (selection != -1)
+    {
+        int index = GetDocument()->GetCurrentNamedPositionIndex();
+        if (index != -1)
+        {
+            GetDocument()->ApplyChanges<PolygonComponent>(
+                [index, selection](PolygonComponent &polygonComponent)
+            {
+                polygonComponent.NamedPositions[index].Type = (NamedPositionType)selection;
+                return WrapHint(PicChangeHint::NamedPositionsChanged);
+            }
+            );
+        }
     }
 }
 
@@ -548,7 +571,8 @@ BOOL PicCommandSidePane::OnInitDialog()
         AddAnchor(IDC_LISTPOSITIONS, CPoint(0, 0), CPoint(100, 100));
         AddAnchor(IDC_CHECKSHOWPOSITIONS, CPoint(0, 0), CPoint(100, 0));
         AddAnchor(IDC_EDITPOSNAME, CPoint(0, 0), CPoint(100, 0));
-        // Create button is ok?
+        AddAnchor(ID_CREATE, CPoint(100, 0), CPoint(100, 0));
+        AddAnchor(IDC_COMBOPOSITIONTYPE, CPoint(0, 0), CPoint(100, 0));
     }
 
     return fRet;
@@ -1190,12 +1214,19 @@ void PicCommandSidePane::_SyncPositionChoice()
         {
             m_wndListPositions.SetCurSel(index);
 
+            m_wndComboPositionType.EnableWindow(TRUE);
             const PolygonComponent *polygonSource = GetDocument()->GetPolygonComponent();
             if (polygonSource)
             {
                 const NamedPosition &namedPos = polygonSource->NamedPositions[index];
                 name = namedPos.Name;
+                m_wndComboPositionType.SetCurSel((int)namedPos.Type);
             }
+        }
+        else
+        {
+            m_wndComboPositionType.SetCurSel(CB_ERR);
+            m_wndComboPositionType.EnableWindow(FALSE);
         }
         m_wndEditPositionName.SetWindowText(name.c_str());
         m_wndEditPositionName.EnableWindow(index != -1);

@@ -81,6 +81,7 @@ protected:
     afx_msg void OnBnClickedShowPolys();
     afx_msg void OnBnClickedShowPositions();
     afx_msg void OnCbnSelchangeComboPolyType();
+    afx_msg void OnCbnSelchangeComboPositionType();
     afx_msg void PushEditPointsToPoly();
     afx_msg void PushNameToPoly();
     afx_msg void CreateNewPosition();
@@ -135,6 +136,7 @@ private:
     PositionListBox m_wndListPositions;
     CExtButton m_wndCreateNewPosition;
     CExtEdit m_wndEditPositionName;
+    CExtComboBox m_wndComboPositionType;
 
     CExtHyperLinkButton m_wndGotoScript;
 
