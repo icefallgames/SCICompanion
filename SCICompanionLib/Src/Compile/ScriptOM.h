@@ -1007,7 +1007,7 @@ namespace sci
         std::vector<std::string> MethodForwards;
 
         // Inherit values from a tuple
-        std::string PropertyInherit;
+        std::vector<std::string> PropertyInherit;
 
     private:
         std::string _superClass;

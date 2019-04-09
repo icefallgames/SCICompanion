@@ -240,20 +240,48 @@ public:
             TupleDefine *tupleDefine = SafeSyntaxNode<TupleDefine>(&node);
             if (tupleDefine)
             {
-                if ((tupleDefine->_members.size() >= 3) &&
-                    (get<0>(tupleDefine->_members[0]) == "x") &&
-                    (get<0>(tupleDefine->_members[1]) == "y") &&
-                    (get<0>(tupleDefine->_members[2]) == "z"))
+                NamedPosition np;
+                bool isNamedPosition = false;
+                if (tupleDefine->_members.size() >= 1)
                 {
-                    // Named position
-                    NamedPosition np;
                     np.Name = tupleDefine->_label;
-                    np.Position = point16(GetValueFromTuple(tupleDefine, "x"), GetValueFromTuple(tupleDefine, "y"));
-                    np.Z = GetValueFromTuple(tupleDefine, "z");
-                    np.View = GetValueFromTuple(tupleDefine, "view");
-                    np.Loop = GetValueFromTuple(tupleDefine, "loop");
-                    np.Cel = GetValueFromTuple(tupleDefine, "cel");
-                    np.Pri = GetValueFromTuple(tupleDefine, "priority");
+                    if (get<0>(tupleDefine->_members[0]) == "view")
+                    {
+                        np.Type = NamedPositionType::Full;
+                        isNamedPosition = true;
+                    }
+                    else if (get<0>(tupleDefine->_members[0]) == "approachX")
+                    {
+                        np.Type = NamedPositionType::Approach;
+                        isNamedPosition = true;
+                    }
+                    else if (get<0>(tupleDefine->_members[0]) == "x")
+                    {
+                        np.Type = NamedPositionType::PositionOnly;
+                        isNamedPosition = true;
+                    }
+                }
+
+                if (isNamedPosition)
+                {
+                    switch (np.Type)
+                    {
+                    case NamedPositionType::Full:
+                        np.Position = point16(GetValueFromTuple(tupleDefine, "x"), GetValueFromTuple(tupleDefine, "y"));
+                        np.Z = GetValueFromTuple(tupleDefine, "z");
+                        np.View = GetValueFromTuple(tupleDefine, "view");
+                        np.Loop = GetValueFromTuple(tupleDefine, "loop");
+                        np.Cel = GetValueFromTuple(tupleDefine, "cel");
+                        np.Pri = GetValueFromTuple(tupleDefine, "priority");
+                        break;
+                    case NamedPositionType::Approach:
+                        np.Position = point16(GetValueFromTuple(tupleDefine, "approachX"), GetValueFromTuple(tupleDefine, "approachY"));
+                        break;
+                    case NamedPositionType::PositionOnly:
+                        np.Position = point16(GetValueFromTuple(tupleDefine, "x"), GetValueFromTuple(tupleDefine, "y"));
+                        np.Z = GetValueFromTuple(tupleDefine, "z");
+                        break;
+                    }
                     _polySource.NamedPositions.push_back(np);
                 }
                 else
@@ -369,16 +397,30 @@ void _ApplyNamedPositionsToScriptAsTuples(Script &script, const vector<NamedPosi
     for (const NamedPosition &np : positions)
     {
         unique_ptr<TupleDefine> tupleDefine = make_unique<TupleDefine>();
-
         tupleDefine->_label = np.Name;
-        tupleDefine->_members.emplace_back("x", static_cast<uint16_t>(np.Position.x));
-        tupleDefine->_members.emplace_back("y", static_cast<uint16_t>(np.Position.y));
-        tupleDefine->_members.emplace_back("z", static_cast<uint16_t>(np.Z));
-        tupleDefine->_members.emplace_back("view", static_cast<uint16_t>(np.View));
-        tupleDefine->_members.emplace_back("loop", static_cast<uint16_t>(np.Loop));
-        tupleDefine->_members.emplace_back("cel", static_cast<uint16_t>(np.Cel));
-        tupleDefine->_members.emplace_back("priority", static_cast<uint16_t>(np.Pri));
+        switch (np.Type)
+        {
+        case NamedPositionType::Full:
+            tupleDefine->_members.emplace_back("view", static_cast<uint16_t>(np.View));
+            tupleDefine->_members.emplace_back("loop", static_cast<uint16_t>(np.Loop));
+            tupleDefine->_members.emplace_back("cel", static_cast<uint16_t>(np.Cel));
+            tupleDefine->_members.emplace_back("priority", static_cast<uint16_t>(np.Pri));
+            tupleDefine->_members.emplace_back("x", static_cast<uint16_t>(np.Position.x));
+            tupleDefine->_members.emplace_back("y", static_cast<uint16_t>(np.Position.y));
+            tupleDefine->_members.emplace_back("z", static_cast<uint16_t>(np.Z));
+            break;
 
+        case NamedPositionType::Approach:
+            tupleDefine->_members.emplace_back("approachX", static_cast<uint16_t>(np.Position.x));
+            tupleDefine->_members.emplace_back("approachY", static_cast<uint16_t>(np.Position.y));
+            break;
+
+        case NamedPositionType::PositionOnly:
+            tupleDefine->_members.emplace_back("x", static_cast<uint16_t>(np.Position.x));
+            tupleDefine->_members.emplace_back("y", static_cast<uint16_t>(np.Position.y));
+            tupleDefine->_members.emplace_back("z", static_cast<uint16_t>(np.Z));
+            break;
+        }
         script.Tuples.push_back(move(tupleDefine));
     }
 }

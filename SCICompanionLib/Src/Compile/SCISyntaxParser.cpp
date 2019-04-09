@@ -940,7 +940,7 @@ void PropertyInheritA(MatchResult &match, const ParserSCI *pParser, SyntaxContex
 {
     if (match.Result())
     {
-        pContext->CurrentClassPtr()->PropertyInherit = pContext->ScratchString();
+        pContext->CurrentClassPtr()->PropertyInherit.push_back(pContext->ScratchString());
     }
     else
     {
@@ -1403,7 +1403,7 @@ void SCISyntaxParser::Load()
     
 
     // The properties thing in a class or instance
-    properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> -properties_tuple_inherit >> *property_decl >> clpar;
+    properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *properties_tuple_inherit >> *property_decl >> clpar;
     
     classbase_decl =
         alphanumNK_p[ClassNameA]
