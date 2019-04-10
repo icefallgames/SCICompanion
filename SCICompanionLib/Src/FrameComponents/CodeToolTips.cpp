@@ -29,6 +29,20 @@
 using namespace sci;
 using namespace std;
 
+
+bool _FindTupleInScript(const sci::Script &script, const std::string &text, sci::TupleDefine &tupleDefine)
+{
+    for (const auto &aTuple : script.Tuples)
+    {
+        if (aTuple->_label == text)
+        {
+            tupleDefine = *aTuple;
+            return true;
+        }
+    }
+    return false;
+}
+
 //
 // Fills szBuf with a textual representation of the method.
 //

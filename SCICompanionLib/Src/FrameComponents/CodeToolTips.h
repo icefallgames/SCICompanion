@@ -115,6 +115,8 @@ std::string _ClassFromObjectName(SCIClassBrowser &browser, _TContext *pContext, 
     return className;
 }
 
+bool _FindTupleInScript(const sci::Script &script, const std::string &text, sci::TupleDefine &tupleDefine);
+
 template<typename _TContext>
 ToolTipResult GetToolTipResult(_TContext *pContext)
 {
@@ -303,18 +305,6 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                                 fFound = (defineIt != defines.end());
                             }
                         }
-                        if (!fFound)
-                        {
-                            // Custom includes
-                            auto headerIt = scriptsToSearch.begin();
-                            for (; !fFound && (headerIt != scriptsToSearch.end()); ++headerIt)
-                            {
-                                const DefineVector &defines = (*headerIt)->GetDefines();
-                                defineIt = match_name(defines.begin(), defines.end(), strText);
-                                fFound = (defineIt != defines.end());
-                            }
-                        }
-
                         if (fFound)
                         {
                             // It was a define.
@@ -324,10 +314,61 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                             _OutputNumber(ss, (*defineIt)->GetValue(), isHex, isNeg);
                             result.strTip = fmt::format("(define {0} {1})", strText, ss.str());
                             // Give location information for it.
-                            result.strBaseText = (*defineIt)->GetLabel().c_str();
+                            result.strBaseText = (*defineIt)->GetLabel();
                             result.iLineNumber = (*defineIt)->GetLineNumber();
                             result.scriptId = ScriptId((*defineIt)->GetOwnerScript()->GetPath().c_str());
                             result.possibleResourceNumber = (*defineIt)->GetValue();
+                        }
+                        else
+                        {
+                            // Now tuples
+                            TupleDefine tupleDefine;
+                            const sci::Script *ownerScript = nullptr;
+                            for (const auto script : scriptsToSearch)
+                            {
+                                fFound = _FindTupleInScript(*script, strText, tupleDefine);
+                                if (fFound)
+                                {
+                                    ownerScript = script;
+                                    break;
+                                }
+                            }
+                            if (!fFound)
+                            {
+                                for (const auto script : browser.GetHeaders())
+                                {
+                                    fFound = _FindTupleInScript(*script, strText, tupleDefine);
+                                    if (fFound)
+                                    {
+                                        ownerScript = script;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (fFound)
+                            {
+                                // It was a tuple.
+                                std::stringstream ss;
+                                ss << "(tuple " << tupleDefine._label << "\n";
+                                for (const auto &member : tupleDefine._members)
+                                {
+                                    ss << "    ";
+                                    string label = get<0>(member);
+                                    if (!label.empty())
+                                    {
+                                        ss << label << ": ";
+                                    }
+                                    _OutputNumber(ss, get<1>(member), false, true);
+                                    ss << "\n";
+                                }
+                                ss << ")";
+                                result.strTip = ss.str();
+                                // Give location information for it.
+                                result.strBaseText = tupleDefine._label;
+                                result.iLineNumber = tupleDefine.GetLineNumber();
+                                result.scriptId = ScriptId(ownerScript->GetPath().c_str());
+                            }
+
                         }
                     }
 
