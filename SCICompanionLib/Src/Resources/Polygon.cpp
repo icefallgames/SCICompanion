@@ -31,11 +31,19 @@ enum class WindingOrder
 
 bool NamedPosition::operator == (const NamedPosition &src)
 {
-    return 0 == memcmp(this, &src, sizeof(*this));
+    return
+        Type == src.Type &&
+        Name == src.Name &&
+        Position == src.Position &&
+        Z == src.Z &&
+        View == src.View &&
+        Loop == src.Loop &&
+        Cel == src.Cel &&
+        Pri == src.Pri;
 }
 bool NamedPosition::operator != (const NamedPosition &src)
 {
-    return 0 != memcmp(this, &src, sizeof(*this));
+    return !(*this == src);
 }
 
 WindingOrder DetermineWindingOrder(const std::vector<point16> &points)

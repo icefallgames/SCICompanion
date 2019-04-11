@@ -380,6 +380,8 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND_RANGE(ID_FAKEEGO0, ID_FAKEEGO12, CPicView::OnEnableFakeEgo)
     ON_COMMAND(ID_FAKEEGONUMBER, CPicView::OnEnableFakeEgoCustom)
     ON_COMMAND(ID_PIC_PICCLIPS, OnPicClips)
+    ON_COMMAND(ID_PIC_OPENVIEW, OnOpenView)
+    ON_UPDATE_COMMAND_UI(ID_PIC_OPENVIEW, CPicView::OnUpdateOpenView)
     ON_UPDATE_COMMAND_UI(ID_PENTOOL, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_LINE, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_FILL, CPicView::OnUpdateAllPicCommands)
@@ -1292,6 +1294,11 @@ void CPicView::OnUpdateEditCelData(CCmdUI *pCmdUI)
     pCmdUI->Enable(enable);
 }
 
+void CPicView::OnOpenView()
+{
+    appState->OpenMostRecentResource(ResourceType::View, _gotoView);
+}
+
 void CPicView::OnPicClips()
 {
     if (!g_PicClipsDialog)
@@ -2158,6 +2165,20 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
     if (fUpdateCursor)
     {
         _UpdateCursor();
+    }
+}
+
+void CPicView::OnUpdateOpenView(CCmdUI *pCmdUI)
+{
+    if (_gotoView == 0xffff)
+    {
+        pCmdUI->Enable(FALSE);
+        pCmdUI->SetText("Open view");
+    }
+    else
+    {
+        pCmdUI->Enable(TRUE);
+        pCmdUI->SetText(fmt::format("Open view {0}", _gotoView).c_str());
     }
 }
 
@@ -3600,6 +3621,7 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     {
         // Force ourselves to get it again...
         _namedPositionViews.clear();
+        _GetDrawManager().InvalidatePlugins();
         InvalidateOurselves();
     }
 }
@@ -3626,7 +3648,7 @@ void CPicView::_OnHistoryLClick(CPoint point)
     GetDocument()->SeekToPos(iPos);
 }
 
-void CPicView::_OnNamedPositionsLClick(CPoint point)
+void CPicView::_OnNamedPositionsLClick(CPoint point, bool allowClickOff, bool possiblyStartDrag)
 {
     CPicDoc *pDoc = GetDocument();
     const PolygonComponent *polygonComponent = pDoc->GetPolygonComponent();
@@ -3649,17 +3671,26 @@ void CPicView::_OnNamedPositionsLClick(CPoint point)
             }
         }
 
-        if ((selectedNamedPosition != newSelectedNamedPosition) && (newSelectedNamedPosition != -1))
+        // If we click *off* an item, let's deselected it. Otherwise the coordinates are always in our face and it's hard to
+        // position this thing.
+        if (selectedNamedPosition != newSelectedNamedPosition)
         {
-            pDoc->SetCurrentNamedPositionIndex(newSelectedNamedPosition);
+            // Allow deselection by click off (sometimes)
+            if (allowClickOff || (newSelectedNamedPosition != -1))
+            {
+                pDoc->SetCurrentNamedPositionIndex(newSelectedNamedPosition);
+            }
         }
 
-        if (newSelectedNamedPosition != -1)
+        if (possiblyStartDrag)
         {
-            _capturedNamedPosition = polygonComponent->NamedPositions[newSelectedNamedPosition];
-            _fCapturing = TRUE;
-            _pointCapture = point;
-            SetCapture();
+            if (newSelectedNamedPosition != -1)
+            {
+                _capturedNamedPosition = polygonComponent->NamedPositions[newSelectedNamedPosition];
+                _fCapturing = TRUE;
+                _pointCapture = point;
+                SetCapture();
+            }
         }
     }
 }
@@ -3992,13 +4023,17 @@ void CPicView::_EndNamedPositionDrag(CPoint pt)
         if (selectedNamedPosition != -1) // It shouldn't!
         {
             NamedPosition poop = _capturedNamedPosition;
-            pDoc->ApplyChanges<PolygonComponent>(
-                [selectedNamedPosition, poop](PolygonComponent &polygonComponent)
+            if (poop != polygonComponent->NamedPositions[selectedNamedPosition])
             {
-                polygonComponent.NamedPositions[selectedNamedPosition] = poop;
-                return WrapHint(PicChangeHint::NamedPositionsChanged);
+                // If it changed, apply!
+                pDoc->ApplyChanges<PolygonComponent>(
+                    [selectedNamedPosition, poop](PolygonComponent &polygonComponent)
+                {
+                    polygonComponent.NamedPositions[selectedNamedPosition] = poop;
+                    return WrapHint(PicChangeHint::NamedPositionsChanged);
+                }
+                );
             }
-            );
         }
     }
 }
@@ -4558,7 +4593,7 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
         {
         case NamedPositions:
         {
-            _OnNamedPositionsLClick(ptPic);
+            _OnNamedPositionsLClick(ptPic, true, true);
             break;
         }
          
@@ -5027,24 +5062,23 @@ void CPicView::OnRButtonDown(UINT nFlags, CPoint point)
     {
         if (GetDocument()->GetShowNamedPositions())
         {
+            _OnNamedPositionsLClick(ptPic, false, false); // false -> don't allow click off or drag
             int index = GetDocument()->GetCurrentNamedPositionIndex();
             if (index != -1)
             {
                 NamedPosition _contextMenuNamedPosition = GetDocument()->GetPolygonComponent()->NamedPositions[index];
-                if (_HitTestViewThing(ptPic, _contextMenuNamedPosition))
+                // Bring up a menu that let's us choose the thing's pri
+                CMenu contextMenu;
+                contextMenu.LoadMenu(IDR_MENUNAMEDPOSITION);
+                CMenu* pTracker;
+                pTracker = contextMenu.GetSubMenu(0);
+                CPoint ptScreen = point;
+                ClientToScreen(&ptScreen);
+                _gotoView = (_contextMenuNamedPosition.Type == NamedPositionType::Full) ? _contextMenuNamedPosition.View : 0xffff;
+                if (pTracker)
                 {
-                    // Bring up a menu that let's us choose the thing's pri
-                    CMenu contextMenu;
-                    contextMenu.LoadMenu(IDR_MENUNAMEDPOSITION);
-                    CMenu* pTracker;
-                    pTracker = contextMenu.GetSubMenu(0);
-                    CPoint ptScreen = point;
-                    ClientToScreen(&ptScreen);
-                    if (pTracker)
-                    {
-                        BOOL fRet = pTracker->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
-                            ptScreen.x, ptScreen.y, AfxGetMainWnd());
-                    }
+                    BOOL fRet = pTracker->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
+                        ptScreen.x, ptScreen.y, AfxGetMainWnd());
                 }
             }
         }

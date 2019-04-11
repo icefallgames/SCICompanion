@@ -1312,6 +1312,9 @@
 #define ID_SHIFTPIXELS_HALFDOWN         33374
 #define ID_NAMEDPOSITIONS               33375
 #define ID_Menu33376                    33376
+#define ID_MAIN_OPENVIEW33377           33377
+#define ID_PIC_OPENVIWE                 33378
+#define ID_PIC_OPENVIEW                 33379
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1320,7 +1323,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        417
-#define _APS_NEXT_COMMAND_VALUE         33377
+#define _APS_NEXT_COMMAND_VALUE         33380
 #define _APS_NEXT_CONTROL_VALUE         1432
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

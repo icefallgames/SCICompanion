@@ -242,7 +242,8 @@ void CPicDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBe
     }
     if (pData->GetType() == ResourceType::View)
     {
-        if (pData->GetNumber() == _fakeEgoResourceNumber)
+        // Update for all views...
+        //if (pData->GetNumber() == _fakeEgoResourceNumber)
         {
             UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::FakeEgo));
         }

@@ -818,6 +818,7 @@ void CreateTupleDefineA(MatchResult &match, const ParserSCI *pParser, SyntaxCont
         // We can just add it directly to the script. If it fails compilation, we don't do any processing on the 
         // script anyway, so it's ok to have an invalid tuple.
         pContext->Script().Tuples.push_back(make_unique<TupleDefine>());
+        pContext->Script().Tuples.back()->SetPosition(stream.GetPosition());
     }
 }
 void TupleLabelA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)

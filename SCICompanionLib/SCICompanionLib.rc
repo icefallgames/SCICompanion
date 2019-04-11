@@ -970,6 +970,7 @@ BEGIN
         MENUITEM "Observe control lines",       ID_OBSERVECONTROLLINES
         MENUITEM "Observe polygons",            ID_OBSERVEPOLYGONS
         MENUITEM "Default priority",            ID_DEFAULTPRIORITY
+        MENUITEM "Open view",                   ID_PIC_OPENVIEW
         MENUITEM SEPARATOR
         MENUITEM "Pri 0",                       ID_MAIN_PRI0
         MENUITEM "Pri 1",                       ID_MAIN_PRI1

@@ -125,7 +125,7 @@ protected:
     size16 _GetPicSize() const;
     const PaletteComponent *_GetPalette();
     void _OnHistoryLClick(CPoint point);
-    void _OnNamedPositionsLClick(CPoint point);
+    void _OnNamedPositionsLClick(CPoint point, bool allowClickOff, bool possiblyStartDrag);
     void _OnHistoryRClick(CPoint point);
     void _OnPatternLClick(CPoint point);
     void _OnPatternRClick();
@@ -270,6 +270,8 @@ protected:
     afx_msg void RemoveSetVisual();
     afx_msg void EditCelData();
     afx_msg void OnPicClips();
+    afx_msg void OnOpenView();
+    afx_msg void OnUpdateOpenView(CCmdUI *pCmdUI);
     afx_msg void OnUpdateAllPicCommands(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowTraceImage(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateUnditherPic(CCmdUI *pCmdUI);
@@ -405,6 +407,7 @@ private:
     int _hoverIndexNamedPosition;
     unordered_map<int16_t, unique_ptr<ResourceEntity>> _namedPositionViews;
     CFont _coordFont;
+    uint16_t _gotoView;
 };
 
 #ifndef _DEBUG  // debug version in PicEditorView.cpp
