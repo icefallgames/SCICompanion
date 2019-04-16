@@ -5195,7 +5195,7 @@ void CPicView::_OnMouseWheel(UINT nFlags, BOOL fForward, CPoint pt, short nNotch
     }
 }
 
-bool _ModifyNamedPosition(int nChar, NamedPosition &thing)
+bool _ModifyNamedPosition(int nChar, NamedPosition &thing, ResourceEntity *entityMaybe)
 {
     bool fHandled = true;
     switch (nChar)
@@ -5226,6 +5226,16 @@ bool _ModifyNamedPosition(int nChar, NamedPosition &thing)
         break;
     }
     }
+
+    if (fHandled && entityMaybe)
+    {
+        int loop = thing.Loop;
+        int cel = thing.Cel;
+        entityMaybe->GetComponent<RasterComponent>().ValidateCelIndex(loop, cel, true);
+        thing.Loop = (int16_t)loop;
+        thing.Cel = (int16_t)cel;
+    }
+
     return fHandled;
 }
 
@@ -5294,7 +5304,7 @@ void CPicView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (namedPosIndex != -1)
         {
             NamedPosition position = GetDocument()->GetPolygonComponent()->NamedPositions[namedPosIndex];
-            fHandled = _ModifyNamedPosition(nChar, position);
+            fHandled = _ModifyNamedPosition(nChar, position, _GetViewResourceForThing(position));
             if (fHandled)
             {
                 // I guess this changes the pic!
@@ -5316,7 +5326,7 @@ void CPicView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     else
     {
         // Change fake ego cel/loop
-        fHandled = _ModifyNamedPosition(nChar, _fakeEgoAttributes.back());
+        fHandled = _ModifyNamedPosition(nChar, _fakeEgoAttributes.back(), _GetViewResourceForThing(_fakeEgoAttributes.back()));
         if (fHandled && _fShowingEgo)
         {
             // We changed cel/loop
