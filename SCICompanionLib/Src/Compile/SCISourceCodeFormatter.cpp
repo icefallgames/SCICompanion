@@ -1959,16 +1959,20 @@ public:
     {
         _MaybeNewLineIndent();
         out.out << "(tuple " << tupleDefine._label << " ";
-        for (const auto &member : tupleDefine._members)
         {
-            _MaybeNewLineIndent();
-            string label = get<0>(member);
-            if (!label.empty())
+            INDENT_BLOCK;
+            for (const auto &member : tupleDefine._members)
             {
-                out.out << label << ": ";
+                _MaybeNewLineIndent();
+                string label = get<0>(member);
+                if (!label.empty())
+                {
+                    out.out << label << ": ";
+                }
+                _OutputNumber(out.out, get<1>(member), false, true);
             }
-            _OutputNumber(out.out, get<1>(member), false, true);
         }
+        _MaybeNewLineIndent();
         out.out << ")";
     }
 

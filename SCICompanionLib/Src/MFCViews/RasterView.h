@@ -230,6 +230,10 @@ private:
         {
             return _ptPlacement;
         }
+        void SetPlacement(point16 placement)
+        {
+            _ptPlacement = placement;
+        }
         uint8_t GetTransparentColor() const
         {
             return _bTransparent;

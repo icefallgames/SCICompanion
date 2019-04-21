@@ -376,6 +376,22 @@ std::string PolygonComponent::GetPolyFilePath() const
     return fmt::format("{0}\\{1}.shp", _polyFolder, _picNumber);
 }
 
+bool PolygonComponent::Validate() const
+{
+    unordered_set<string> names;
+    for (auto &name : NamedPositions)
+    {
+        if (names.find(name.Name) != names.end())
+        {
+            string message = fmt::format("Can't save: this pic contains NamedPositions with duplicate names: {0}", name.Name);
+            AfxMessageBox(message.c_str(), MB_ICONERROR | MB_OK);
+            return false;
+        }
+        names.insert(name.Name);
+    }
+    return true;
+}
+
 void _ApplyPolygonToVarDecl(VariableDecl &varDecl, const SCIPolygon &poly)
 {
     // Type, point count, points

@@ -74,6 +74,8 @@ public:
 
     std::vector<NamedPosition> NamedPositions;
 
+    bool Validate() const;
+
 private:
 
     std::vector<SCIPolygon> _polygons;

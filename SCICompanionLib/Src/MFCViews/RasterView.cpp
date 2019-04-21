@@ -3004,6 +3004,24 @@ void CRasterView::OnFlipHorz()
         }
     }
     _CommitSourceData();
+
+    // Also flip x placement - can't easily do this as part of _Grab/_Commit, so make a second change:
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        pDoc->ApplyChanges<RasterComponent>(
+            [this](RasterComponent &raster)
+        {
+            for (int i = 0; i < _cWorkingCels; i++)
+            {
+                Cel &cel = raster.GetCel(_celData[i].GetIndex());
+                cel.placement.x = -cel.placement.x;
+            }
+            return WrapHint(RasterChangeHint::Loop);
+        }
+        );
+    };
+
 }
 
 void CRasterView::OnShiftLeft()

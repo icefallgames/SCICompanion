@@ -1138,6 +1138,15 @@ void PicWriteToVGA2(const ResourceEntity &resource, sci::ostream &byteStream, st
 
 bool PicValidateEGA(const ResourceEntity &resource)
 {
+    const PolygonComponent *poly = resource.TryGetComponent<PolygonComponent>();
+    if (poly)
+    {
+        if (!poly->Validate())
+        {
+            return false;
+        }
+    }
+
     const PicComponent &pic = resource.GetComponent<PicComponent>();
 
     // Perform a little validation.

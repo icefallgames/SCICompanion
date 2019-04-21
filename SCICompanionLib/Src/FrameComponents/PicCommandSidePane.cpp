@@ -221,17 +221,19 @@ void PicCommandSidePane::OnBnClickedShowPositions()
 void PicCommandSidePane::CreateNewPosition()
 {
     int posIndex = GetDocument()->GetCurrentNamedPositionIndex();
+    int insertIndex = posIndex + 1;
     GetDocument()->ApplyChanges<PolygonComponent>(
-        [posIndex](PolygonComponent &polygonComponent)
+        [insertIndex](PolygonComponent &polygonComponent)
     {
         string name = fmt::format("pos{0}", polygonComponent.NamedPositions.size());
         NamedPosition position;
         position.Position = point16(160, 100);
         position.Name = name;
-        polygonComponent.NamedPositions.insert(polygonComponent.NamedPositions.begin() + (posIndex + 1), position);
+        polygonComponent.NamedPositions.insert(polygonComponent.NamedPositions.begin() + insertIndex, position);
         return WrapHint(PicChangeHint::NamedPositionsChanged);
     }
     );
+    GetDocument()->SetCurrentNamedPositionIndex(insertIndex);
 }
 
 void PicCommandSidePane::PushNameToPoly()
