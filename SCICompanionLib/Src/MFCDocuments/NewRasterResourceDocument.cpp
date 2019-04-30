@@ -110,6 +110,7 @@ CNewRasterResourceDocument::CNewRasterResourceDocument()
     _fApplyToAllCels = FALSE;
     _nCel = 0;
     _nLoop = 0;
+    _boneIndex = -1;
 
     // These get set in SetResource
     _color = 0;

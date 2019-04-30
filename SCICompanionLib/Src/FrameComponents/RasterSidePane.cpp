@@ -570,11 +570,11 @@ void RasterSidePane::_OnEditSize(UINT nID, CWnd *pwnd)
                     {
                         if (nID == IDC_EDIT_CELY)
                         {
-                            return WrapRasterChange(SetGroupPlacement(raster, cCels, rgdwIndices, (int16_t)point.x, (int16_t)iNew));
+                            return WrapRasterChange(SetGroupPlacement(raster, cCels, rgdwIndices, (int16_t)point.x, (int16_t)iNew, _pDoc->GetBoneIndex()));
                         }
                         else
                         {
-                            return WrapRasterChange(SetGroupPlacement(raster, cCels, rgdwIndices, (int16_t)iNew, (int16_t)point.y));
+                            return WrapRasterChange(SetGroupPlacement(raster, cCels, rgdwIndices, (int16_t)iNew, (int16_t)point.y, _pDoc->GetBoneIndex()));
                         }
                     }
                     );

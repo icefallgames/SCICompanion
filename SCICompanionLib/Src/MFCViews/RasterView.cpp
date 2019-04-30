@@ -2106,11 +2106,12 @@ void CRasterView::_OnSetPlacementLClick(CPoint ptView)
             break;
         }
 
+        int boneIndex = pDoc->GetBoneIndex();
         pDoc->ApplyChanges<RasterComponent>(
-            [&](RasterComponent &raster)
+            [&, boneIndex](RasterComponent &raster)
             {
                 point16 thePoint = CPointToPointClamp(pointPlacement);
-                return WrapRasterChange(SetGroupPlacement(raster, _cWorkingCels, _rgdwGroups, thePoint.x, thePoint.y));
+                return WrapRasterChange(SetGroupPlacement(raster, _cWorkingCels, _rgdwGroups, thePoint.x, thePoint.y, boneIndex));
             }
             );
     }

@@ -483,6 +483,13 @@ void SyncCelMirrorState(Cel &celMirror, const Cel &celOrig)
     celMirror.placement.x = -celOrig.placement.x; // Note that we invert x here!  It's a mirror!
     celMirror.placement.y = celOrig.placement.y;
 
+    // Copy bones and x flip!
+    celMirror.Bones = celOrig.Bones;
+    for (auto &bone : celMirror.Bones)
+    {
+        bone.Placement.x = -bone.Placement.x;
+    }
+
     ReallocBits(celMirror, celOrig.size, false, false, false, 0, RasterResizeFlags::Normal);
     CopyMirrored(celMirror, celOrig);
 }
@@ -903,7 +910,7 @@ RasterChange ReplaceCel(RasterComponent &raster, CelIndex celIndex, const Cel &c
     return RasterChange(RasterChangeHint::NewView);
 }
 
-RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x, int16_t y)
+RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x, int16_t y, int boneIndex)
 {
     if (IsFlagSet(raster.Traits.Caps, RasterCaps::SCI0CursorPlacement))
     {
@@ -928,18 +935,29 @@ RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x,
     if (IsValidLoopCel(raster, celIndex))
     {
         Cel &cel = raster.GetCel(celIndex);
-        cel.placement.x = x;
-        cel.placement.y = y;
+        if (boneIndex == -1)
+        {
+            cel.placement.x = x;
+            cel.placement.y = y;
+        }
+        else
+        {
+            if (boneIndex < (int)cel.Bones.size())
+            {
+                cel.Bones[boneIndex].Placement.x = x;
+                cel.Bones[boneIndex].Placement.y = y;
+            }
+        }
         UpdateMirrors(raster, celIndex);
     }
     return RasterChange(RasterChangeHint::Cel, celIndex);
 }
 
-RasterChange SetGroupPlacement(RasterComponent &raster, int cCels, CelIndex *rgdwIndex, int16_t x, int16_t y)
+RasterChange SetGroupPlacement(RasterComponent &raster, int cCels, CelIndex *rgdwIndex, int16_t x, int16_t y, int boneIndex)
 {
     for (int i = 0; i < cCels; i++)
     {
-        SetPlacement(raster, rgdwIndex[i], x, y);
+        SetPlacement(raster, rgdwIndex[i], x, y, boneIndex);
     }
     return (cCels > 1) ? RasterChange(RasterChangeHint::Loop) : RasterChange(RasterChangeHint::Cel, rgdwIndex[0]);
 }

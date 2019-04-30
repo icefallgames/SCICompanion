@@ -84,6 +84,9 @@ public:
     void SetSelectedCel(int nCel, bool wrap = false);
     void GetLabelString(PTSTR  pszLabel, size_t cch, int nCel) const { StringCchPrintf(pszLabel, cch, TEXT("%d"), nCel); }
 
+    int GetBoneIndex() const { return _boneIndex; }
+    int SetBoneIndex(int index) { _boneIndex = index; }
+
     void SetPreviewLetters(std::string &previewLetters)
     {
         _previewLetters = previewLetters;
@@ -170,6 +173,7 @@ private:
     bool _fApplyToAllCels;
     int _nCel;
     int _nLoop;
+    int _boneIndex;
 
     uint8_t _color;
     uint8_t _alternateColor;

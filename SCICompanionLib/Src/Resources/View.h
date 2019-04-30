@@ -26,6 +26,13 @@ void ReadCelFromVGA11(sci::istream &byteStream, Cel &cel, bool isPic);
 
 extern uint8_t g_vgaPaletteMapping[256];
 
+// REVIEW: Probably bones should be consistently named across all cels in a view. 
+struct Bone
+{
+    std::string Name;
+    point16 Placement;
+};
+
 struct Cel
 {
     Cel(size16 size, point16 placement, uint8_t transparentColor)
@@ -54,6 +61,7 @@ struct Cel
     point16 placement;
     uint8_t TransparentColor;
     bool Stride32;  // 32 bit stride
+    std::vector<Bone> Bones;
 };
 
 struct Loop
