@@ -1372,7 +1372,13 @@ void CRasterView::_DrawHotSpot(CDC *pDC)
     const Cel *activeCel = _GetSelectedCel();
     if (activeCel)
     {
+        int boneIndex = GetDoc()->GetBoneIndex();
         CPoint pointPlacement = PointToCPoint(activeCel->placement);
+        if (boneIndex != -1)
+        {
+            pointPlacement = PointToCPoint(activeCel->Bones[boneIndex]);
+        }
+
         // Determine the origin style
         CPoint point;
         CNewRasterResourceDocument *pDoc = GetDoc();
@@ -1401,7 +1407,7 @@ void CRasterView::_DrawHotSpot(CDC *pDC)
             // Inverted for some reason...
             point.y = _sizeView.cy - point.y - 1;
             CPen pen;
-            pen.CreatePen(PS_SOLID, 1, _fHotSpot ? RGB(255, 255, 255) : RGB(0, 0, 0));
+            pen.CreatePen(PS_SOLID, 1, _fHotSpot ? ((boneIndex == -1) ? RGB(255, 255, 255) : RGB(255, 0, 0) ) : RGB(0, 0, 0));
             HGDIOBJ oldPen = pDC->SelectObject(pen);
             pDC->MoveTo(point);
             pDC->LineTo(point + CPoint(0, 1)); // Anywhere...

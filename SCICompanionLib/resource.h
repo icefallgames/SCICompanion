@@ -639,6 +639,7 @@
 #define IDC_EDITSEQ                     1233
 #define IDC_EDITSIZE                    1233
 #define IDC_EDITSIGMA                   1233
+#define IDC_EDITBONENAME                1233
 #define IDC_STATICTRANSLABEL            1234
 #define IDC_EDITBOOST                   1234
 #define IDC_CHECKDONTUSEINPALETTE       1235
@@ -882,10 +883,13 @@
 #define IDC_CHECKXWRAP                  1431
 #define IDC_CHECKYWRAP                  1432
 #define IDC_EDITFRAMEOFFSETX            1432
+#define IDC_COMBOBONES                  1432
 #define IDC_CHECKCOLORMATCH             1433
 #define IDC_CHECKRANDOMOFFSETANGLE      1433
+#define IDC_BUTTONADDBONE               1433
 #define IDC_CHECKXBLUR                  1434
 #define IDC_EDITFRAMEOFFSETY            1434
+#define IDC_BUTTONDELETEBONE            1434
 #define IDC_CHECKYBLUR                  1435
 #define IDC_EDITANGLEMIN                1435
 #define IDC_EDITANGLEMAX                1436
@@ -1324,7 +1328,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        417
 #define _APS_NEXT_COMMAND_VALUE         33380
-#define _APS_NEXT_CONTROL_VALUE         1432
+#define _APS_NEXT_CONTROL_VALUE         1434
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

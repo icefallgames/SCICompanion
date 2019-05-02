@@ -487,7 +487,7 @@ void SyncCelMirrorState(Cel &celMirror, const Cel &celOrig)
     celMirror.Bones = celOrig.Bones;
     for (auto &bone : celMirror.Bones)
     {
-        bone.Placement.x = -bone.Placement.x;
+        bone.x = -bone.x;
     }
 
     ReallocBits(celMirror, celOrig.size, false, false, false, 0, RasterResizeFlags::Normal);
@@ -944,8 +944,8 @@ RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x,
         {
             if (boneIndex < (int)cel.Bones.size())
             {
-                cel.Bones[boneIndex].Placement.x = x;
-                cel.Bones[boneIndex].Placement.y = y;
+                cel.Bones[boneIndex].x = x;
+                cel.Bones[boneIndex].y = y;
             }
         }
         UpdateMirrors(raster, celIndex);

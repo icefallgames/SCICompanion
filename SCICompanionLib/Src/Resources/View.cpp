@@ -216,7 +216,7 @@ void CalculateSCI2RowOffsets(Cel &cel, sci::istream byteStreamRLE, sci::istream 
 const uint16_t ReasonableCelWidth = 320;
 const uint16_t ReasonableCelHeight = 200;
 
-void ReadCelFrom(ResourceEntity &resource, sci::istream byteStream, Cel &cel, bool isVGA, bool hasBones)
+void ReadCelFrom(ResourceEntity &resource, sci::istream byteStream, Cel &cel, bool isVGA, int boneCount)
 {
     // Width and height
     byteStream >> cel.size.cx;
@@ -246,17 +246,12 @@ void ReadCelFrom(ResourceEntity &resource, sci::istream byteStream, Cel &cel, bo
         byteStream >> unknown;
     }
 
-    if (hasBones)
+    if (boneCount != -1)
     {
-        uint8_t boneCount;
-        byteStream >> boneCount;
-        for (size_t i = 0; i < boneCount; i++)
+        for (int i = 0; i < boneCount; i++)
         {
-            cel.Bones.emplace_back();
-            byteStream >> cel.Bones.back().Name;
             byteStream >> placement;
-            cel.Bones.back().Placement.x = (char)(placement & 0x00ff);
-            cel.Bones.back().Placement.y = (char)((placement & 0xff00) >> 8);
+            cel.Bones.emplace_back((char)(placement & 0x00ff), (char)((placement & 0xff00) >> 8));
         }
     }
 
@@ -266,7 +261,7 @@ void ReadCelFrom(ResourceEntity &resource, sci::istream byteStream, Cel &cel, bo
 
 const uint16_t ReasonableCelCount = 128;
 
-void ReadLoopFrom(ResourceEntity &resource, sci::istream byteStream, Loop &loop, bool isVGA, bool hasBones)
+void ReadLoopFrom(ResourceEntity &resource, sci::istream byteStream, Loop &loop, bool isVGA, int boneCount)
 {
     assert(loop.Cels.empty());
     uint16_t nCels;
@@ -297,7 +292,7 @@ void ReadLoopFrom(ResourceEntity &resource, sci::istream byteStream, Loop &loop,
             byteStream >> nOffset;
             sci::istream byteStreamCel(byteStream);
             byteStreamCel.seekg(nOffset);
-            ReadCelFrom(resource, byteStreamCel, loop.Cels[i], isVGA, hasBones);
+            ReadCelFrom(resource, byteStreamCel, loop.Cels[i], isVGA, boneCount);
         }
     }
     assert(loop.Cels.size() == nCels); // Ensure cel count is right.
@@ -528,7 +523,7 @@ void WriteImageData(sci::ostream &rleStream, const Cel &cel, bool isVGA, sci::os
     }
 }
 
-void WriteCelTo(const ResourceEntity &resource, sci::ostream &byteStream, const Cel &cel, bool isVGA, bool hasBones)
+void WriteCelTo(const ResourceEntity &resource, sci::ostream &byteStream, const Cel &cel, bool isVGA, int boneCount)
 {
     // Preliminary data (size, placement, transparent colour)
     byteStream.WriteWord(cel.size.cx);
@@ -544,16 +539,13 @@ void WriteCelTo(const ResourceEntity &resource, sci::ostream &byteStream, const 
         byteStream.WriteByte(0); // Mystery byte in VGA
     }
 
-    if (hasBones)
+    if (boneCount != -1)
     {
-        // The count
-        byteStream.WriteByte((uint8_t)cel.Bones.size());
-        // Followed by bones
-        for (auto &bone : cel.Bones)
+        // The count is handled at the parent level.
+        for (const point16 &bone : cel.Bones)
         {
-            byteStream << bone.Name;
-            uint16_t wPlacement = (uint8_t)bone.Placement.x;
-            wPlacement |= (((uint16_t)(uint8_t)bone.Placement.y) << 8);
+            uint16_t wPlacement = (uint8_t)bone.x;
+            wPlacement |= (((uint16_t)(uint8_t)bone.y) << 8);
             byteStream.WriteWord(wPlacement);
         }
     }
@@ -561,7 +553,7 @@ void WriteCelTo(const ResourceEntity &resource, sci::ostream &byteStream, const 
     WriteImageData(byteStream, cel, isVGA, false);
 }
 
-void WriteLoopTo(const ResourceEntity &resource, sci::ostream &byteStream, const Loop &loop, bool isVGA, bool hasBones)
+void WriteLoopTo(const ResourceEntity &resource, sci::ostream &byteStream, const Loop &loop, bool isVGA, int boneCount)
 {
     // # of cels
     int cCels = (int)loop.Cels.size();
@@ -584,7 +576,7 @@ void WriteLoopTo(const ResourceEntity &resource, sci::ostream &byteStream, const
         // in the serializer can change (be re-alloced).
         uint16_t *pOffsets = (uint16_t*)(byteStream.GetInternalPointer() + wOffsets);
         pOffsets[i] = ((uint16_t)(byteStream.tellp()));
-        WriteCelTo(resource, byteStream, loop.Cels[i], isVGA, hasBones);
+        WriteCelTo(resource, byteStream, loop.Cels[i], isVGA, boneCount);
     }
 }
 
@@ -633,6 +625,21 @@ void ViewReadFromVersioned(ResourceEntity &resource, sci::istream &byteStream, b
     bool isCompressed = (nLoopCountWord & 0x4000) != 0;
     bool hasBones = (nLoopCountWord & 0x2000) != 0;
 
+    int boneCount = -1;
+    if (hasBones)
+    {
+        uint16_t boneCount16;
+        byteStream >> boneCount16;
+        boneCount = boneCount16;
+
+        for (int i = 0; i < boneCount; i++)
+        {
+            std::string name;
+            byteStream.getRLE(name);
+            raster.BoneNames.push_back(name);
+        }
+    }
+
     if ((nLoops == 0) || nLoops > ReasonableLoopCount)
     {
         throw std::exception("None, or too many loops - corrupt resource?");
@@ -662,7 +669,7 @@ void ViewReadFromVersioned(ResourceEntity &resource, sci::istream &byteStream, b
             // Make a copy of the stream so we don't lose our position in this one.
             sci::istream streamLoop(byteStream);
             streamLoop.seekg(rgOffsets[i]);
-            ReadLoopFrom(resource, streamLoop, raster.Loops[i], isVGA, hasBones);
+            ReadLoopFrom(resource, streamLoop, raster.Loops[i], isVGA, boneCount);
         }
     }
 
@@ -1104,19 +1111,6 @@ void ViewWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool 
         }
     }
 
-    bool hasBones = false;
-    for (const Loop &loop : raster.Loops)
-    {
-        for (const Cel &cel : loop.Cels)
-        {
-            hasBones = !cel.Bones.empty();
-            if (hasBones)
-            {
-                break;
-            }
-        }
-    }
-
     const PaletteComponent *palette = resource.TryGetComponent<PaletteComponent>();
     assert(isVGA || (palette == nullptr));
 
@@ -1127,12 +1121,25 @@ void ViewWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool 
         loopCountWord |= 0x8000; // Indicate this has a palette
     }
 
-    if (hasBones)
+    int boneCount = -1;
+    if (!raster.BoneNames.empty())
     {
         loopCountWord |= 0x2000;
+        boneCount = raster.BoneNames.size();
     }
 
     byteStream.WriteWord(loopCountWord);
+
+    // Bone count then bone names.
+    if (boneCount != -1)
+    {
+        byteStream.WriteWord((uint16_t)boneCount);
+        for (const auto& name : raster.BoneNames)
+        {
+            byteStream << name;
+        }
+    }
+
     // Mirror mask:
     byteStream.WriteWord((uint16_t)wMirrorMask);
 
@@ -1163,7 +1170,7 @@ void ViewWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool 
 
             // Check if this is a mirrored loop, and if so, ignore it (write the same offset as
             // the one which mirrors it.
-            WriteLoopTo(resource, byteStream, raster.Loops[i], isVGA, hasBones);  // isVGA: false
+            WriteLoopTo(resource, byteStream, raster.Loops[i], isVGA, boneCount);  // isVGA: false
         }
     }
 

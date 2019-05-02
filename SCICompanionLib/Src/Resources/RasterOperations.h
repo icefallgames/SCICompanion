@@ -28,6 +28,7 @@ enum class RasterChangeHint
     SampleText = 0x0080,
     ApplyToAll = 0x0100,
     PaletteChoice = 0x0200,
+    NewBone = 0x0400,
 };
 
 DEFINE_ENUM_FLAGS(RasterChangeHint, uint32_t)
@@ -36,12 +37,14 @@ struct RasterChange
 {
     RasterChange() {}
     RasterChange(RasterChangeHint hint, CelIndex index) : hint(hint), index(index) {}
-    RasterChange(RasterChangeHint hint) : hint(hint) {}
+    RasterChange(RasterChangeHint hint) : hint(hint), otherThing(0) {}
+    RasterChange(RasterChangeHint hint, int otherThing) : hint(hint), otherThing(otherThing) {}
     RasterChange(const RasterChange &src) = default;
     RasterChange& operator=(const RasterChange &src) = default;
 
     RasterChangeHint hint;
     CelIndex index;
+    int otherThing;
 };
 
 enum class RasterResizeFlags

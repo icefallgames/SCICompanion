@@ -26,13 +26,6 @@ void ReadCelFromVGA11(sci::istream &byteStream, Cel &cel, bool isPic);
 
 extern uint8_t g_vgaPaletteMapping[256];
 
-// REVIEW: Probably bones should be consistently named across all cels in a view. 
-struct Bone
-{
-    std::string Name;
-    point16 Placement;
-};
-
 struct Cel
 {
     Cel(size16 size, point16 placement, uint8_t transparentColor)
@@ -61,7 +54,7 @@ struct Cel
     point16 placement;
     uint8_t TransparentColor;
     bool Stride32;  // 32 bit stride
-    std::vector<Bone> Bones;
+    std::vector<point16> Bones;
 };
 
 struct Loop
@@ -196,6 +189,7 @@ struct RasterComponent : ResourceComponent
     uint32_t UnknownData;
     uint8_t ScaleFlags;             // Scaling flags for VGA 1.1 views (0x0 is scalable, 0x1 is not)
     NativeResolution Resolution;    // Used for views
+    std::vector<std::string> BoneNames;
 };
 
 #include <pshpack1.h>

@@ -28,6 +28,7 @@
 #include "format.h"
 #include "ChoosePenStyleDialog.h"
 #include "ChooseColorAdvancedDialog.h"
+#include "WindowsUtil.h"
 // RasterSidePane
 
 RasterSidePane::RasterSidePane(CWnd* pParent /*=nullptr*/)
@@ -57,9 +58,25 @@ RasterSidePane::~RasterSidePane()
 BOOL RasterSidePane::PreTranslateMessage(MSG* pMsg)
 {
     BOOL fRet = FALSE;
-    if (_hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
+    if (GetFocus() == static_cast<CWnd*>(&m_wndEditBoneName))
     {
-        fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);
+        fRet = HandleEditBoxCommands(pMsg, m_wndEditBoneName);
+        if (!fRet)
+        {
+            if ((pMsg->message == WM_KEYDOWN) && (pMsg->wParam == VK_RETURN))
+            {
+                _PushNameToBone();
+                fRet = TRUE;
+            }
+        }
+    }
+
+    if (!fRet)
+    {
+        if (_hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
+        {
+            fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);
+        }
     }
     if (!fRet)
     {
@@ -71,6 +88,7 @@ BOOL RasterSidePane::PreTranslateMessage(MSG* pMsg)
 BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_CBN_SELCHANGE(IDC_COMBO_MIRROR, OnMirrorSelection)
     ON_CBN_SELCHANGE(IDC_COMBO_PALETTE, OnPaletteSelection)
+    ON_CBN_SELCHANGE(IDC_COMBOBONES, OnBonesSelection)
     ON_EN_KILLFOCUS(IDC_EDIT_CELWIDTH, OnEditCelWidth)
     ON_EN_KILLFOCUS(IDC_EDIT_CELHEIGHT, OnEditCelHeight)
     ON_EN_KILLFOCUS(IDC_EDIT_CELX, OnEditCelX)
@@ -81,6 +99,8 @@ BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_COMMAND(IDC_BUTTON_ADDCELBEFORE, OnAddCelBefore)
     ON_COMMAND(IDC_BUTTON_ADDCELAFTER, OnAddCelAfter)
     ON_COMMAND(IDC_BUTTON_DELETECEL, OnDeleteCel)
+    ON_COMMAND(IDC_BUTTONDELETEBONE, OnDeleteBone)
+    ON_COMMAND(IDC_BUTTONADDBONE, OnAddBone)
     ON_COMMAND(IDC_BUTTON_ADDLOOPBEFORE, OnAddLoopBefore)
     ON_COMMAND(IDC_BUTTON_ADDLOOPAFTER, OnAddLoopAfter)
     ON_COMMAND(IDC_BUTTON_DELETELOOP, OnDeleteLoop)
@@ -226,6 +246,7 @@ void RasterSidePane::SetDocument(CDocument *pDoc)
         _SyncCelPane();
         _SyncEGAPalettes();
         _SyncLoopPane();
+        _SyncBoneCombo();
         _OnUpdateCommandUIs();
         _UpdatePaletteChoices();
 
@@ -357,6 +378,24 @@ void RasterSidePane::OnPaletteSelection()
         {
             _pDoc->SetPaletteChoice(curSel, false);
         }
+    }
+}
+
+void RasterSidePane::OnBonesSelection()
+{
+    if (_pDoc)
+    {
+        int curSel = m_wndComboBones.GetCurSel();
+        if (curSel != CB_ERR)
+        {
+            _pDoc->SetBoneIndex(curSel - 1);
+        }
+        else
+        {
+            _pDoc->SetBoneIndex(-1);
+        }
+        // Call thing that pushes stuff in edit box.
+        _SyncCelPane();
     }
 }
 
@@ -605,6 +644,27 @@ void RasterSidePane::OnEditCelHeight() { _OnEditSize(IDC_EDIT_CELHEIGHT, &m_wndC
 void RasterSidePane::OnEditCelX() { _OnEditSize(IDC_EDIT_CELX, &m_wndCelX); }
 void RasterSidePane::OnEditCelY() { _OnEditSize(IDC_EDIT_CELY, &m_wndCelY); }
 
+void RasterSidePane::_PushNameToBone()
+{
+    if (_pDoc)
+    {
+        CString newBoneName;
+        m_wndEditBoneName.GetWindowTextA(newBoneName);
+        int boneIndex = _pDoc->GetBoneIndex();
+        if (boneIndex != -1)
+        {
+            _pDoc->ApplyChanges<RasterComponent>(
+                [boneIndex, &newBoneName](RasterComponent &raster)
+            {
+                raster.BoneNames[boneIndex] = newBoneName;
+                return WrapHint(RasterChangeHint::Loop);
+            }
+            );
+
+        }
+    }
+}
+
 void RasterSidePane::OnEditNumChars()
 {
     if (_pDoc && _fSupportsFonts)
@@ -739,11 +799,19 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
         _UpdatePaletteChoices();
     }
 
+    if (IsFlagSet(hint, RasterChangeHint::NewBone))
+    {
+        CHintWithObject<int> *changeWithBoneIndex = static_cast<CHintWithObject<int>*>(pObject);
+        _pDoc->SetBoneIndex(changeWithBoneIndex->Object);
+        // Don't clear... because we want _SyncBoneCombo
+    }
+
     if (hint != RasterChangeHint::None)
     {
         _OnPenStyleChanged();
         _SyncCelPane();
         _SyncLoopPane();
+        _SyncBoneCombo();
         _OnUpdateCommandUIs(); // TODO: could be more efficient..
     }
 }
@@ -760,6 +828,30 @@ void RasterSidePane::_SyncLoopPane()
         TCHAR szMsg[MAX_PATH];
         StringCchPrintf(szMsg, ARRAYSIZE(szMsg), TEXT("Loop %d/%d    (%d cels)"), nLoop, raster.LoopCount() - 1, raster.CelCount(nLoop));
         SetDlgItemText(IDC_STATIC_LOOPGROUP, szMsg);
+    }
+}
+
+void RasterSidePane::_SyncBoneCombo()
+{
+    if (_pDoc && m_wndComboBones)
+    {
+        // TODO: May need to do disable selections?
+        const RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+        m_wndComboBones.ResetContent();
+        m_wndComboBones.AddString("Placement");
+        for (const auto &name : raster.BoneNames)
+        {
+            m_wndComboBones.AddString(name.c_str());
+        }
+        _SyncBoneComboSelection();
+    }
+}
+
+void RasterSidePane::_SyncBoneComboSelection()
+{
+    if (_pDoc && m_wndComboBones)
+    {
+        m_wndComboBones.SetCurSel(_pDoc->GetBoneIndex() + 1);
     }
 }
 
@@ -860,7 +952,13 @@ void RasterSidePane::_SyncCelPane()
 
         if (_fSupportsPlacement)
         {
-            CPoint pt = PointToCPoint(cel.placement);
+            point16 placement = cel.placement;
+            int boneIndex = _pDoc->GetBoneIndex();
+            if ((boneIndex != -1) && (boneIndex < (int)cel.Bones.size()))
+            {
+                placement = cel.Bones[boneIndex];
+            }
+            CPoint pt = PointToCPoint(placement);
             std::stringstream ss;
             ss << pt.x;
             m_wndCelX.SetWindowText(ss.str().c_str());
@@ -885,6 +983,21 @@ void RasterSidePane::_SyncCelPane()
             if (m_wndPalette)
             {
                 m_wndPalette.SetTransparentIndex(bTransparent);
+            }
+        }
+
+        if (m_wndComboBones)
+        {
+            // Delete bone button is disabled when placement is selected.
+            m_wndButtonDeleteBone.EnableWindow(_pDoc->GetBoneIndex() != -1);
+            m_wndEditBoneName.EnableWindow(_pDoc->GetBoneIndex() != -1);
+            if (_pDoc->GetBoneIndex() == -1)
+            {
+                m_wndEditBoneName.SetWindowTextA("");
+            }
+            else
+            {
+                m_wndEditBoneName.SetWindowTextA(raster.BoneNames[_pDoc->GetBoneIndex()].c_str());
             }
         }
 
@@ -1185,6 +1298,17 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKQUANTIZEGAMMA, m_wndCheckQuantizeGamma);
         AddAnchor(IDC_CHECKQUANTIZEGAMMA, CPoint(0, 0), CPoint(100, 0));
     }
+    if (GetDlgItem(IDC_COMBOBONES))
+    {
+        DDX_Control(pDX, IDC_COMBOBONES, m_wndComboBones);
+        AddAnchor(IDC_COMBOBONES, CPoint(0, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_EDITBONENAME, m_wndEditBoneName);
+        AddAnchor(IDC_EDITBONENAME, CPoint(0, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_BUTTONADDBONE, m_wndButtonAddBone);
+        AddAnchor(IDC_BUTTONADDBONE, CPoint(100, 0), CPoint(100, 0));
+        DDX_Control(pDX, IDC_BUTTONDELETEBONE, m_wndButtonDeleteBone);
+        AddAnchor(IDC_BUTTONDELETEBONE, CPoint(100, 0), CPoint(100, 0));
+    }
 }
 
 void RasterSidePane::_OnAddCel(bool before)
@@ -1224,6 +1348,56 @@ void RasterSidePane::OnDeleteCel()
             [&](RasterComponent &raster)
         {
             return WrapRasterChange(RemoveCel(raster, _pDoc->GetSelectedIndex()));
+        }
+        );
+    }
+}
+
+CHintWithObject<int> WrapRasterBoneChange(RasterChange change) { return CHintWithObject<int>(static_cast<uint32_t>(change.hint), change.otherThing); }
+
+void RasterSidePane::OnDeleteBone()
+{
+    if (_pDoc)
+    {
+        int deleteIndex = _pDoc->GetBoneIndex();
+        if (deleteIndex != -1)
+        {
+            _pDoc->ApplyChanges<RasterComponent>(
+                [deleteIndex](RasterComponent &raster)
+            {
+                raster.BoneNames.erase(raster.BoneNames.begin() + deleteIndex);
+                // Now sync the cels
+                for (Loop &loop : raster.Loops)
+                {
+                    for (Cel &cel : loop.Cels)
+                    {
+                        cel.Bones.erase(cel.Bones.begin() + deleteIndex);
+                    }
+                }
+                return WrapRasterBoneChange(RasterChange(RasterChangeHint::NewBone, -1)); // -1, go back to placement
+            }
+            );
+        }
+    }
+}
+void RasterSidePane::OnAddBone()
+{
+    if (_pDoc)
+    {
+        int addIndex = _pDoc->GetBoneIndex() + 1;
+        _pDoc->ApplyChanges<RasterComponent>(
+            [addIndex](RasterComponent &raster)
+        {
+            raster.BoneNames.insert(raster.BoneNames.begin() + addIndex, "NEWBONE");
+            // Now sync the cels
+            for (Loop &loop : raster.Loops)
+            {
+                for (Cel &cel : loop.Cels)
+                {
+                    cel.Bones.insert(cel.Bones.begin() + addIndex, point16());
+                }
+            }
+            return WrapRasterBoneChange(RasterChange(RasterChangeHint::NewBone, addIndex));
         }
         );
     }

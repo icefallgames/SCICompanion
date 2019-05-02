@@ -53,10 +53,12 @@ private:
     void DoDataExchange(CDataExchange* pDX);
     void OnMirrorSelection();
     void OnPaletteSelection();
-    void OnChooseLoop();
+    void OnBonesSelection();
     void OnAddCelBefore();
     void OnAddCelAfter();
     void OnDeleteCel();
+    void OnDeleteBone();
+    void OnAddBone();
     void OnAddLoopBefore();
     void OnAddLoopAfter();
     void OnDeleteLoop();
@@ -79,12 +81,13 @@ private:
     void OnQuantizeLevels();
 
     void _UpdatePaletteChoices();
-    void _UpdatePaletteResources();
     void _OnUpdateCommandUIs();
-    void OnTreeSelectionChanged(NMHDR *pNMHDR, LRESULT *pResult);
 	DECLARE_MESSAGE_MAP()
     void _SyncCelPane();
     void _SyncLoopPane();
+    void _SyncBoneCombo();
+    void _PushNameToBone();
+    void _SyncBoneComboSelection();
     void _SyncMirror();
     void _SyncSampleText();
     void _OnAddCel(bool before);
@@ -125,6 +128,11 @@ private:
     CEdit m_wndEditQuantizeLevels;
     CExtButton m_wndButtonQuantizeLevels;
     CExtCheckBox m_wndCheckQuantizeGamma;
+
+    CExtComboBox m_wndComboBones;
+    CExtButton m_wndButtonAddBone;
+    CExtButton m_wndButtonDeleteBone;
+    CExtEdit m_wndEditBoneName;
 
     // Color: (supported by all)
     CChooseColorStatic m_wndPalette; // Actually not all

@@ -85,7 +85,7 @@ public:
     void GetLabelString(PTSTR  pszLabel, size_t cch, int nCel) const { StringCchPrintf(pszLabel, cch, TEXT("%d"), nCel); }
 
     int GetBoneIndex() const { return _boneIndex; }
-    int SetBoneIndex(int index) { _boneIndex = index; }
+    void SetBoneIndex(int index) { _boneIndex = index; }
 
     void SetPreviewLetters(std::string &previewLetters)
     {
