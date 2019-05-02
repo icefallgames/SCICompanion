@@ -635,7 +635,7 @@ void ViewReadFromVersioned(ResourceEntity &resource, sci::istream &byteStream, b
         for (int i = 0; i < boneCount; i++)
         {
             std::string name;
-            byteStream.getRLE(name);
+            byteStream >> name;
             raster.BoneNames.push_back(name);
         }
     }
