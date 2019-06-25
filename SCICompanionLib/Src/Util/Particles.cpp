@@ -13,11 +13,11 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "Particles.h"
-#include "View.h"
 #include <random>
 #include "chaiscript.hpp"
 
-chaiscript::ChaiScript chai; // initializes ChaiScript, adding the standard ChaiScript types (map, string, ...)
+
+
 
 struct Particle
 {
@@ -118,8 +118,60 @@ void DrawParticle(const Particle &p, Cel &cel)
     cel.Data[y * cel.GetStride() + x] = p.color;
 }
 
-void Simulate(std::vector<Cel> &cels, const Cel &sourceFrame)
+RasterComponent *g_raster;
+Cel *g_currentCel;
+Loop *g_currentLoop;
+
+void drawPixel(Cel *cel, int x, int y, byte color)
 {
+    x = max(0, min(x, cel->size.cx - 1));
+    y = max(0, min(y, cel->size.cy - 1));
+    cel->Data[x + y * cel->GetStride()] = color;
+}
+
+Cel *getCel(int loop, int cel)
+{
+    return &g_raster->GetCel(CelIndex(loop, cel));
+}
+
+void RunChaiScript(const std::string &filename, RasterComponent &rasterIn, CelIndex selectedCel)
+{
+    // Give ourselves context.
+    g_raster = &rasterIn;
+    g_currentLoop = &rasterIn.Loops[selectedCel.loop];
+    g_currentCel = &g_currentLoop->Cels[selectedCel.cel];
+
+    chaiscript::ChaiScript chai;
+    chai.add(chaiscript::var(g_currentCel), "cel");
+    chai.add(chaiscript::var(g_currentLoop), "loop");
+    chai.add(chaiscript::fun(&getCel), "getCel");
+    chai.add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
+    chai.add(chaiscript::fun(&Cel::getRandomPoint), "getRandomPoint");
+    chai.add(chaiscript::fun(&Cel::getRandomPointFromColor), "getRandomPointFromColor");
+    chai.add(chaiscript::fun(&Loop::getCel), "getCel");
+    chai.add(chaiscript::fun(&Loop::celCount), "celCount");
+
+    try
+    {
+        chai.eval_file(filename);
+    }
+    catch (const chaiscript::exception::eval_error &e)
+    {
+        AfxMessageBox(e.pretty_print().c_str(), MB_OK | MB_ICONWARNING);
+    }
+}
+
+void SimulateOLD(std::vector<Cel> &cels, const Cel &sourceFrame)
+{
+    chaiscript::ChaiScript chai;
+    //chai.add(chaiscript::fun(&helloWorld), "helloWorld");
+
+    chai.eval(R"(
+    puts(helloWorld("Bob"));
+  )");
+
+
+
     std::vector<Particle> particles;
 
     for (Cel &cel : cels)
@@ -146,4 +198,61 @@ void Simulate(std::vector<Cel> &cels, const Cel &sourceFrame)
 
         index++;
     }
+}
+
+
+
+
+
+
+
+
+void Cel::drawPixel(point16 point, byte color)
+{
+    int x = max(0, min(point.x, size.cx - 1));
+    int y = max(0, min(point.y, size.cy - 1));
+    Data[x + y * GetStride()] = color;
+}
+point16 Cel::getRandomPoint()
+{
+    point16 p;
+    {
+        std::uniform_int_distribution<int32_t> distribution(0, size.cx);
+        p.x = distribution(g_mt);
+    }
+    {
+        std::uniform_int_distribution<int32_t> distribution(0, size.cy);
+        p.y = distribution(g_mt);
+    }
+    return p;
+}
+point16 Cel::getRandomPointFromColor(byte color)
+{
+    int whiteCount = CountPixelsOfColor(*this, 0xff);
+    std::uniform_int_distribution<int32_t> distribution(0, whiteCount - 1);
+
+    int index = distribution(g_mt);
+
+    int count = 0;
+    for (size_t i = 0; i < Data.size(); i++)
+    {
+        if (Data[i] == color)
+        {
+            if (index == count)
+            {
+                return point16((int16_t)(i % GetStride()), (int16_t)(i / GetStride()));
+            }
+            count++;
+        }
+    }
+    return point16(0, 0);
+}
+
+int Loop::celCount()
+{
+    return (int)Cels.size();
+}
+Cel *Loop::getCel(int index)
+{
+    return &Cels[index];
 }

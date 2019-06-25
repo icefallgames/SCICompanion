@@ -215,6 +215,16 @@ std::string GameFolderHelper::GetSrcFolder(const std::string *prefix) const
     return _GetSubfolder("src", prefix);
 }
 
+std::string GameFolderHelper::GetViewScriptFilename(int viewNumber) const
+{
+    return fmt::format("{0}\\{1:03d}.txt", GetChaiFolder(), viewNumber);
+}
+
+std::string GameFolderHelper::GetChaiFolder(const std::string *prefix) const
+{
+    return _GetSubfolder("chai", prefix);
+}
+
 std::string GameFolderHelper::GetLipSyncFolder() const
 {
     return _GetSubfolder("lipsync");

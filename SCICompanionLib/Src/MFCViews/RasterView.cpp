@@ -3195,10 +3195,12 @@ void CRasterView::OnParticles()
     CNewRasterResourceDocument *pDoc = GetDoc();
     if (pDoc)
     {
+        int resourceNumber = pDoc->GetResource()->ResourceNumber;
+        CelIndex index = pDoc->GetSelectedIndex();
         pDoc->ApplyChanges<RasterComponent>(
-            [loop](RasterComponent &raster)
+            [loop, resourceNumber, index](RasterComponent &raster)
         {
-            Simulate(raster.Loops[loop].Cels, raster.Loops[0].Cels[0]);
+            RunChaiScript(appState->GetResourceMap().Helper().GetViewScriptFilename(resourceNumber), raster, index);
             return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
         }
         );

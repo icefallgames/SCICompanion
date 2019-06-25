@@ -55,6 +55,11 @@ struct Cel
     uint8_t TransparentColor;
     bool Stride32;  // 32 bit stride
     std::vector<point16> Bones;
+
+    // For chai scripts
+    void drawPixel(point16 point, byte color);
+    point16 getRandomPoint();
+    point16 getRandomPointFromColor(byte color);
 };
 
 struct Loop
@@ -72,6 +77,10 @@ struct Loop
     uint16_t UnknownData;
     bool IsMirror;
     uint8_t MirrorOf;
+
+    // For chai scripts
+    int celCount();
+    Cel *getCel(int index);
 };
 
 

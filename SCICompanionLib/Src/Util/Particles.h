@@ -12,5 +12,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ***************************************************************************/
+#include "View.h"
 
-void Simulate(std::vector<Cel> &cels, const Cel &sourceFrame);
+void RunChaiScript(const std::string &filename, RasterComponent &raster, CelIndex selectedCel);
