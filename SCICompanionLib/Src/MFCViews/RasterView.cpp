@@ -38,6 +38,7 @@
 #include "NearestColors.h"
 #include "AdvancedPasteDialog.h"
 #include "BlurDialog.h"
+#include "Particles.h"
 #include <array>
 
 using namespace std;
@@ -441,6 +442,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_SHIFTPIXELS_HALFUP, OnHalfShiftUp)
     ON_COMMAND(ID_SHIFTPIXELS_HALFDOWN, OnHalfShiftDown)
     ON_COMMAND(ID_INVERT, OnInvert)
+    ON_COMMAND(ID_VIEW_PARTICLES, OnParticles)
     ON_COMMAND(ID_GREYSCALE, OnGreyScale)
     ON_COMMAND(ID_VIEW_ZOOMIN, _OnZoomLClick)
     ON_COMMAND(ID_VIEW_ZOOMOUT, _OnZoomRClick)
@@ -3186,7 +3188,23 @@ void CRasterView::OnFlipVert()
     _CommitSourceData();
 }
 
+void CRasterView::OnParticles()
+{
+    int loop = GetDoc()->GetSelectedLoop();
 
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        pDoc->ApplyChanges<RasterComponent>(
+            [loop](RasterComponent &raster)
+        {
+            Simulate(raster.Loops[loop].Cels);
+            return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
+        }
+        );
+    }
+
+}
 
 void CRasterView::OnInvert()
 {

@@ -1482,7 +1482,7 @@ void RasterSidePane::OnMakeFont()
 
 void RasterSidePane::_OnMakeFontWorker(bool dialog)
 {
-    if (_pDoc)
+    if (_pDoc && m_wndEditFontFamily)
     {
         CString strFontFamily;
         m_wndEditFontFamily.GetWindowText(strFontFamily);

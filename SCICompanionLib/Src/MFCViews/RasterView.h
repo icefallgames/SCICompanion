@@ -309,6 +309,7 @@ private:
     afx_msg void OnFlipHorz();
     afx_msg void OnFlipVert();
     afx_msg void OnInvert();
+    afx_msg void OnParticles();
     afx_msg void OnShiftLeft();
     afx_msg void OnShiftRight();
     afx_msg void OnShiftUp();
