@@ -15,7 +15,9 @@
 #include "Particles.h"
 #include "View.h"
 #include <random>
+#include "chaiscript.hpp"
 
+chaiscript::ChaiScript chai; // initializes ChaiScript, adding the standard ChaiScript types (map, string, ...)
 
 struct Particle
 {
