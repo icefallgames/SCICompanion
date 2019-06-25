@@ -3198,7 +3198,7 @@ void CRasterView::OnParticles()
         pDoc->ApplyChanges<RasterComponent>(
             [loop](RasterComponent &raster)
         {
-            Simulate(raster.Loops[loop].Cels);
+            Simulate(raster.Loops[loop].Cels, raster.Loops[0].Cels[0]);
             return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
         }
         );

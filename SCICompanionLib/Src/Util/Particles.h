@@ -13,4 +13,4 @@
     GNU General Public License for more details.
 ***************************************************************************/
 
-void Simulate(std::vector<Cel> &cels);
+void Simulate(std::vector<Cel> &cels, const Cel &sourceFrame);

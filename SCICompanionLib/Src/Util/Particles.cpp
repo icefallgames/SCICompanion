@@ -35,12 +35,51 @@ std::mt19937 g_mt(g_rd());
 
 bool IsParticleDead(const Particle &p) { return p.lifetime <= 0; }
 
-void TempFrame(std::vector<Particle> &particles, const Cel &cel)
+int CountPixelsOfColor(const Cel &cel, byte value)
 {
-    for (int i = 0; i < 100; i++)
+    int count = 0;
+    for (size_t i = 0; i < cel.Data.size(); i++)
+    {
+        if (cel.Data[i] == value)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+void GetXYOfColorPixelAtIndex(const Cel &cel, byte value, int index, float &x, float &y)
+{
+    int count = 0;
+    for (size_t i = 0; i < cel.Data.size(); i++)
+    {
+        if (cel.Data[i] == value)
+        {
+            if (index == count)
+            {
+                x = i % cel.GetStride();
+                y = i / cel.GetStride();
+                return;
+            }
+            count++;
+        }
+    }
+    x = 0;
+    y = 0;
+}
+
+void TempFrame(std::vector<Particle> &particles, const Cel &cel, const Cel &sourceFrame)
+{
+    for (int i = 0; i < 150; i++)
     {
         // Generate new particles each frame
+
+        int whiteCount = CountPixelsOfColor(sourceFrame, 0xff);
+        std::uniform_int_distribution<int32_t> distribution(0, whiteCount - 1);
         Particle p;
+        GetXYOfColorPixelAtIndex(sourceFrame, 0xff, distribution(g_mt), p.x, p.y);
+
+        /*
         {
             std::uniform_int_distribution<int32_t> distribution(0, cel.size.cx);
             p.x = distribution(g_mt);
@@ -48,7 +87,7 @@ void TempFrame(std::vector<Particle> &particles, const Cel &cel)
         {
             std::uniform_int_distribution<int32_t> distribution(0, cel.size.cy);
             p.y = distribution(g_mt);
-        }
+        }*/
 
         p.vx = 0;
         p.vy = -5.0f * (float)(cel.size.cy - p.y) / (float)cel.size.cy;
@@ -77,13 +116,13 @@ void DrawParticle(const Particle &p, Cel &cel)
     cel.Data[y * cel.GetStride() + x] = p.color;
 }
 
-void Simulate(std::vector<Cel> &cels)
+void Simulate(std::vector<Cel> &cels, const Cel &sourceFrame)
 {
     std::vector<Particle> particles;
 
     for (Cel &cel : cels)
     {
-        TempFrame(particles, cel);
+        TempFrame(particles, cel, sourceFrame);
 
         for (Particle &p : particles)
         {
