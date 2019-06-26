@@ -17,8 +17,6 @@
 #include "chaiscript.hpp"
 
 
-
-
 struct Particle
 {
     float x;
@@ -70,38 +68,6 @@ void GetXYOfColorPixelAtIndex(const Cel &cel, byte value, int index, float &x, f
     y = 0;
 }
 
-void TempFrame(std::vector<Particle> &particles, const Cel &cel, const Cel &sourceFrame)
-{
-    for (int i = 0; i < 150; i++)
-    {
-        // Generate new particles each frame
-
-        int whiteCount = CountPixelsOfColor(sourceFrame, 0xff);
-        std::uniform_int_distribution<int32_t> distribution(0, whiteCount - 1);
-        Particle p;
-        GetXYOfColorPixelAtIndex(sourceFrame, 0xff, distribution(g_mt), p.x, p.y);
-
-        /*
-        {
-            std::uniform_int_distribution<int32_t> distribution(0, cel.size.cx);
-            p.x = distribution(g_mt);
-        }
-        {
-            std::uniform_int_distribution<int32_t> distribution(0, cel.size.cy);
-            p.y = distribution(g_mt);
-        }*/
-
-        p.vx = 0;
-        p.vy = -5.0f * (float)(cel.size.cy - p.y) / (float)cel.size.cy;
-        p.ax = 0;
-        p.ay = -1;
-        p.color = 0xff;
-        p.lifetime = 7;
-
-        particles.push_back(p);
-    }
-}
-
 void ProcessParticle(Particle &p)
 {
     p.vx += p.ax;
@@ -121,6 +87,58 @@ void DrawParticle(const Particle &p, Cel &cel)
 RasterComponent *g_raster;
 Cel *g_currentCel;
 Loop *g_currentLoop;
+std::map<Cel*, std::vector<Particle>> g_particles;
+
+void addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
+{
+    Particle p;
+    p.x = point.x;
+    p.y = point.y;
+    p.ax = ax;
+    p.ay = ay;
+    p.vx = vx;
+    p.vy = vy;
+    p.color = color;
+    p.lifetime = lifetime;
+    g_particles[cel].push_back(p);
+}
+
+void SimulateParticlesForCel(Loop &loop, int celIndexStart)
+{
+    Cel *startCel = &loop.Cels[celIndexStart];
+    if (g_particles.find(startCel) != g_particles.end())
+    {
+        std::vector<Particle> &particles = g_particles[startCel];
+
+        int celIndex = celIndexStart;
+        while (!particles.empty())
+        {
+            celIndex %= loop.Cels.size();
+            for (Particle &p : particles)
+            {
+                DrawParticle(p, loop.Cels[celIndex]);
+                ProcessParticle(p);
+            }
+            particles.erase(std::remove_if(particles.begin(), particles.end(), IsParticleDead), particles.end());
+
+            celIndex++;
+        }
+    }
+}
+
+void simulateParticles()
+{
+    for (Loop &loop : g_raster->Loops)
+    {
+        int celIndex = 0;
+        for (Cel &cel : loop.Cels)
+        {
+            SimulateParticlesForCel(loop, celIndex);
+
+            celIndex++;
+        }
+    }
+}
 
 void drawPixel(Cel *cel, int x, int y, byte color)
 {
@@ -137,6 +155,7 @@ Cel *getCel(int loop, int cel)
 void RunChaiScript(const std::string &filename, RasterComponent &rasterIn, CelIndex selectedCel)
 {
     // Give ourselves context.
+    g_particles.clear();
     g_raster = &rasterIn;
     g_currentLoop = &rasterIn.Loops[selectedCel.loop];
     g_currentCel = &g_currentLoop->Cels[selectedCel.cel];
@@ -145,6 +164,8 @@ void RunChaiScript(const std::string &filename, RasterComponent &rasterIn, CelIn
     chai.add(chaiscript::var(g_currentCel), "cel");
     chai.add(chaiscript::var(g_currentLoop), "loop");
     chai.add(chaiscript::fun(&getCel), "getCel");
+    chai.add(chaiscript::fun(&addParticle), "addParticle");
+    chai.add(chaiscript::fun(&simulateParticles), "simulateParticles");
     chai.add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
     chai.add(chaiscript::fun(&Cel::getRandomPoint), "getRandomPoint");
     chai.add(chaiscript::fun(&Cel::getRandomPointFromColor), "getRandomPointFromColor");
@@ -160,50 +181,6 @@ void RunChaiScript(const std::string &filename, RasterComponent &rasterIn, CelIn
         AfxMessageBox(e.pretty_print().c_str(), MB_OK | MB_ICONWARNING);
     }
 }
-
-void SimulateOLD(std::vector<Cel> &cels, const Cel &sourceFrame)
-{
-    chaiscript::ChaiScript chai;
-    //chai.add(chaiscript::fun(&helloWorld), "helloWorld");
-
-    chai.eval(R"(
-    puts(helloWorld("Bob"));
-  )");
-
-
-
-    std::vector<Particle> particles;
-
-    for (Cel &cel : cels)
-    {
-        TempFrame(particles, cel, sourceFrame);
-
-        for (Particle &p : particles)
-        {
-            DrawParticle(p, cel);
-            ProcessParticle(p);
-        }
-        particles.erase(std::remove_if(particles.begin(), particles.end(), IsParticleDead), particles.end());
-    }
-
-    int index = 0;
-    while (!particles.empty())
-    {
-        for (Particle &p : particles)
-        {
-            DrawParticle(p, cels[index % cels.size()]);
-            ProcessParticle(p);
-        }
-        particles.erase(std::remove_if(particles.begin(), particles.end(), IsParticleDead), particles.end());
-
-        index++;
-    }
-}
-
-
-
-
-
 
 
 
