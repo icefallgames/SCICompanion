@@ -60,6 +60,7 @@ struct Cel
     void drawPixel(point16 point, byte color);
     point16 getRandomPoint();
     point16 getRandomPointFromColor(byte color);
+    void clear();
 };
 
 struct Loop
@@ -81,6 +82,7 @@ struct Loop
     // For chai scripts
     int celCount();
     Cel *getCel(int index);
+    void clear();
 };
 
 

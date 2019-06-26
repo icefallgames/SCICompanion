@@ -1108,10 +1108,30 @@ BOOL HandleEditBoxCommands(MSG* pMsg, CEdit &wndEdit)
         if ((pMsg->message >= WM_KEYFIRST) && (pMsg->message <= WM_KEYLAST))
         {
             // Fwd the delete key to the edit control
-            if ((pMsg->message != WM_CHAR) && (pMsg->wParam == VK_DELETE))
+            if (pMsg->message != WM_CHAR)
             {
-                ::SendMessage(wndEdit.GetSafeHwnd(), pMsg->message, pMsg->wParam, pMsg->lParam);
-                fRet = TRUE; // Don't dispatch message, we handled it.
+                if (pMsg->wParam == VK_DELETE)
+                {
+                    ::SendMessage(wndEdit.GetSafeHwnd(), pMsg->message, pMsg->wParam, pMsg->lParam);
+                    fRet = TRUE; // Don't dispatch message, we handled it.
+                }
+            }
+
+            if (!fRet)
+            {
+                if ((wndEdit.GetStyle() & ES_MULTILINE) && (pMsg->message == WM_KEYDOWN))
+                {
+                    if (pMsg->wParam == VK_TAB)
+                    {
+                        // get the char index of the caret position
+                        int nPos = LOWORD(wndEdit.CharFromPos(wndEdit.GetCaretPos()));
+                        // select zero chars
+                        wndEdit.SetSel(nPos, nPos);
+                        // then replace that selection with a TAB
+                        wndEdit.ReplaceSel("\t", TRUE);
+                        fRet = TRUE; // Don't dispatch message, we handled it.
+                    }
+                }
             }
         }
     }

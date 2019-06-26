@@ -3191,6 +3191,23 @@ void CRasterView::OnFlipVert()
 
 std::unique_ptr<ViewScriptingDialog> g_viewScriptingDialog;
 
+void CRasterView::RunViewScript(const std::string &script)
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        int resourceNumber = pDoc->GetResource()->ResourceNumber;
+        CelIndex index = pDoc->GetSelectedIndex();
+        pDoc->ApplyChanges<RasterComponent>(
+            [index, &script](RasterComponent &raster)
+        {
+            RunChaiScript(script, raster, index);
+            return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
+        }
+        );
+    }
+}
+
 void CRasterView::OnParticles()
 {
     if (!g_viewScriptingDialog)
@@ -3199,26 +3216,8 @@ void CRasterView::OnParticles()
         g_viewScriptingDialog->Create(IDD_VIEWSCRIPTING);
     }
     g_viewScriptingDialog->SetNumber(GetDoc()->GetResource()->ResourceNumber);
+    g_viewScriptingDialog->SetCallback(this);
     g_viewScriptingDialog->ShowWindow(SW_SHOW);
-
-    // TODO: need some kind of callback so we can modify the doc.
-    /*
-    int loop = GetDoc()->GetSelectedLoop();
-
-    CNewRasterResourceDocument *pDoc = GetDoc();
-    if (pDoc)
-    {
-        int resourceNumber = pDoc->GetResource()->ResourceNumber;
-        CelIndex index = pDoc->GetSelectedIndex();
-        pDoc->ApplyChanges<RasterComponent>(
-            [loop, resourceNumber, index](RasterComponent &raster)
-        {
-            RunChaiScript(appState->GetResourceMap().Helper().GetViewScriptFilename(resourceNumber), raster, index);
-            return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
-        }
-        );
-    }*/
-
 }
 
 void CRasterView::OnInvert()

@@ -152,7 +152,7 @@ Cel *getCel(int loop, int cel)
     return &g_raster->GetCel(CelIndex(loop, cel));
 }
 
-void RunChaiScript(const std::string &filename, RasterComponent &rasterIn, CelIndex selectedCel)
+void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelIndex selectedCel)
 {
     // Give ourselves context.
     g_particles.clear();
@@ -169,12 +169,14 @@ void RunChaiScript(const std::string &filename, RasterComponent &rasterIn, CelIn
     chai.add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
     chai.add(chaiscript::fun(&Cel::getRandomPoint), "getRandomPoint");
     chai.add(chaiscript::fun(&Cel::getRandomPointFromColor), "getRandomPointFromColor");
+    chai.add(chaiscript::fun(&Cel::clear), "clear");
     chai.add(chaiscript::fun(&Loop::getCel), "getCel");
     chai.add(chaiscript::fun(&Loop::celCount), "celCount");
+    chai.add(chaiscript::fun(&Loop::clear), "clear");
 
     try
     {
-        chai.eval_file(filename);
+        chai.eval(script);
     }
     catch (const chaiscript::exception::eval_error &e)
     {
@@ -224,6 +226,13 @@ point16 Cel::getRandomPointFromColor(byte color)
     }
     return point16(0, 0);
 }
+void Cel::clear()
+{
+    for (int i = 0; i < Data.size(); i++)
+    {
+        Data[i] = this->TransparentColor;
+    }
+}
 
 int Loop::celCount()
 {
@@ -232,4 +241,11 @@ int Loop::celCount()
 Cel *Loop::getCel(int index)
 {
     return &Cels[index];
+}
+void Loop::clear()
+{
+    for (Cel &cel : Cels)
+    {
+        cel.clear();
+    }
 }

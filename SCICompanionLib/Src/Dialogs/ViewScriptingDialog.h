@@ -13,6 +13,8 @@ GNU General Public License for more details.
 ***************************************************************************/
 #pragma once
 
+#include "IViewScriptingCallback.h"
+
 class ViewScriptingDialog : public CExtResizableDialog
 {
 public:
@@ -24,6 +26,7 @@ public:
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
     void SetNumber(int number);
+    void SetCallback(IViewScriptingCallback *callback) { _callback = callback; }
 
 protected:
     virtual void OnOK();
@@ -45,6 +48,8 @@ private:
     bool _initialized;
 
     int _number;
+
+    IViewScriptingCallback *_callback;
 
 public:
     afx_msg void OnBnClickedSave();

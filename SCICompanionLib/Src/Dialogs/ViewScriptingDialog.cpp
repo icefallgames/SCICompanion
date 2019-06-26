@@ -28,7 +28,7 @@ using namespace std;
 // ViewScriptingDialog dialog
 
 ViewScriptingDialog::ViewScriptingDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(ViewScriptingDialog::IDD, pParent), _initialized(false), _number(-1)
+    : CExtResizableDialog(ViewScriptingDialog::IDD, pParent), _initialized(false), _number(-1), _callback(nullptr)
 {
     HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPALETTE), RT_ACCELERATOR);
     _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPALETTE));
@@ -105,12 +105,19 @@ void ViewScriptingDialog::OnBnClickedSave()
 
     CString code;
     m_wndEditCode.GetWindowTextA(code);
+    code.Replace("\r\n", "\n");
     MakeTextFile(code, filename);
 }
 
 
 void ViewScriptingDialog::OnOK()
 {
+    if (_callback)
+    {
+        CString code;
+        m_wndEditCode.GetWindowTextA(code);
+        _callback->RunViewScript((PCSTR)code);
+    }
     // Don't close the dialog.
     // Instead, call our callback here.
 }
