@@ -11,10 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ***************************************************************************/
-#define CHAISCRIPT_NO_THREADS 1
 #include "stdafx.h"
 #include "Particles.h"
 #include <random>
+#define CHAISCRIPT_NO_THREADS 1
 #include "chaiscript.hpp"
 
 
@@ -36,39 +36,6 @@ std::mt19937 g_mt(g_rd());
 
 bool IsParticleDead(const Particle &p) { return p.lifetime <= 0; }
 
-int CountPixelsOfColor(const Cel &cel, byte value)
-{
-    int count = 0;
-    for (size_t i = 0; i < cel.Data.size(); i++)
-    {
-        if (cel.Data[i] == value)
-        {
-            count++;
-        }
-    }
-    return count;
-}
-
-void GetXYOfColorPixelAtIndex(const Cel &cel, byte value, int index, float &x, float &y)
-{
-    int count = 0;
-    for (size_t i = 0; i < cel.Data.size(); i++)
-    {
-        if (cel.Data[i] == value)
-        {
-            if (index == count)
-            {
-                x = i % cel.GetStride();
-                y = i / cel.GetStride();
-                return;
-            }
-            count++;
-        }
-    }
-    x = 0;
-    y = 0;
-}
-
 void ProcessParticle(Particle &p)
 {
     p.vx += p.ax;
@@ -82,12 +49,10 @@ void DrawParticle(const Particle &p, Cel &cel)
 {
     int x = max(0, min(cel.size.cx - 1, p.x));
     int y = max(0, min(cel.size.cy - 1, p.y));
+
     cel.Data[y * cel.GetStride() + x] = p.color;
 }
 
-RasterComponent *g_raster;
-Cel *g_currentCel;
-Loop *g_currentLoop;
 std::map<Cel*, std::vector<Particle>> g_particles;
 
 void addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
@@ -126,7 +91,7 @@ void SimulateParticlesForCel(Loop &loop, int celIndexStart)
         }
     }
 }
-
+RasterComponent *g_raster;
 void simulateParticles()
 {
     for (Loop &loop : g_raster->Loops)
@@ -148,53 +113,81 @@ void drawPixel(Cel *cel, int x, int y, byte color)
     cel->Data[x + y * cel->GetStride()] = color;
 }
 
-Cel *getCel(int loop, int cel)
-{
-    return &g_raster->GetCel(CelIndex(loop, cel));
-}
+std::unique_ptr<chaiscript::ChaiScript> g_chai;
 
-chaiscript::ChaiScript g_chai;
-bool g_chaiInitialized = false;
+int randomRange(int min, int maxExclusive)
+{
+    std::uniform_int_distribution<int32_t> distribution(min, maxExclusive - 1);
+    return distribution(g_mt);
+}
+float randomRangeF(float min, float max)
+{
+    std::uniform_real_distribution<float> distribution(min, max);
+    return distribution(g_mt);
+}
 
 void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelIndex selectedCel)
 {
     // Give ourselves context.
     g_particles.clear();
-    g_raster = &rasterIn;
-    g_currentLoop = &rasterIn.Loops[selectedCel.loop];
-    g_currentCel = &g_currentLoop->Cels[selectedCel.cel];
 
-    if (!g_chaiInitialized)
+    if (!g_chai)
     {
-        g_chai.add(chaiscript::var(g_currentCel), "cel");
-        g_chai.add(chaiscript::var(g_currentLoop), "loop");
-        g_chai.add(chaiscript::fun(&getCel), "getCel");
-        g_chai.add(chaiscript::fun(&addParticle), "addParticle");
-        g_chai.add(chaiscript::fun(&simulateParticles), "simulateParticles");
-        g_chai.add(chaiscript::fun(&Cel::getPixel), "getPixel");
-        g_chai.add(chaiscript::fun(&Cel::getWidth), "getWidth");
-        g_chai.add(chaiscript::fun(&Cel::getHeight), "getHeight");
-        g_chai.add(chaiscript::fun(&Cel::getTransparent), "getTransparent");
-        g_chai.add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
-        g_chai.add(chaiscript::fun(&Cel::getRandomPoint), "getRandomPoint");
-        g_chai.add(chaiscript::fun(&Cel::getRandomPointFromColor), "getRandomPointFromColor");
-        g_chai.add(chaiscript::fun(&Cel::clear), "clear");
-        g_chai.add(chaiscript::fun(&Loop::getCel), "getCel");
-        g_chai.add(chaiscript::fun(&Loop::celCount), "celCount");
-        g_chai.add(chaiscript::fun(&Loop::clear), "clear");
+        g_chai = std::make_unique<chaiscript::ChaiScript>();
 
-        g_chaiInitialized = true;
+        g_chai->add(chaiscript::fun(&randomRange), "rand");
+        g_chai->add(chaiscript::fun(&randomRangeF), "randf");
+
+        g_chai->add(chaiscript::fun(&addParticle), "addParticle");
+        g_chai->add(chaiscript::fun(&simulateParticles), "simulateParticles");
+
+        g_chai->add(chaiscript::fun(&point16::x), "x");
+        g_chai->add(chaiscript::fun(&point16::y), "y");
+        g_chai->add(chaiscript::fun(&Pixel::color), "color");
+        g_chai->add(chaiscript::fun(&Pixel::pos), "pos");
+
+        g_chai->add(chaiscript::user_type<Pixel>(), "Pixel");
+        g_chai->add(chaiscript::bootstrap::standard_library::vector_type<std::vector<Pixel> >("PixelVector"));
+
+        g_chai->add(chaiscript::fun(&Cel::getPixel), "getPixel");
+        g_chai->add(chaiscript::fun(&Cel::getWidth), "getWidth");
+        g_chai->add(chaiscript::fun(&Cel::getHeight), "getHeight");
+        g_chai->add(chaiscript::fun(&Cel::getTransparent), "getTransparent");
+        g_chai->add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
+        g_chai->add(chaiscript::fun(&Cel::getRandomPixel), "getRandomPixel");
+        g_chai->add(chaiscript::fun(&Cel::selectPixelsOfColor), "selectPixelsOfColor");
+        g_chai->add(chaiscript::fun(&Cel::selectPixelsNotOfColor), "selectPixelsNotOfColor");
+        g_chai->add(chaiscript::fun(&Cel::clear), "clear");
+        g_chai->add(chaiscript::fun(&Loop::getCel), "getCel");
+        g_chai->add(chaiscript::fun(&Loop::celCount), "celCount");
+        g_chai->add(chaiscript::fun(&Loop::clear), "clear");
+        g_chai->add(chaiscript::fun(&RasterComponent::getCel), "getCel");
+
     }
+
+    const auto base_state = g_chai->get_state();
+    const auto base_locals = g_chai->get_locals();
+
+    Loop *g_currentLoop = &rasterIn.Loops[selectedCel.loop];
+    Cel *g_currentCel = &g_currentLoop->Cels[selectedCel.cel];
+    g_raster = &rasterIn;
+    g_chai->add(chaiscript::var(g_currentCel), "cel");
+    g_chai->add(chaiscript::var(g_currentLoop), "loop");
+    g_chai->add(chaiscript::var(g_raster), "view");
+
     try
     {
-        g_chai.eval(script);
+        g_chai->eval(script);
     }
     catch (const chaiscript::exception::eval_error &e)
     {
         AfxMessageBox(e.pretty_print().c_str(), MB_OK | MB_ICONWARNING);
     }
-}
 
+    // So weird we need to do this.
+    g_chai->set_state(base_state);
+    g_chai->set_locals(base_locals);
+}
 
 int Cel::getWidth()
 {
@@ -208,11 +201,11 @@ byte Cel::getTransparent()
 {
     return TransparentColor;
 }
-byte Cel::getPixel(point16 point)
+Pixel Cel::getPixel(point16 point)
 {
     int x = max(0, min(point.x, size.cx - 1));
     int y = max(0, min(point.y, size.cy - 1));
-    return Data[x + y * GetStride()];
+    return Pixel{ point, Data[x + y * GetStride()] };
 }
 
 void Cel::drawPixel(point16 point, byte color)
@@ -221,43 +214,53 @@ void Cel::drawPixel(point16 point, byte color)
     int y = max(0, min(point.y, size.cy - 1));
     Data[x + y * GetStride()] = color;
 }
-point16 Cel::getRandomPoint()
+Pixel Cel::getRandomPixel()
 {
     point16 p;
     {
-        std::uniform_int_distribution<int32_t> distribution(0, size.cx);
+        std::uniform_int_distribution<int32_t> distribution(0, size.cx - 1);
         p.x = distribution(g_mt);
     }
     {
-        std::uniform_int_distribution<int32_t> distribution(0, size.cy);
+        std::uniform_int_distribution<int32_t> distribution(0, size.cy - 1);
         p.y = distribution(g_mt);
     }
-    return p;
+
+    return Pixel { p,Data[p.x + p.y * GetStride()] };
 }
-point16 Cel::getRandomPointFromColor(byte color)
+
+std::vector<Pixel> Cel::selectPixelsOfColor(byte color)
 {
-    int whiteCount = CountPixelsOfColor(*this, 0xff);
-    std::uniform_int_distribution<int32_t> distribution(0, whiteCount - 1);
-
-    int index = distribution(g_mt);
-
-    int count = 0;
+    std::vector<Pixel> pixels;
     for (size_t i = 0; i < Data.size(); i++)
     {
         if (Data[i] == color)
         {
-            if (index == count)
-            {
-                return point16((int16_t)(i % GetStride()), (int16_t)(i / GetStride()));
-            }
-            count++;
+            int16_t x = (int16_t)(i % GetStride());
+            int16_t y = (int16_t)(i / GetStride());
+            pixels.push_back(Pixel{ point16(x, y), color });
         }
     }
-    return point16(0, 0);
+    return pixels;
 }
+std::vector<Pixel> Cel::selectPixelsNotOfColor(byte color)
+{
+    std::vector<Pixel> pixels;
+    for (size_t i = 0; i < Data.size(); i++)
+    {
+        if (Data[i] != color)
+        {
+            int16_t x = (int16_t)(i % GetStride());
+            int16_t y = (int16_t)(i / GetStride());
+            pixels.push_back(Pixel{ point16(x, y), Data[i] });
+        }
+    }
+    return pixels;
+}
+
 void Cel::clear()
 {
-    for (int i = 0; i < Data.size(); i++)
+    for (size_t i = 0; i < Data.size(); i++)
     {
         Data[i] = this->TransparentColor;
     }
@@ -277,4 +280,9 @@ void Loop::clear()
     {
         cel.clear();
     }
+}
+
+Cel *RasterComponent::getCel(int loop, int cel)
+{
+    return &GetCel(CelIndex(loop, cel));
 }

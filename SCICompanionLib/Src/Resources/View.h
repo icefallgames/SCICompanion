@@ -26,6 +26,12 @@ void ReadCelFromVGA11(sci::istream &byteStream, Cel &cel, bool isPic);
 
 extern uint8_t g_vgaPaletteMapping[256];
 
+struct Pixel
+{
+    point16 pos;
+    byte color;
+};
+
 struct Cel
 {
     Cel(size16 size, point16 placement, uint8_t transparentColor)
@@ -58,13 +64,14 @@ struct Cel
 
     // For chai scripts
     void drawPixel(point16 point, byte color);
-    point16 getRandomPoint();
-    point16 getRandomPointFromColor(byte color);
+    Pixel getRandomPixel();
     void clear();
     int getWidth();
     int getHeight();
-    byte getPixel(point16 point);
+    Pixel getPixel(point16 point);
     byte getTransparent();
+    std::vector<Pixel> selectPixelsOfColor(byte color);
+    std::vector<Pixel> selectPixelsNotOfColor(byte color);
 };
 
 struct Loop
@@ -205,6 +212,9 @@ struct RasterComponent : ResourceComponent
     uint8_t ScaleFlags;             // Scaling flags for VGA 1.1 views (0x0 is scalable, 0x1 is not)
     NativeResolution Resolution;    // Used for views
     std::vector<std::string> BoneNames;
+
+    // For chai
+    Cel *getCel(int loop, int cel);
 };
 
 #include <pshpack1.h>

@@ -798,6 +798,8 @@ void CRasterView::OnVGAPaletteChanged()
     }
 }
 
+std::unique_ptr<ViewScriptingDialog> g_viewScriptingDialog;
+
 void CRasterView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 {
     RasterChangeHint hint = GetHint<RasterChangeHint>(pHint);;
@@ -828,6 +830,16 @@ void CRasterView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     if (hint != RasterChangeHint::None)
     {
         _RefreshViewData();
+    }
+
+    if (g_viewScriptingDialog)
+    {
+        CNewRasterResourceDocument *pDoc = GetDoc();
+        if (pDoc)
+        {
+            g_viewScriptingDialog->SetResource(pDoc->GetResource(), pDoc->GetCurrentPaletteComponent());
+            g_viewScriptingDialog->SetLoop(pDoc->GetSelectedLoop());
+        }
     }
 
     if (IsFlagSet(hint, RasterChangeHint::ApplyToAll))
@@ -3188,8 +3200,6 @@ void CRasterView::OnFlipVert()
     }
     _CommitSourceData();
 }
-
-std::unique_ptr<ViewScriptingDialog> g_viewScriptingDialog;
 
 void CRasterView::RunViewScript(const std::string &script)
 {
