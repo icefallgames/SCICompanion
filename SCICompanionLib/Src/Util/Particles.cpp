@@ -13,8 +13,8 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "Particles.h"
-#include "View.h"
 #include <random>
+#include "chaiscript.hpp"
 
 
 struct Particle
@@ -68,38 +68,6 @@ void GetXYOfColorPixelAtIndex(const Cel &cel, byte value, int index, float &x, f
     y = 0;
 }
 
-void TempFrame(std::vector<Particle> &particles, const Cel &cel, const Cel &sourceFrame)
-{
-    for (int i = 0; i < 150; i++)
-    {
-        // Generate new particles each frame
-
-        int whiteCount = CountPixelsOfColor(sourceFrame, 0xff);
-        std::uniform_int_distribution<int32_t> distribution(0, whiteCount - 1);
-        Particle p;
-        GetXYOfColorPixelAtIndex(sourceFrame, 0xff, distribution(g_mt), p.x, p.y);
-
-        /*
-        {
-            std::uniform_int_distribution<int32_t> distribution(0, cel.size.cx);
-            p.x = distribution(g_mt);
-        }
-        {
-            std::uniform_int_distribution<int32_t> distribution(0, cel.size.cy);
-            p.y = distribution(g_mt);
-        }*/
-
-        p.vx = 0;
-        p.vy = -5.0f * (float)(cel.size.cy - p.y) / (float)cel.size.cy;
-        p.ax = 0;
-        p.ay = -1;
-        p.color = 0xff;
-        p.lifetime = 7;
-
-        particles.push_back(p);
-    }
-}
-
 void ProcessParticle(Particle &p)
 {
     p.vx += p.ax;
@@ -116,32 +84,152 @@ void DrawParticle(const Particle &p, Cel &cel)
     cel.Data[y * cel.GetStride() + x] = p.color;
 }
 
-void Simulate(std::vector<Cel> &cels, const Cel &sourceFrame)
+RasterComponent *g_raster;
+Cel *g_currentCel;
+Loop *g_currentLoop;
+std::map<Cel*, std::vector<Particle>> g_particles;
+
+void addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
 {
-    std::vector<Particle> particles;
+    Particle p;
+    p.x = point.x;
+    p.y = point.y;
+    p.ax = ax;
+    p.ay = ay;
+    p.vx = vx;
+    p.vy = vy;
+    p.color = color;
+    p.lifetime = lifetime;
+    g_particles[cel].push_back(p);
+}
 
-    for (Cel &cel : cels)
+void SimulateParticlesForCel(Loop &loop, int celIndexStart)
+{
+    Cel *startCel = &loop.Cels[celIndexStart];
+    if (g_particles.find(startCel) != g_particles.end())
     {
-        TempFrame(particles, cel, sourceFrame);
+        std::vector<Particle> &particles = g_particles[startCel];
 
-        for (Particle &p : particles)
+        int celIndex = celIndexStart;
+        while (!particles.empty())
         {
-            DrawParticle(p, cel);
-            ProcessParticle(p);
-        }
-        particles.erase(std::remove_if(particles.begin(), particles.end(), IsParticleDead), particles.end());
-    }
+            celIndex %= loop.Cels.size();
+            for (Particle &p : particles)
+            {
+                DrawParticle(p, loop.Cels[celIndex]);
+                ProcessParticle(p);
+            }
+            particles.erase(std::remove_if(particles.begin(), particles.end(), IsParticleDead), particles.end());
 
-    int index = 0;
-    while (!particles.empty())
+            celIndex++;
+        }
+    }
+}
+
+void simulateParticles()
+{
+    for (Loop &loop : g_raster->Loops)
     {
-        for (Particle &p : particles)
+        int celIndex = 0;
+        for (Cel &cel : loop.Cels)
         {
-            DrawParticle(p, cels[index % cels.size()]);
-            ProcessParticle(p);
-        }
-        particles.erase(std::remove_if(particles.begin(), particles.end(), IsParticleDead), particles.end());
+            SimulateParticlesForCel(loop, celIndex);
 
-        index++;
+            celIndex++;
+        }
     }
+}
+
+void drawPixel(Cel *cel, int x, int y, byte color)
+{
+    x = max(0, min(x, cel->size.cx - 1));
+    y = max(0, min(y, cel->size.cy - 1));
+    cel->Data[x + y * cel->GetStride()] = color;
+}
+
+Cel *getCel(int loop, int cel)
+{
+    return &g_raster->GetCel(CelIndex(loop, cel));
+}
+
+void RunChaiScript(const std::string &filename, RasterComponent &rasterIn, CelIndex selectedCel)
+{
+    // Give ourselves context.
+    g_particles.clear();
+    g_raster = &rasterIn;
+    g_currentLoop = &rasterIn.Loops[selectedCel.loop];
+    g_currentCel = &g_currentLoop->Cels[selectedCel.cel];
+
+    chaiscript::ChaiScript chai;
+    chai.add(chaiscript::var(g_currentCel), "cel");
+    chai.add(chaiscript::var(g_currentLoop), "loop");
+    chai.add(chaiscript::fun(&getCel), "getCel");
+    chai.add(chaiscript::fun(&addParticle), "addParticle");
+    chai.add(chaiscript::fun(&simulateParticles), "simulateParticles");
+    chai.add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
+    chai.add(chaiscript::fun(&Cel::getRandomPoint), "getRandomPoint");
+    chai.add(chaiscript::fun(&Cel::getRandomPointFromColor), "getRandomPointFromColor");
+    chai.add(chaiscript::fun(&Loop::getCel), "getCel");
+    chai.add(chaiscript::fun(&Loop::celCount), "celCount");
+
+    try
+    {
+        chai.eval_file(filename);
+    }
+    catch (const chaiscript::exception::eval_error &e)
+    {
+        AfxMessageBox(e.pretty_print().c_str(), MB_OK | MB_ICONWARNING);
+    }
+}
+
+
+
+void Cel::drawPixel(point16 point, byte color)
+{
+    int x = max(0, min(point.x, size.cx - 1));
+    int y = max(0, min(point.y, size.cy - 1));
+    Data[x + y * GetStride()] = color;
+}
+point16 Cel::getRandomPoint()
+{
+    point16 p;
+    {
+        std::uniform_int_distribution<int32_t> distribution(0, size.cx);
+        p.x = distribution(g_mt);
+    }
+    {
+        std::uniform_int_distribution<int32_t> distribution(0, size.cy);
+        p.y = distribution(g_mt);
+    }
+    return p;
+}
+point16 Cel::getRandomPointFromColor(byte color)
+{
+    int whiteCount = CountPixelsOfColor(*this, 0xff);
+    std::uniform_int_distribution<int32_t> distribution(0, whiteCount - 1);
+
+    int index = distribution(g_mt);
+
+    int count = 0;
+    for (size_t i = 0; i < Data.size(); i++)
+    {
+        if (Data[i] == color)
+        {
+            if (index == count)
+            {
+                return point16((int16_t)(i % GetStride()), (int16_t)(i / GetStride()));
+            }
+            count++;
+        }
+    }
+    return point16(0, 0);
+}
+
+int Loop::celCount()
+{
+    return (int)Cels.size();
+}
+Cel *Loop::getCel(int index)
+{
+    return &Cels[index];
 }

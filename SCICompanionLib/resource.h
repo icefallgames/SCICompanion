@@ -322,6 +322,7 @@
 #define IDD_PICCLIPS1                   407
 #define IDD_ADVANCEDPASTE               407
 #define IDD_BLUR                        408
+#define IDD_VIEWSCRIPTING               409
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -892,6 +893,7 @@
 #define IDC_BUTTONDELETEBONE            1434
 #define IDC_CHECKYBLUR                  1435
 #define IDC_EDITANGLEMIN                1435
+#define IDC_EDIT_CODE                   1435
 #define IDC_EDITANGLEMAX                1436
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
@@ -1327,9 +1329,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        417
+#define _APS_NEXT_RESOURCE_VALUE        418
 #define _APS_NEXT_COMMAND_VALUE         33381
-#define _APS_NEXT_CONTROL_VALUE         1434
+#define _APS_NEXT_CONTROL_VALUE         1436
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

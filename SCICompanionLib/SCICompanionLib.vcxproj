@@ -154,7 +154,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_WARN_MBCS_MFC_DEPRECATION;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\Docs;$(SolutionDir)SCICompanionLib\Src\GIFLIB;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\r8brain;$(SolutionDir)SCICompanionLib\Src\LipSync;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\Docs;$(SolutionDir)SCICompanionLib\Src\GIFLIB;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\chaiscript;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\r8brain;$(SolutionDir)SCICompanionLib\Src\LipSync;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Qpar %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <MinimalRebuild>true</MinimalRebuild>
@@ -240,6 +240,7 @@
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
     <ClCompile Include="Src\Dialogs\RotateArbitraryDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ToolTipDialog.cpp" />
+    <ClCompile Include="Src\Dialogs\ViewScriptingDialog.cpp" />
     <ClCompile Include="Src\Docs\DocScript.cpp" />
     <ClCompile Include="Src\Docs\OutputRST.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioProcessingSettingsUI.cpp" />
@@ -296,6 +297,53 @@
     <ClCompile Include="Src\Resources\VersionDetectionHelper.cpp" />
     <ClCompile Include="Src\Resources\View.cpp" />
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
+    <ClInclude Include="Src\chaiscript\chaiscript.hpp" />
+    <ClInclude Include="Src\chaiscript\chaiscript_basic.hpp" />
+    <ClInclude Include="Src\chaiscript\chaiscript_defines.hpp" />
+    <ClInclude Include="Src\chaiscript\chaiscript_stdlib.hpp" />
+    <ClInclude Include="Src\chaiscript\chaiscript_threading.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\any.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\bad_boxed_cast.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\bind_first.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\bootstrap.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\bootstrap_stl.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\boxed_cast.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\boxed_cast_helper.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\boxed_number.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\boxed_value.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\callable_traits.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\dispatchkit.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\dynamic_object.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\dynamic_object_detail.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\exception_specification.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\function_call.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\function_call_detail.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\handle_return.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\operators.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\proxy_constructors.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\proxy_functions.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\proxy_functions_detail.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\register_function.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\short_alloc.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\type_conversions.hpp" />
+    <ClInclude Include="Src\chaiscript\dispatchkit\type_info.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_algebraic.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_common.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_engine.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_eval.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_optimizer.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_parser.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_posix.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_prelude.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_prelude_docs.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_tracer.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_unknown.hpp" />
+    <ClInclude Include="Src\chaiscript\language\chaiscript_windows.hpp" />
+    <ClInclude Include="Src\chaiscript\utility\fnv1a.hpp" />
+    <ClInclude Include="Src\chaiscript\utility\json.hpp" />
+    <ClInclude Include="Src\chaiscript\utility\json_wrap.hpp" />
+    <ClInclude Include="Src\chaiscript\utility\static_string.hpp" />
+    <ClInclude Include="Src\chaiscript\utility\utility.hpp" />
     <ClInclude Include="Src\Compile\AutoCompleteSourceTypes.h" />
     <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
     <ClInclude Include="Src\Compile\CodeInspector.h" />
@@ -339,6 +387,7 @@
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
     <ClInclude Include="Src\Dialogs\RotateArbitraryDialog.h" />
     <ClInclude Include="Src\Dialogs\ToolTipDialog.h" />
+    <ClInclude Include="Src\Dialogs\ViewScriptingDialog.h" />
     <ClInclude Include="Src\Docs\DocScript.h" />
     <ClInclude Include="Src\Docs\OutputRST.h" />
     <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h" />
