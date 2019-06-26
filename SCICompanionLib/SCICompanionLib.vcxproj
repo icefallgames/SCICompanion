@@ -240,6 +240,7 @@
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
     <ClCompile Include="Src\Dialogs\RotateArbitraryDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ToolTipDialog.cpp" />
+    <ClCompile Include="Src\Dialogs\ViewScriptingDialog.cpp" />
     <ClCompile Include="Src\Docs\DocScript.cpp" />
     <ClCompile Include="Src\Docs\OutputRST.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioProcessingSettingsUI.cpp" />
@@ -386,6 +387,7 @@
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
     <ClInclude Include="Src\Dialogs\RotateArbitraryDialog.h" />
     <ClInclude Include="Src\Dialogs\ToolTipDialog.h" />
+    <ClInclude Include="Src\Dialogs\ViewScriptingDialog.h" />
     <ClInclude Include="Src\Docs\DocScript.h" />
     <ClInclude Include="Src\Docs\OutputRST.h" />
     <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h" />

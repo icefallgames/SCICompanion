@@ -39,6 +39,7 @@
 #include "AdvancedPasteDialog.h"
 #include "BlurDialog.h"
 #include "Particles.h"
+#include "ViewScriptingDialog.h"
 #include <array>
 
 using namespace std;
@@ -3188,8 +3189,20 @@ void CRasterView::OnFlipVert()
     _CommitSourceData();
 }
 
+std::unique_ptr<ViewScriptingDialog> g_viewScriptingDialog;
+
 void CRasterView::OnParticles()
 {
+    if (!g_viewScriptingDialog)
+    {
+        g_viewScriptingDialog = std::make_unique<ViewScriptingDialog>();
+        g_viewScriptingDialog->Create(IDD_VIEWSCRIPTING);
+    }
+    g_viewScriptingDialog->SetNumber(GetDoc()->GetResource()->ResourceNumber);
+    g_viewScriptingDialog->ShowWindow(SW_SHOW);
+
+    // TODO: need some kind of callback so we can modify the doc.
+    /*
     int loop = GetDoc()->GetSelectedLoop();
 
     CNewRasterResourceDocument *pDoc = GetDoc();
@@ -3204,7 +3217,7 @@ void CRasterView::OnParticles()
             return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
         }
         );
-    }
+    }*/
 
 }
 
