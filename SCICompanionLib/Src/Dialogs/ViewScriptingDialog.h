@@ -14,6 +14,7 @@ GNU General Public License for more details.
 #pragma once
 
 #include "IViewScriptingCallback.h"
+#include "ViewUIElement.h"
 
 class ViewScriptingDialog : public CExtResizableDialog
 {
@@ -25,14 +26,33 @@ public:
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
-    void SetNumber(int number);
+    void SetResource(const ResourceEntity *resource, const PaletteComponent *palette);
+    void SetLoop(int loop);
     void SetCallback(IViewScriptingCallback *callback) { _callback = callback; }
+
+    void OnSize(UINT nType, int cx, int cy);
+    void OnTimer(UINT_PTR nIDEvent);
+    void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar *pWnd);
+
+
 
 protected:
     virtual void OnOK();
 
 private:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+    afx_msg void OnPlay();
+    afx_msg void OnBnClickedButtonbg();
+    afx_msg void OnCbnSelchangeFiles();
+
+    void _UpdateBackground();
+    void _AutoSize();
+    CSize _RecalcSizeNeeded();
+    void _UpdateButton();
+    int _GetCelCount();
+    const Cel &GetCel();
+    void _PopulateFilesList();
 
     DECLARE_MESSAGE_MAP()
 
@@ -42,14 +62,28 @@ private:
 
     // Visuals
     CExtButton m_wndOK;
+    CExtButton m_wndCancel;
 
     HACCEL _hAccel;
 
     bool _initialized;
 
-    int _number;
-
     IViewScriptingCallback *_callback;
+
+    // From animate dialog
+    const ResourceEntity *_resource;
+    const PaletteComponent *_palette;
+    int _nLoop;
+    ViewUIElement m_wndAnimate;
+    CExtSliderWnd m_wndSlider;
+    CExtButton m_wndButton;
+    CExtButton m_wndButtonBG;
+    CRect _rectDialogSize;
+    int _nCel;
+    bool _fAnimating;
+
+    CExtComboBox m_wndFiles;
+    std::vector<std::string> _fileNames;
 
 public:
     afx_msg void OnBnClickedSave();

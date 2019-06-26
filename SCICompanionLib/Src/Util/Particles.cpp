@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ***************************************************************************/
+#define CHAISCRIPT_NO_THREADS 1
 #include "stdafx.h"
 #include "Particles.h"
 #include <random>
@@ -152,6 +153,9 @@ Cel *getCel(int loop, int cel)
     return &g_raster->GetCel(CelIndex(loop, cel));
 }
 
+chaiscript::ChaiScript g_chai;
+bool g_chaiInitialized = false;
+
 void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelIndex selectedCel)
 {
     // Give ourselves context.
@@ -160,23 +164,30 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
     g_currentLoop = &rasterIn.Loops[selectedCel.loop];
     g_currentCel = &g_currentLoop->Cels[selectedCel.cel];
 
-    chaiscript::ChaiScript chai;
-    chai.add(chaiscript::var(g_currentCel), "cel");
-    chai.add(chaiscript::var(g_currentLoop), "loop");
-    chai.add(chaiscript::fun(&getCel), "getCel");
-    chai.add(chaiscript::fun(&addParticle), "addParticle");
-    chai.add(chaiscript::fun(&simulateParticles), "simulateParticles");
-    chai.add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
-    chai.add(chaiscript::fun(&Cel::getRandomPoint), "getRandomPoint");
-    chai.add(chaiscript::fun(&Cel::getRandomPointFromColor), "getRandomPointFromColor");
-    chai.add(chaiscript::fun(&Cel::clear), "clear");
-    chai.add(chaiscript::fun(&Loop::getCel), "getCel");
-    chai.add(chaiscript::fun(&Loop::celCount), "celCount");
-    chai.add(chaiscript::fun(&Loop::clear), "clear");
+    if (!g_chaiInitialized)
+    {
+        g_chai.add(chaiscript::var(g_currentCel), "cel");
+        g_chai.add(chaiscript::var(g_currentLoop), "loop");
+        g_chai.add(chaiscript::fun(&getCel), "getCel");
+        g_chai.add(chaiscript::fun(&addParticle), "addParticle");
+        g_chai.add(chaiscript::fun(&simulateParticles), "simulateParticles");
+        g_chai.add(chaiscript::fun(&Cel::getPixel), "getPixel");
+        g_chai.add(chaiscript::fun(&Cel::getWidth), "getWidth");
+        g_chai.add(chaiscript::fun(&Cel::getHeight), "getHeight");
+        g_chai.add(chaiscript::fun(&Cel::getTransparent), "getTransparent");
+        g_chai.add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
+        g_chai.add(chaiscript::fun(&Cel::getRandomPoint), "getRandomPoint");
+        g_chai.add(chaiscript::fun(&Cel::getRandomPointFromColor), "getRandomPointFromColor");
+        g_chai.add(chaiscript::fun(&Cel::clear), "clear");
+        g_chai.add(chaiscript::fun(&Loop::getCel), "getCel");
+        g_chai.add(chaiscript::fun(&Loop::celCount), "celCount");
+        g_chai.add(chaiscript::fun(&Loop::clear), "clear");
 
+        g_chaiInitialized = true;
+    }
     try
     {
-        chai.eval(script);
+        g_chai.eval(script);
     }
     catch (const chaiscript::exception::eval_error &e)
     {
@@ -185,6 +196,24 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
 }
 
 
+int Cel::getWidth()
+{
+    return size.cx;
+}
+int Cel::getHeight()
+{
+    return size.cy;
+}
+byte Cel::getTransparent()
+{
+    return TransparentColor;
+}
+byte Cel::getPixel(point16 point)
+{
+    int x = max(0, min(point.x, size.cx - 1));
+    int y = max(0, min(point.y, size.cy - 1));
+    return Data[x + y * GetStride()];
+}
 
 void Cel::drawPixel(point16 point, byte color)
 {

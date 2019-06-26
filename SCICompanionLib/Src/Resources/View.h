@@ -61,6 +61,10 @@ struct Cel
     point16 getRandomPoint();
     point16 getRandomPointFromColor(byte color);
     void clear();
+    int getWidth();
+    int getHeight();
+    byte getPixel(point16 point);
+    byte getTransparent();
 };
 
 struct Loop

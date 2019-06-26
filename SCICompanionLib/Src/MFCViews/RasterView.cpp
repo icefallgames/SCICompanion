@@ -3215,7 +3215,10 @@ void CRasterView::OnParticles()
         g_viewScriptingDialog = std::make_unique<ViewScriptingDialog>();
         g_viewScriptingDialog->Create(IDD_VIEWSCRIPTING);
     }
-    g_viewScriptingDialog->SetNumber(GetDoc()->GetResource()->ResourceNumber);
+
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    g_viewScriptingDialog->SetResource(pDoc->GetResource(), pDoc->GetCurrentPaletteComponent());
+    g_viewScriptingDialog->SetLoop(pDoc->GetSelectedLoop());
     g_viewScriptingDialog->SetCallback(this);
     g_viewScriptingDialog->ShowWindow(SW_SHOW);
 }
