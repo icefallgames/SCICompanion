@@ -39,6 +39,8 @@ protected:
 	CRasterView();           // protected constructor used by dynamic creation
 	virtual ~CRasterView();
 
+    void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
+
 public:
 	virtual void OnDraw(CDC* pDC);      // overridden to draw this view
     virtual void OnRButtonDown(UINT nFlags, CPoint point);

@@ -1558,6 +1558,27 @@ RGBQUAD RGBAQUADFromCOLORREF(COLORREF color)
     return quad;
 }
 
+void CRasterView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView)
+{
+    // Attach, detach ourselves from the view script dialog.
+    if (bActivate)
+    {
+        CNewRasterResourceDocument *pDoc = GetDoc();
+        if (g_viewScriptingDialog && pDoc)
+        {
+            g_viewScriptingDialog->SetResource(pDoc->GetResource(), pDoc->GetCurrentPaletteComponent());
+        }
+    }
+    else
+    {
+        if (g_viewScriptingDialog)
+        {
+            g_viewScriptingDialog->SetResource(nullptr, nullptr);
+        }
+    }
+}
+
+
 void CRasterView::_OnDraw(CDC* pDC)
 {
     const Cel *activeCel = _GetSelectedCel();

@@ -240,14 +240,17 @@ void ViewScriptingDialog::OnTimer(UINT_PTR nIDEvent)
 {
     if (nIDEvent == VS_ANIMATE_TIMER)
     {
-        const RasterComponent &raster = _resource->GetComponent<RasterComponent>();
-        if ((raster.Loops.size() > 0) && _fAnimating)
+        if (_resource)
         {
-            int cCels = (int)raster.Loops[_nLoop].Cels.size();
-            _nCel++;
-            _nCel %= cCels;
-            m_wndSlider.SetPos(_nCel);
-            m_wndAnimate.SetCel(_nCel);
+            const RasterComponent &raster = _resource->GetComponent<RasterComponent>();
+            if ((raster.Loops.size() > 0) && _fAnimating)
+            {
+                int cCels = (int)raster.Loops[_nLoop].Cels.size();
+                _nCel++;
+                _nCel %= cCels;
+                m_wndSlider.SetPos(_nCel);
+                m_wndAnimate.SetCel(_nCel);
+            }
         }
     }
     else
