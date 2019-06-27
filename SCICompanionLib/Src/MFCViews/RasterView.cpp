@@ -798,6 +798,8 @@ void CRasterView::OnVGAPaletteChanged()
     }
 }
 
+std::unique_ptr<ViewScriptingDialog> g_viewScriptingDialog;
+
 void CRasterView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 {
     RasterChangeHint hint = GetHint<RasterChangeHint>(pHint);;
@@ -828,6 +830,16 @@ void CRasterView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     if (hint != RasterChangeHint::None)
     {
         _RefreshViewData();
+    }
+
+    if (g_viewScriptingDialog)
+    {
+        CNewRasterResourceDocument *pDoc = GetDoc();
+        if (pDoc)
+        {
+            g_viewScriptingDialog->SetResource(pDoc->GetResource(), pDoc->GetCurrentPaletteComponent());
+            g_viewScriptingDialog->SetLoop(pDoc->GetSelectedLoop());
+        }
     }
 
     if (IsFlagSet(hint, RasterChangeHint::ApplyToAll))
@@ -1545,6 +1557,27 @@ RGBQUAD RGBAQUADFromCOLORREF(COLORREF color)
     quad.rgbReserved = GetAValue(color);
     return quad;
 }
+
+void CRasterView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView)
+{
+    // Attach, detach ourselves from the view script dialog.
+    if (bActivate)
+    {
+        CNewRasterResourceDocument *pDoc = GetDoc();
+        if (g_viewScriptingDialog && pDoc)
+        {
+            g_viewScriptingDialog->SetResource(pDoc->GetResource(), pDoc->GetCurrentPaletteComponent());
+        }
+    }
+    else
+    {
+        if (g_viewScriptingDialog)
+        {
+            g_viewScriptingDialog->SetResource(nullptr, nullptr);
+        }
+    }
+}
+
 
 void CRasterView::_OnDraw(CDC* pDC)
 {
@@ -3189,7 +3222,22 @@ void CRasterView::OnFlipVert()
     _CommitSourceData();
 }
 
-std::unique_ptr<ViewScriptingDialog> g_viewScriptingDialog;
+void CRasterView::RunViewScript(const std::string &script)
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        int resourceNumber = pDoc->GetResource()->ResourceNumber;
+        CelIndex index = pDoc->GetSelectedIndex();
+        pDoc->ApplyChanges<RasterComponent>(
+            [index, &script](RasterComponent &raster)
+        {
+            RunChaiScript(script, raster, index);
+            return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
+        }
+        );
+    }
+}
 
 void CRasterView::OnParticles()
 {
@@ -3198,27 +3246,12 @@ void CRasterView::OnParticles()
         g_viewScriptingDialog = std::make_unique<ViewScriptingDialog>();
         g_viewScriptingDialog->Create(IDD_VIEWSCRIPTING);
     }
-    g_viewScriptingDialog->SetNumber(GetDoc()->GetResource()->ResourceNumber);
-    g_viewScriptingDialog->ShowWindow(SW_SHOW);
-
-    // TODO: need some kind of callback so we can modify the doc.
-    /*
-    int loop = GetDoc()->GetSelectedLoop();
 
     CNewRasterResourceDocument *pDoc = GetDoc();
-    if (pDoc)
-    {
-        int resourceNumber = pDoc->GetResource()->ResourceNumber;
-        CelIndex index = pDoc->GetSelectedIndex();
-        pDoc->ApplyChanges<RasterComponent>(
-            [loop, resourceNumber, index](RasterComponent &raster)
-        {
-            RunChaiScript(appState->GetResourceMap().Helper().GetViewScriptFilename(resourceNumber), raster, index);
-            return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
-        }
-        );
-    }*/
-
+    g_viewScriptingDialog->SetResource(pDoc->GetResource(), pDoc->GetCurrentPaletteComponent());
+    g_viewScriptingDialog->SetLoop(pDoc->GetSelectedLoop());
+    g_viewScriptingDialog->SetCallback(this);
+    g_viewScriptingDialog->ShowWindow(SW_SHOW);
 }
 
 void CRasterView::OnInvert()

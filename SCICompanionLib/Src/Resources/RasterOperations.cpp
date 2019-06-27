@@ -1176,16 +1176,26 @@ RasterChange RemoveCel(RasterComponent &raster, CelIndex celIndex)
 
 void SerializeCelRuntime(sci::ostream &out, const Cel &cel)
 {
-    out << cel;
+    out << cel.placement;
+    out << cel.size;
+    out << cel.TransparentColor;
+    out << cel.Data.size();
+    // Ignore bones for now?
     out.WriteBytes(&cel.Data[0], PaddedSize(cel.size));
 }
+
 void DeserializeCelRuntime(sci::istream &in, Cel &cel)
 {
     assert(cel.Data.empty());
-    in >> cel;
-    memset(&cel.Data, 0, sizeof(cel.Data)); // A bit of a hack
-    cel.Data.allocate(PaddedSize(cel.size));
+
+    in >> cel.placement;
+    in >> cel.size;
+    in >> cel.TransparentColor;
+    size_t dataSize;
+    in >> dataSize;
+    cel.Data.allocate(dataSize);
     in.read_data(&cel.Data[0], cel.Data.size());
+    cel.Bones.clear();
 }
 
 // Modulo that works with -ve numbers that can be more negative than the divisor

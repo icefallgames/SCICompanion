@@ -215,9 +215,9 @@ std::string GameFolderHelper::GetSrcFolder(const std::string *prefix) const
     return _GetSubfolder("src", prefix);
 }
 
-std::string GameFolderHelper::GetViewScriptFilename(int viewNumber) const
+std::string GameFolderHelper::GetViewScriptFilename(const std::string &name) const
 {
-    return fmt::format("{0}\\{1:03d}.txt", GetChaiFolder(), viewNumber);
+    return fmt::format("{0}\\{1}", GetChaiFolder(), name);
 }
 
 std::string GameFolderHelper::GetChaiFolder(const std::string *prefix) const

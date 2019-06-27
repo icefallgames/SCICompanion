@@ -30,7 +30,6 @@ public:
 
     void SetTitle(PCTSTR pszTitle) { _strTitle = pszTitle; }
     void SetLoop(int nLoop);
-
     void OnSize(UINT nType, int cx, int cy);
     void OnTimer(UINT_PTR nIDEvent);
     void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar *pWnd);

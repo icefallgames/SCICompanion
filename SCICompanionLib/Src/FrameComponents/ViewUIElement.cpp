@@ -153,8 +153,14 @@ void ViewUIElement::SetFillArea(bool fillArea) { _fillArea = fillArea; Invalidat
 void ViewUIElement::SetResource(const ResourceEntity *view, const PaletteComponent *optionalPalette)
 {
     _viewResource = view;
-    _ValidateLoopCel();
     _optionalPalette = optionalPalette;
+
+    if (!view)
+    {
+        return;
+    }
+
+    _ValidateLoopCel();
     if (!_optionalPalette && (view->GetComponent<RasterComponent>().Traits.PaletteType == PaletteType::VGA_256))
     {
         _paletteHolder = appState->GetResourceMap().GetMergedPalette(*view, 999);

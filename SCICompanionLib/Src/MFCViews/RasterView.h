@@ -18,6 +18,7 @@
 #include "ColorShiftCallback.h"
 #include "PaletteDefinitionCallback.h"
 #include "OnionSkinSettingsCallback.h"
+#include "IViewScriptingCallback.h"
 
 // #define FORCE_REDRAW
 
@@ -30,13 +31,15 @@ struct OnionSkinFrameOptions;
 
 // CRasterView view
 
-class CRasterView : public CScrollingThing<CView>, public IColorShiftCallback, public IVGAPaletteDefinitionCallback, public IOnionSkinCallback
+class CRasterView : public CScrollingThing<CView>, public IColorShiftCallback, public IVGAPaletteDefinitionCallback, public IOnionSkinCallback, public IViewScriptingCallback
 {
 	DECLARE_DYNCREATE(CRasterView)
 
 protected:
 	CRasterView();           // protected constructor used by dynamic creation
 	virtual ~CRasterView();
+
+    void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
 
 public:
 	virtual void OnDraw(CDC* pDC);      // overridden to draw this view
@@ -72,6 +75,9 @@ public:
 
     // IVGAPaletteDefinitionCallback
     void OnVGAPaletteChanged() override;
+
+    // IViewScriptingCallback
+    void RunViewScript(const std::string &script) override;
 
 private:
     // Timer constants
