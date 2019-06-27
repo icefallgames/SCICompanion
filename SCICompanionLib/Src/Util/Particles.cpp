@@ -29,6 +29,11 @@ struct Particle
     byte color;
 
     int lifetime;
+
+    bool line;
+
+    float xPrev;
+    float yPrev;
 };
 
 std::random_device g_rd;
@@ -38,6 +43,8 @@ bool IsParticleDead(const Particle &p) { return p.lifetime <= 0; }
 
 void ProcessParticle(Particle &p)
 {
+    p.xPrev = p.x;
+    p.yPrev = p.y;
     p.vx += p.ax;
     p.vy += p.ay;
     p.x += p.vx;
@@ -45,17 +52,71 @@ void ProcessParticle(Particle &p)
     p.lifetime--;
 }
 
+void bresenham(Cel &cel, byte color, float x1, float y1, float x2, float y2)
+{
+    // Bresenham's line algorithm
+    const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
+    if (steep)
+    {
+        std::swap(x1, y1);
+        std::swap(x2, y2);
+    }
+
+    if (x1 > x2)
+    {
+        std::swap(x1, x2);
+        std::swap(y1, y2);
+    }
+
+    const float dx = x2 - x1;
+    const float dy = fabs(y2 - y1);
+
+    float error = dx / 2.0f;
+    const int ystep = (y1 < y2) ? 1 : -1;
+    int y = (int)y1;
+
+    const int maxX = (int)x2;
+
+    for (int x = (int)x1; x < maxX; x++)
+    {
+        if (steep)
+        {
+            cel.Data[x * cel.GetStride() + y] = color;
+        }
+        else
+        {
+            cel.Data[y * cel.GetStride() + x] = color;
+        }
+
+        error -= dy;
+        if (error < 0)
+        {
+            y += ystep;
+            error += dx;
+        }
+    }
+}
+
 void DrawParticle(const Particle &p, Cel &cel)
 {
     int x = max(0, min(cel.size.cx - 1, p.x));
     int y = max(0, min(cel.size.cy - 1, p.y));
 
-    cel.Data[y * cel.GetStride() + x] = p.color;
+    if (p.line)
+    {
+        int xPrev = max(0, min(cel.size.cx - 1, p.xPrev));
+        int yPrev = max(0, min(cel.size.cy - 1, p.yPrev));
+        bresenham(cel, p.color, xPrev, yPrev, x, y);
+    }
+    else
+    {
+        cel.Data[y * cel.GetStride() + x] = p.color;
+    }
 }
 
 std::map<Cel*, std::vector<Particle>> g_particles;
 
-void addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
+void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color, bool isLine)
 {
     Particle p;
     p.x = point.x;
@@ -66,7 +127,20 @@ void addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay
     p.vy = vy;
     p.color = color;
     p.lifetime = lifetime;
+    p.line = isLine;
+    p.xPrev = p.x;
+    p.yPrev = p.y;
     g_particles[cel].push_back(p);
+}
+
+void addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
+{
+    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, false);
+}
+
+void addLineParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
+{
+    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, true);
 }
 
 void SimulateParticlesForCel(Loop &loop, int celIndexStart)
@@ -126,6 +200,17 @@ float randomRangeF(float min, float max)
     return distribution(g_mt);
 }
 
+const double DegreesToReadians = 0.0174533;
+
+double sinDegrees(double angle)
+{
+    return sin(angle * DegreesToReadians);
+}
+double cosDegrees(double angle)
+{
+    return cos(angle * DegreesToReadians);
+}
+
 void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelIndex selectedCel)
 {
     // Give ourselves context.
@@ -139,12 +224,16 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
         g_chai->add(chaiscript::fun(&randomRangeF), "randf");
 
         g_chai->add(chaiscript::fun(&addParticle), "addParticle");
+        g_chai->add(chaiscript::fun(&addLineParticle), "addLineParticle");
         g_chai->add(chaiscript::fun(&simulateParticles), "simulateParticles");
 
         g_chai->add(chaiscript::fun(&point16::x), "x");
         g_chai->add(chaiscript::fun(&point16::y), "y");
         g_chai->add(chaiscript::fun(&Pixel::color), "color");
         g_chai->add(chaiscript::fun(&Pixel::pos), "pos");
+
+        g_chai->add(chaiscript::fun(&sinDegrees), "sin");
+        g_chai->add(chaiscript::fun(&cosDegrees), "cos");
 
         g_chai->add(chaiscript::user_type<Pixel>(), "Pixel");
         g_chai->add(chaiscript::bootstrap::standard_library::vector_type<std::vector<Pixel> >("PixelVector"));

@@ -45,10 +45,11 @@ ViewScriptingDialog::ViewScriptingDialog(CWnd* pParent /*=NULL*/)
 BOOL ViewScriptingDialog::PreTranslateMessage(MSG* pMsg)
 {
     BOOL fRet = FALSE;
+    /*
     if (_hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
     {
         fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);
-    }
+    }*/
     if (!fRet)
     {
         if (GetFocus() == static_cast<CWnd*>(&m_wndEditCode))
@@ -88,7 +89,7 @@ void ViewScriptingDialog::DoDataExchange(CDataExchange* pDX)
 
     GetClientRect(&_rectDialogSize);
 
-    SetTimer(VS_ANIMATE_TIMER, 200, NULL);
+    SetTimer(VS_ANIMATE_TIMER, 100, NULL);
 
     if (!_initialized)
     {
