@@ -146,7 +146,7 @@ void DrawParticle(const Particle &p, Cel &cel)
 
 std::map<Cel*, std::vector<Particle>> g_particles;
 
-void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color, bool isLine, Cel *brushCelTemplate)
+void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color, bool isLine, Cel *brushCelTemplate, Cel *brushSourceCel)
 {
     g_particles[cel].emplace_back();
     Particle &p = g_particles[cel].back();
@@ -176,9 +176,9 @@ void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float a
                     int xTarget = p.x + xBase + celBrush.placement.x; // REVIEW: may not be right
                     int yTarget = p.y + yBase + celBrush.placement.y;
                     byte brushColor = celBrush.TransparentColor;
-                    if (xTarget >= 0 && yTarget >= 0 && xTarget < cel->size.cx && yTarget < cel->size.cy)
+                    if (xTarget >= 0 && yTarget >= 0 && xTarget < brushSourceCel->size.cx && yTarget < brushSourceCel->size.cy)
                     {
-                        brushColor = cel->Data[xTarget + yTarget * cel->GetStride()];
+                        brushColor = brushSourceCel->Data[xTarget + yTarget * brushSourceCel->GetStride()];
                     }
                     celBrush.Data[index] = brushColor;
                 }
@@ -189,17 +189,17 @@ void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float a
 
 void addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
 {
-    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, false, nullptr);
+    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, false, nullptr, nullptr);
 }
 
-void addBrushParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, Cel *brushCel)
+void addBrushParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, Cel *brushCel, Cel *sourceCel)
 {
-    _addParticle(cel, point, vx, vy, ax, ay, lifetime, 0, false, brushCel);
+    _addParticle(cel, point, vx, vy, ax, ay, lifetime, 0, false, brushCel, sourceCel);
 }
 
 void addLineParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
 {
-    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, true, nullptr);
+    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, true, nullptr, nullptr);
 }
 
 void SimulateParticlesForCel(Loop &loop, int celIndexStart)
@@ -250,6 +250,7 @@ void SimulateParticlesForCelOneAtATime(Loop &loop, int celIndexStart)
 
 
 
+
 RasterComponent *g_raster;
 void simulateParticles()
 {
@@ -277,6 +278,41 @@ void simulateParticlesOneAtATime()
     }
 }
 
+void SimulateOneParticle(Loop &loop, int celIndexStart, Particle &p)
+{
+    int celIndex = celIndexStart;
+    while (!IsParticleDead(p))
+    {
+        celIndex %= loop.Cels.size();
+        DrawParticle(p, loop.Cels[celIndex]);
+        ProcessParticle(p);
+        celIndex++;
+    }
+}
+
+void simulateParticlesRoundRobin()
+{
+    for (Loop &loop : g_raster->Loops)
+    {
+        bool hadSome = true;
+        while (hadSome)
+        {
+            hadSome = false;
+            int celIndex = 0;
+            for (int celIndex = 0; celIndex < loop.celCount(); celIndex++)
+            {
+                std::vector<Particle> &particles = g_particles[&loop.Cels[celIndex]];
+                if (!particles.empty())
+                {
+                    SimulateOneParticle(loop, celIndex, particles.back());
+                    particles.pop_back();
+                    hadSome = true;
+                }
+            }
+        }
+    }
+}
+
 void drawPixel(Cel *cel, int x, int y, byte color)
 {
     x = max(0, min(x, cel->size.cx - 1));
@@ -286,9 +322,9 @@ void drawPixel(Cel *cel, int x, int y, byte color)
 
 std::unique_ptr<chaiscript::ChaiScript> g_chai;
 
-int randomRange(int min, int maxExclusive)
+int randomRange(int min, int max)
 {
-    std::uniform_int_distribution<int32_t> distribution(min, maxExclusive - 1);
+    std::uniform_int_distribution<int32_t> distribution(min, max);
     return distribution(g_mt);
 }
 float randomRangeF(float min, float max)
@@ -325,6 +361,8 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
         g_chai->add(chaiscript::fun(&addBrushParticle), "addBrushParticle");
         g_chai->add(chaiscript::fun(&simulateParticles), "simulateParticles");
         g_chai->add(chaiscript::fun(&simulateParticlesOneAtATime), "simulateParticlesOneAtATime");
+        g_chai->add(chaiscript::fun(&simulateParticlesRoundRobin), "simulateParticlesRoundRobin");
+        
 
         g_chai->add(chaiscript::fun(&point16::x), "x");
         g_chai->add(chaiscript::fun(&point16::y), "y");
