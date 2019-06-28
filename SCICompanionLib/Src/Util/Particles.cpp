@@ -20,6 +20,11 @@
 
 struct Particle
 {
+    Particle() = default;
+    Particle(const Particle &p) = delete;
+    Particle(Particle &&p) = default;
+    Particle& operator=(Particle&&) = default;
+
     float x;
     float y;
     float ax;
@@ -34,6 +39,8 @@ struct Particle
 
     float xPrev;
     float yPrev;
+
+    std::unique_ptr<Cel> mask;
 };
 
 std::random_device g_rd;
@@ -99,26 +106,50 @@ void bresenham(Cel &cel, byte color, float x1, float y1, float x2, float y2)
 
 void DrawParticle(const Particle &p, Cel &cel)
 {
-    int x = max(0, min(cel.size.cx - 1, p.x));
-    int y = max(0, min(cel.size.cy - 1, p.y));
-
-    if (p.line)
+    if (p.mask)
     {
-        int xPrev = max(0, min(cel.size.cx - 1, p.xPrev));
-        int yPrev = max(0, min(cel.size.cy - 1, p.yPrev));
-        bresenham(cel, p.color, xPrev, yPrev, x, y);
+        Cel &celBrush = *p.mask;
+        for (int yBase = 0; yBase < celBrush.size.cy; yBase++)
+        {
+            for (int xBase = 0; xBase < celBrush.size.cx; xBase++)
+            {
+                int index = xBase + yBase * celBrush.GetStride();
+                if (celBrush.Data[index] != celBrush.TransparentColor)
+                {
+                    int xTarget = p.x + xBase + celBrush.placement.x; // REVIEW: may not be right
+                    int yTarget = p.y + yBase + celBrush.placement.y;
+                    if (xTarget >= 0 && yTarget >= 0 && xTarget < cel.size.cx && yTarget < cel.size.cy)
+                    {
+                        cel.Data[yTarget * cel.GetStride() + xTarget] = celBrush.Data[index];
+                    }
+                }
+            }
+        }
     }
     else
     {
-        cel.Data[y * cel.GetStride() + x] = p.color;
+        int x = max(0, min(cel.size.cx - 1, p.x));
+        int y = max(0, min(cel.size.cy - 1, p.y));
+
+        if (p.line)
+        {
+            int xPrev = max(0, min(cel.size.cx - 1, p.xPrev));
+            int yPrev = max(0, min(cel.size.cy - 1, p.yPrev));
+            bresenham(cel, p.color, xPrev, yPrev, x, y);
+        }
+        else
+        {
+            cel.Data[y * cel.GetStride() + x] = p.color;
+        }
     }
 }
 
 std::map<Cel*, std::vector<Particle>> g_particles;
 
-void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color, bool isLine)
+void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color, bool isLine, Cel *brushCelTemplate)
 {
-    Particle p;
+    g_particles[cel].emplace_back();
+    Particle &p = g_particles[cel].back();
     p.x = point.x;
     p.y = point.y;
     p.ax = ax;
@@ -130,17 +161,45 @@ void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float a
     p.line = isLine;
     p.xPrev = p.x;
     p.yPrev = p.y;
-    g_particles[cel].push_back(p);
+    if (brushCelTemplate)
+    {
+        p.mask = std::make_unique<Cel>(*brushCelTemplate);
+        // Fill it in with actual pixel values!
+        Cel &celBrush = *p.mask;
+        for (int yBase = 0; yBase < celBrush.size.cy; yBase++)
+        {
+            for (int xBase = 0; xBase < celBrush.size.cx; xBase++)
+            {
+                int index = xBase + yBase * celBrush.GetStride();
+                if (celBrush.Data[index] != celBrush.TransparentColor)
+                {
+                    int xTarget = p.x + xBase + celBrush.placement.x; // REVIEW: may not be right
+                    int yTarget = p.y + yBase + celBrush.placement.y;
+                    byte brushColor = celBrush.TransparentColor;
+                    if (xTarget >= 0 && yTarget >= 0 && xTarget < cel->size.cx && yTarget < cel->size.cy)
+                    {
+                        brushColor = cel->Data[xTarget + yTarget * cel->GetStride()];
+                    }
+                    celBrush.Data[index] = brushColor;
+                }
+            }
+        }
+    }
 }
 
 void addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
 {
-    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, false);
+    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, false, nullptr);
+}
+
+void addBrushParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, Cel *brushCel)
+{
+    _addParticle(cel, point, vx, vy, ax, ay, lifetime, 0, false, brushCel);
 }
 
 void addLineParticle(Cel *cel, point16 point, float vx, float vy, float ax, float ay, int lifetime, byte color)
 {
-    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, true);
+    _addParticle(cel, point, vx, vy, ax, ay, lifetime, color, true, nullptr);
 }
 
 void SimulateParticlesForCel(Loop &loop, int celIndexStart)
@@ -159,12 +218,38 @@ void SimulateParticlesForCel(Loop &loop, int celIndexStart)
                 DrawParticle(p, loop.Cels[celIndex]);
                 ProcessParticle(p);
             }
-            particles.erase(std::remove_if(particles.begin(), particles.end(), IsParticleDead), particles.end());
+            auto it = std::remove_if(particles.begin(), particles.end(), IsParticleDead);
+            particles.erase(it, particles.end());
 
             celIndex++;
         }
     }
 }
+
+void SimulateParticlesForCelOneAtATime(Loop &loop, int celIndexStart)
+{
+    Cel *startCel = &loop.Cels[celIndexStart];
+    if (g_particles.find(startCel) != g_particles.end())
+    {
+        std::vector<Particle> &particles = g_particles[startCel];
+
+        for (Particle &p : particles)
+        {
+            int celIndex = celIndexStart;
+            while (!IsParticleDead(p))
+            {
+                celIndex %= loop.Cels.size();
+                DrawParticle(p, loop.Cels[celIndex]);
+                ProcessParticle(p);
+                celIndex++;
+            }
+        }
+        particles.clear();
+    }
+}
+
+
+
 RasterComponent *g_raster;
 void simulateParticles()
 {
@@ -175,6 +260,18 @@ void simulateParticles()
         {
             SimulateParticlesForCel(loop, celIndex);
 
+            celIndex++;
+        }
+    }
+}
+void simulateParticlesOneAtATime()
+{
+    for (Loop &loop : g_raster->Loops)
+    {
+        int celIndex = 0;
+        for (Cel &cel : loop.Cels)
+        {
+            SimulateParticlesForCelOneAtATime(loop, celIndex);
             celIndex++;
         }
     }
@@ -225,7 +322,9 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
 
         g_chai->add(chaiscript::fun(&addParticle), "addParticle");
         g_chai->add(chaiscript::fun(&addLineParticle), "addLineParticle");
+        g_chai->add(chaiscript::fun(&addBrushParticle), "addBrushParticle");
         g_chai->add(chaiscript::fun(&simulateParticles), "simulateParticles");
+        g_chai->add(chaiscript::fun(&simulateParticlesOneAtATime), "simulateParticlesOneAtATime");
 
         g_chai->add(chaiscript::fun(&point16::x), "x");
         g_chai->add(chaiscript::fun(&point16::y), "y");
@@ -271,6 +370,10 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
     catch (const chaiscript::exception::eval_error &e)
     {
         AfxMessageBox(e.pretty_print().c_str(), MB_OK | MB_ICONWARNING);
+    }
+    catch (const chaiscript::exception::dispatch_error &e)
+    {
+        AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
     }
 
     // So weird we need to do this.
@@ -321,29 +424,34 @@ Pixel Cel::getRandomPixel()
 std::vector<Pixel> Cel::selectPixelsOfColor(byte color)
 {
     std::vector<Pixel> pixels;
-    for (size_t i = 0; i < Data.size(); i++)
+    for (int y = 0; y < size.cy; y++)
     {
-        if (Data[i] == color)
+        for (int x = 0; x < size.cx; x++)
         {
-            int16_t x = (int16_t)(i % GetStride());
-            int16_t y = (int16_t)(i / GetStride());
-            pixels.push_back(Pixel{ point16(x, y), color });
+            if (Data[y * GetStride() + x] == color)
+            {
+                pixels.push_back(Pixel{ point16(x, y), color });
+            }
         }
     }
     return pixels;
 }
-std::vector<Pixel> Cel::selectPixelsNotOfColor(byte color)
+std::vector<Pixel> Cel::selectPixelsNotOfColor(byte badColor)
 {
     std::vector<Pixel> pixels;
-    for (size_t i = 0; i < Data.size(); i++)
+
+    for (int y = 0; y < size.cy; y++)
     {
-        if (Data[i] != color)
+        for (int x = 0; x < size.cx; x++)
         {
-            int16_t x = (int16_t)(i % GetStride());
-            int16_t y = (int16_t)(i / GetStride());
-            pixels.push_back(Pixel{ point16(x, y), Data[i] });
+            byte color = Data[y * GetStride() + x];
+            if (badColor != color)
+            {
+                pixels.push_back(Pixel{ point16(x, y), color });
+            }
         }
     }
+
     return pixels;
 }
 
@@ -375,3 +483,5 @@ Cel *RasterComponent::getCel(int loop, int cel)
 {
     return &GetCel(CelIndex(loop, cel));
 }
+
+
