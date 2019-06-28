@@ -116,8 +116,8 @@ void DrawParticle(const Particle &p, Cel &cel)
                 int index = xBase + yBase * celBrush.GetStride();
                 if (celBrush.Data[index] != celBrush.TransparentColor)
                 {
-                    int xTarget = p.x + xBase + celBrush.placement.x; // REVIEW: may not be right
-                    int yTarget = p.y + yBase + celBrush.placement.y;
+                    int xTarget = p.x + xBase + celBrush.placement.x - celBrush.size.cx / 2 ; // REVIEW: may not be right
+                    int yTarget = p.y + yBase + celBrush.placement.y - celBrush.size.cy + 1;
                     if (xTarget >= 0 && yTarget >= 0 && xTarget < cel.size.cx && yTarget < cel.size.cy)
                     {
                         cel.Data[yTarget * cel.GetStride() + xTarget] = celBrush.Data[index];
@@ -173,8 +173,8 @@ void _addParticle(Cel *cel, point16 point, float vx, float vy, float ax, float a
                 int index = xBase + yBase * celBrush.GetStride();
                 if (celBrush.Data[index] != celBrush.TransparentColor)
                 {
-                    int xTarget = p.x + xBase + celBrush.placement.x; // REVIEW: may not be right
-                    int yTarget = p.y + yBase + celBrush.placement.y;
+                    int xTarget = p.x + xBase + celBrush.placement.x - celBrush.size.cx / 2; // REVIEW: may not be right
+                    int yTarget = p.y + yBase + celBrush.placement.y - celBrush.size.cy + 1;
                     byte brushColor = celBrush.TransparentColor;
                     if (xTarget >= 0 && yTarget >= 0 && xTarget < brushSourceCel->size.cx && yTarget < brushSourceCel->size.cy)
                     {
