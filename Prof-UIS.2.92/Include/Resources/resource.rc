@@ -87,11 +87,6 @@ IDR_EXT_DEFAULT_CSS     CSS     DISCARDABLE     "Resources\\CSS\\IDR_EXT_DEFAULT
 #include "Res2007\\Res2007.rc"
 
 /////////////////////////////////////////////////////////////////////////////
-// Resources for Office 2010 paint manager
-
-#include "Res2010office\\Res2010office.rc"
-
-/////////////////////////////////////////////////////////////////////////////
 // Resources for paint manager switching controls
 
 #include "ResPM\\ResPM.rc"

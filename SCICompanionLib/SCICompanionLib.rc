@@ -616,10 +616,6 @@ BEGIN
         MENUITEM "&Rebuild resources",          ID_TOOLS_REBUILDRESOURCES
         MENUITEM "Repackage a&udio",            ID_TOOLS_REPACKAGEAUDIO
         MENUITEM SEPARATOR
-        POPUP "UI theme"
-        BEGIN
-            MENUITEM "<<prof uis theme>>",          29999
-        END
         MENUITEM "&Preferences",                ID_PREFERENCES
         MENUITEM "&Audio preferences",          ID_TOOLS_AUDIOPREFERENCES
         MENUITEM SEPARATOR

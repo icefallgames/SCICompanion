@@ -12493,10 +12493,6 @@ CExtPaintManager::e_paint_manager_name_t ePMN =
 // 			else
 // 				rcInner.OffsetRect( -2, 0 );
 			UINT nMetric = 0;
-			if(		ePMN == CExtPaintManager::Office2000
-				||	ePMN == CExtPaintManager::OfficeXP
-				)
-				nMetric = 1;
 			if( bHorz )
 				rcInner.OffsetRect( 0, 2 - nMetric );
 			else
@@ -12553,21 +12549,6 @@ CSize sizeTBBRight( 0, 0 );
 				ptLimitBR.x,
 				ptLimitBR.y
 				);
-			if(		bMultiRowLayout
-				&&	(	ePMN == CExtPaintManager::Office2000
-					||	ePMN == CExtPaintManager::OfficeXP
-					||	ePMN == CExtPaintManager::ProfSkinPainter
-					)
-				)
-			{
-				INT nMetric = 1;
-				if( ePMN == CExtPaintManager::ProfSkinPainter )
-					nMetric = 2;
-				if( bHorz )
-					rcCalcRightBtn.OffsetRect( 0, -nMetric );
-				else
-					rcCalcRightBtn.OffsetRect( nMetric, 0 );
-			}
 			m_pRightBtn->SetRect( rcCalcRightBtn );
 			m_pRightBtn->Show( true );
 			const CSize _sizeRoundedAreaMerics =
@@ -12579,28 +12560,6 @@ CSize sizeTBBRight( 0, 0 );
 		} // else from if( bFloating || m_bPaletteMode )
 	} // if( m_pRightBtn != NULL )
 
-//	if(		bMultiRowLayout
-//			//&& (! m_bInsideCalcLayout )
-//		&&	m_pDockBar != NULL
-//		&&	(! IsFloating() )	
-//		)
-//	{
-//		CRect rcWrap;
-//		if( _GetFullRowMode() )
-//			m_pDockBar->GetClientRect( &rcWrap );
-//		else
-//			rcWrap = rcInner;
-//		//if( IsDockedHorizontally() )
-//		//	_WrapToolBarH( rcWrap.Width(), rcWrap.Height() );
-//		//else
-//		//	_WrapToolBarV( rcWrap.Height() );
-//		BOOL bVert = IsDockedVertically();
-//		_SizeToolBar(
-//			bVert ? rcWrap.Height() : rcWrap.Width(),
-//			bVert
-//			);
-//	}
-
 CArray < CRect, CRect >	arrBtnRects;
 CArray < BOOL, BOOL >	arrBtnVisibility;
 CArray < BOOL, BOOL >	arrBtnSeparators;
@@ -12610,21 +12569,7 @@ CArray < BOOL, BOOL >	arrBtnSeparators;
 	arrBtnSeparators.SetSize( nReviewCount );
 //	arrBtnEnabled.SetSize( nReviewCount );
 CSize sizeLastWrappedRow( 0, 0 );
-//bool bDockerTrasparentMode =
-//		PmBridge_GetPM()->GetCb2DbTransparentMode( this );
-//	if( (! bFloating ) && bMultiRowLayout )
-//	{
-//		if( bHorz && bDockerTrasparentMode )
-//			ptLimitTL.y += 1;
-//		else if( !bHorz )
-//		{
-//			if( bDockerTrasparentMode )
-//				ptLimitBR.x -= 2;
-//			else
-//				ptLimitBR.x -= 1;
-//			ptLimitTL.y -= 1;
-//		}
-//	} // if( (! bFloating ) && bMultiRowLayout )
+
 CPoint ptBtnPosCurr( ptLimitTL );
 INT nRowExtent = sizeDefButton.cy;
 	if( bMultiRowLayout && (!bHorz) )

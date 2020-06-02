@@ -15,116 +15,23 @@ IDB_EXT_PM_32x32          BITMAP  MOVEABLE PURE "Resources\\ResPM\\IDB_EXT_PM_32
 
 IDB_EXT_PM_16x16 TOOLBAR MOVEABLE PURE  16, 16
 BEGIN
-    BUTTON      ID_EXT_PM_THEME_Office2000
-    BUTTON      ID_EXT_PM_THEME_OfficeXP
-    BUTTON      ID_EXT_PM_THEME_Office2003
-    BUTTON      ID_EXT_PM_THEME_Office2003NoThemes
-    BUTTON      ID_EXT_PM_THEME_Studio2005
-    BUTTON      ID_EXT_PM_THEME_Studio2008
     BUTTON      ID_EXT_PM_THEME_NativeXP
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Office2007_R1
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_LunaBlue
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_Obsidian
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_Silver
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_LunaBlue
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_Obsidian
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_Silver
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Office2010_R1
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Blue
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Silver
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Black
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Studio2010
-//    SEPARATOR
-//    BUTTON      ID_EXT_PM_THEME_LOAD_XML_SKIN_FILE
-//    BUTTON      ID_EXT_PM_THEME_LOAD_BINARY_SKIN_FILE
 END
 
 IDB_EXT_PM_24x24 TOOLBAR MOVEABLE PURE  24, 24
 BEGIN
-    BUTTON      ID_EXT_PM_THEME_Office2000
-    BUTTON      ID_EXT_PM_THEME_OfficeXP
-    BUTTON      ID_EXT_PM_THEME_Office2003
-    BUTTON      ID_EXT_PM_THEME_Office2003NoThemes
-    BUTTON      ID_EXT_PM_THEME_Studio2005
-    BUTTON      ID_EXT_PM_THEME_Studio2008
     BUTTON      ID_EXT_PM_THEME_NativeXP
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Office2007_R1
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_LunaBlue
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_Obsidian
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_Silver
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_LunaBlue
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_Obsidian
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_Silver
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Office2010_R1
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Blue
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Silver
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Black
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Studio2010
-//    SEPARATOR
-//    BUTTON      ID_EXT_PM_THEME_LOAD_XML_SKIN_FILE
-//    BUTTON      ID_EXT_PM_THEME_LOAD_BINARY_SKIN_FILE
 END
 
 IDB_EXT_PM_32x32 TOOLBAR MOVEABLE PURE  32, 32
 BEGIN
-    BUTTON      ID_EXT_PM_THEME_Office2000
-    BUTTON      ID_EXT_PM_THEME_OfficeXP
-    BUTTON      ID_EXT_PM_THEME_Office2003
-    BUTTON      ID_EXT_PM_THEME_Office2003NoThemes
-    BUTTON      ID_EXT_PM_THEME_Studio2005
-    BUTTON      ID_EXT_PM_THEME_Studio2008
     BUTTON      ID_EXT_PM_THEME_NativeXP
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Office2007_R1
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_LunaBlue
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_Obsidian
-    BUTTON      ID_EXT_PM_THEME_Office2007_R2_Silver
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_LunaBlue
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_Obsidian
-    BUTTON      ID_EXT_PM_THEME_Office2007_R3_Silver
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Office2010_R1
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Blue
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Silver
-    BUTTON      ID_EXT_PM_THEME_Office2010_R2_Black
-    SEPARATOR
-    BUTTON      ID_EXT_PM_THEME_Studio2010
-//    SEPARATOR
-//    BUTTON      ID_EXT_PM_THEME_LOAD_XML_SKIN_FILE
-//    BUTTON      ID_EXT_PM_THEME_LOAD_BINARY_SKIN_FILE
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE DISCARDABLE
 BEGIN
     ID_EXT_PM_MENU_MARKER_THEME_CHANGER     "<<< Prof-UIS Themes List >>>"
-    ID_EXT_PM_THEME_Office2000              "Office 2000"
-    ID_EXT_PM_THEME_OfficeXP                "Office XP / Visual Studio .NET"
-    ID_EXT_PM_THEME_Office2003              "Office 2003"
-    ID_EXT_PM_THEME_Office2003NoThemes      "Office 2003 (without Windows XP theme colors)"
-    ID_EXT_PM_THEME_Studio2005              "Visual Studio 2005"
-    ID_EXT_PM_THEME_Studio2008              "Visual Studio 2008"
     ID_EXT_PM_THEME_NativeXP                "Native Windows XP / Vista / 7"
-    ID_EXT_PM_THEME_Office2007_R1           "Office 2007 (Release 1)"
-    ID_EXT_PM_THEME_Office2007_R2_LunaBlue  "Office 2007 (Release 2) Luna-Blue"
-    ID_EXT_PM_THEME_Office2007_R2_Obsidian  "Office 2007 (Release 2) Obsidian"
-    ID_EXT_PM_THEME_Office2007_R2_Silver    "Office 2007 (Release 2) Silver"
-    ID_EXT_PM_THEME_Office2007_R3_LunaBlue  "Office 2007 (Release 3) Luna-Blue"
-    ID_EXT_PM_THEME_Office2007_R3_Obsidian  "Office 2007 (Release 3) Obsidian"
-    ID_EXT_PM_THEME_Office2007_R3_Silver    "Office 2007 (Release 3) Silver"
-    ID_EXT_PM_THEME_Office2010_R1           "Office 2010 (Release 1)"
-    ID_EXT_PM_THEME_Office2010_R2_Blue      "Office 2010 (Release 2) Blue"
-    ID_EXT_PM_THEME_Office2010_R2_Silver    "Office 2010 (Release 2) Silver"
-    ID_EXT_PM_THEME_Office2010_R2_Black     "Office 2010 (Release 2) Black"
-    ID_EXT_PM_THEME_Studio2010              "Visual Studio 2010"
-    ID_EXT_PM_THEME_ProfSkinPainter         "Skin"
-    ID_EXT_PM_THEME_LOAD_XML_SKIN_FILE      "Load Skin From .XML File"
-    ID_EXT_PM_THEME_LOAD_BINARY_SKIN_FILE   "Load Skin From .SKIN File"
 END
 
 #endif    // English (U.S.) resources

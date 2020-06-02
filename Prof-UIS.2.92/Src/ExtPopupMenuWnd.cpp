@@ -4003,15 +4003,8 @@ INT nMenuMinHeight = pPM->UiScalingDo( __EXT_MENU_MIN_HEIGHT, CExtPaintManager::
 //			m_sizeItem.cx = _size.cx;
 		if( m_sizeItem.cy < _size.cy )
 			m_sizeItem.cy = _size.cy;
-		if( pPM->OnQueryPaintManagerName() == CExtPaintManager::ProfSkinPainter )
-		{
-			m_sizeItem.cx += _size.cx;
-		}
-		else
-		{
-			if( m_sizeItem.cx < _size.cx )
-				m_sizeItem.cx = _size.cx;
-		}
+		if( m_sizeItem.cx < _size.cx )
+			m_sizeItem.cx = _size.cx;
 	} // if( IsToolButton() )
 }
 

@@ -99,10 +99,6 @@
 	#include <Resources/Res2007/Res2007.h>
 #endif
 
-#if (!defined __PROF_UIS_RES_2010_OFFICE_H)
-	#include <Resources/Res2010office/Res2010office.h>
-#endif
-
 #if (!defined __EXT_SCROLLWND_H)
 	#include <ExtScrollWnd.h>
 #endif 
@@ -213,28 +209,7 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_SERIAL(  CExtPaintManager,                         CObject,                                  VERSIONABLE_SCHEMA|1 );
 IMPLEMENT_SERIAL(  CExtPaintManagerXP,                       CExtPaintManager,                         VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2003,               CExtPaintManagerXP,                       VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2003NoThemes,       CExtPaintManagerOffice2003,               VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerStudio2005,               CExtPaintManagerOffice2003,               VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerStudio2008,               CExtPaintManagerStudio2005,               VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerStudio2010,               CExtPaintManagerStudio2005,               VERSIONABLE_SCHEMA|1 );
 IMPLEMENT_SERIAL(  CExtPaintManagerNativeXP,                 CExtPaintManager,                         VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_DYNAMIC( CExtPaintManagerOffice2007_Impl,          CExtPaintManagerOffice2003 )
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_R1,            CExtPaintManagerOffice2007_Impl,          VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_R2_LunaBlue,   CExtPaintManagerOffice2007_Impl,          VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_R2_Obsidian,   CExtPaintManagerOffice2007_Impl,          VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_R2_Silver,     CExtPaintManagerOffice2007_Impl,          VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_R3_LunaBlue,   CExtPaintManagerOffice2007_R2_LunaBlue,   VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_R3_Obsidian,   CExtPaintManagerOffice2007_R2_Obsidian,   VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_R3_Silver,     CExtPaintManagerOffice2007_R2_Silver,     VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_Blue,          CExtPaintManagerOffice2007_R3_LunaBlue,   VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_Black,         CExtPaintManagerOffice2007_R3_Obsidian,   VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2007_Silver,        CExtPaintManagerOffice2007_R3_Silver,     VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_DYNAMIC( CExtPaintManagerOffice2010_Impl,          CExtPaintManagerOffice2007_Impl )
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2010_R1,            CExtPaintManagerOffice2010_Impl,          VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2010_R2_Blue,       CExtPaintManagerOffice2010_Impl,          VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2010_R2_Silver,     CExtPaintManagerOffice2010_Impl,          VERSIONABLE_SCHEMA|1 );
-IMPLEMENT_SERIAL(  CExtPaintManagerOffice2010_R2_Black,      CExtPaintManagerOffice2010_Impl,          VERSIONABLE_SCHEMA|1 );
 
 CExtPaintManager::CExtPaintManagerAutoPtr g_PaintManager;
 
@@ -8170,11 +8145,7 @@ INT nBPP = CExtPaintManager::stat_GetBPP();
 			))
 		)
 		m_eResizablePanelDockingType = INT(CExtControlBar::__RESIZABLE_DOCKING_TYPE_STUDIO_2005);
-	if(		nBPP >= 24
-		&&	(	pPM->IsKindOf( RUNTIME_CLASS(CExtPaintManagerOffice2007_Impl) )
-			||	pPM->IsKindOf( RUNTIME_CLASS(CExtPaintManagerStudio2010) )
-			)
-		)
+	if(		nBPP >= 24 )
 		m_eResizablePanelDockingType = INT(CExtControlBar::__RESIZABLE_DOCKING_TYPE_STUDIO_2010);
 	if( eDockMarkerType != __EDMT_EMPTY )
 		{ VERIFY( Create( false, eDockMarkerType, rcScreen ) ); }
@@ -10969,136 +10940,6 @@ void CExtPaintManagerXP::DockMarker_AdjustBmps(
 		);
 }
 
-void CExtPaintManagerOffice2003::DockMarker_AdjustBmps(
-	CExtPaintManager::eDockMarkerType_t eDockMarkerType,
-	CExtBitmap & bmpIn,
-	COLORREF clrTransparentIn,
-	CExtBitmap & bmpOut,
-	COLORREF clrTransparentOut
-	)
-{
-	ASSERT_VALID( this );
-
-	if( IsHighContrast() )
-	{
-		CExtPaintManagerXP::DockMarker_AdjustBmps(
-			eDockMarkerType,
-			bmpIn,
-			clrTransparentIn,
-			bmpOut,
-			clrTransparentOut
-			);
-		return;
-	}
-
-	if( ! DockMarker_IsAdjustBmpsRequired( eDockMarkerType ) )
-		return;
-e_system_theme_t eCurrentTheme = OnQuerySystemTheme();
-	if(		eCurrentTheme == ThemeUnknown
-		||	stat_GetBPP() <= 8
-		)
-	{
-		CExtPaintManagerXP::DockMarker_AdjustBmps(
-			eDockMarkerType,
-			bmpIn,
-			clrTransparentIn,
-			bmpOut,
-			clrTransparentOut
-			);
-		return;
-	} // if( eCurrentTheme == ThemeUnknown )
-	if( eDockMarkerType == CExtPaintManager::__EDMT_2005_CENTER )
-		return;
-	VERIFY(
-		bmpOut.AdjustHLS(
-			clrTransparentOut,
-			RGB(0,0,0),
-			0.0,
-			0.35,
-			0.0
-			)
-		);
-	if( eCurrentTheme == ThemeLunaOlive )
-	{
-		VERIFY(
-			bmpIn.AdjustHLS(
-				clrTransparentIn,
-				RGB(0,0,0),
-				0.60,
-				0.0,
-				-0.45
-				)
-			);
-		VERIFY(
-			bmpOut.AdjustHLS(
-				clrTransparentOut,
-				RGB(0,0,0),
-				0.60,
-				0.0,
-				-0.45
-				)
-			);
-		return;
-	} // if( eCurrentTheme == ThemeLunaOlive )
-	if( eCurrentTheme == ThemeLunaSilver )
-	{
-		VERIFY(
-			bmpIn.AdjustHLS(
-				clrTransparentIn,
-				RGB(0,0,0),
-				0.0,
-				0.0,
-				-0.85
-				)
-			);
-		VERIFY(
-			bmpOut.AdjustHLS(
-				clrTransparentOut,
-				RGB(0,0,0),
-				0.0,
-				0.0,
-				-0.85
-				)
-			);
-		return;
-	} // if( eCurrentTheme == ThemeLunaSilver )
-}
-
-void CExtPaintManagerStudio2005::DockMarker_AdjustBmps(
-	CExtPaintManager::eDockMarkerType_t eDockMarkerType,
-	CExtBitmap & bmpIn,
-	COLORREF clrTransparentIn,
-	CExtBitmap & bmpOut,
-	COLORREF clrTransparentOut
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT( ! bmpIn.IsEmpty() );
-	ASSERT( ! bmpOut.IsEmpty() );
-
-	if( IsHighContrast() )
-	{
-		CExtPaintManagerXP::DockMarker_AdjustBmps(
-			eDockMarkerType,
-			bmpIn,
-			clrTransparentIn,
-			bmpOut,
-			clrTransparentOut
-			);
-		return;
-	}
-
-	if( ! DockMarker_IsAdjustBmpsRequired( eDockMarkerType ) )
-		return;
-	CExtPaintManagerOffice2003::DockMarker_AdjustBmps(
-		eDockMarkerType,
-		bmpIn,
-		clrTransparentIn,
-		bmpOut,
-		clrTransparentOut
-		);
-}
-
 void CExtPaintManager::DockMarker_AdjustHighlightedArea(
 	COLORREF * pClrSurface,
 	int nClrSurfaceDX,
@@ -11234,68 +11075,6 @@ CRect rcMainArea( 0, 0, nClrSurfaceDX, nClrSurfaceDY );
 			} // for( int nX = 0; nX < bih.biWidth; nX++, nPixelIdx++ )
 		} // for( int nY = 0; nY < bih.biHeight; nY++ )
 	} // else from if( stat_GetBPP() > 8 )
-}
-
-void CExtPaintManagerOffice2003::DockMarker_AdjustHighlightedArea(
-	COLORREF * pClrSurface,
-	int nClrSurfaceDX,
-	int nClrSurfaceDY,
-	bool bTabShape,
-	bool bTabsAtTop,
-	const CRect & rcTabMainArea,
-	const CRect & rcTabBottomMiddleArea,
-	COLORREF clrAdjustMain, // = COLORREF(-1L)
-	COLORREF clrAdjustBorder, // = COLORREF(-1L)
-	int nBorderMetric // = 2
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT( nBorderMetric >= 0 );
-
-	if( IsHighContrast() )
-	{
-		CExtPaintManagerXP::DockMarker_AdjustHighlightedArea(
-			pClrSurface,
-			nClrSurfaceDX,
-			nClrSurfaceDY,
-			bTabShape,
-			bTabsAtTop,
-			rcTabMainArea,
-			rcTabBottomMiddleArea,
-			clrAdjustMain,
-			clrAdjustBorder,
-			nBorderMetric
-			);
-		return;
-	}
-
-	if( clrAdjustMain == COLORREF(-1L) && stat_GetBPP() > 8 )
-	{
-		e_system_theme_t eCurrentTheme = OnQuerySystemTheme();
-		if(		eCurrentTheme == ThemeLunaBlue
-			||	eCurrentTheme == ThemeLunaRoyale       // +2.87
-			||	eCurrentTheme == ThemeVistaOrLaterUX   // +2.87
-			||	eCurrentTheme == ThemeVistaOrLaterDWM  // +2.87
-			)
-			clrAdjustMain = RGB( 0, 0, 128 );
-		else if( eCurrentTheme == ThemeLunaOlive )
-			clrAdjustMain = RGB( 0x0AA, 0x0BB, 0x083 );
-		else if( eCurrentTheme == ThemeLunaSilver )
-			clrAdjustMain = RGB( 96, 96, 144 );
-	}
-
-	CExtPaintManagerXP::DockMarker_AdjustHighlightedArea(
-		pClrSurface,
-		nClrSurfaceDX,
-		nClrSurfaceDY,
-		bTabShape,
-		bTabsAtTop,
-		rcTabMainArea,
-		rcTabBottomMiddleArea,
-		clrAdjustMain,
-		clrAdjustBorder,
-		nBorderMetric
-		);
 }
 
 void CExtPaintManager::DockMarker_AdjustHighlightedLayer(
@@ -11481,147 +11260,6 @@ bool bRetVal =
 	dc.SelectObject( hOld );
 }
 
-void CExtPaintManagerOffice2003::DockMarker_AdjustHighlightedLayer(
-	HWND hWnd,
-	int nDX,
-	int nDY,
-	bool bTabShape,
-	bool bTabsAtTop,
-	const CRect & rcTabMainArea,
-	const CRect & rcTabBottomMiddleArea,
-	COLORREF clrAdjustMain, // = COLORREF(-1L)
-	COLORREF clrAdjustBorder, // = COLORREF(-1L)
-	int nBorderMetric // = 2
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT( hWnd != NULL && ::IsWindow( hWnd ) );
-	ASSERT( nBorderMetric >= 0 );
-	ASSERT( g_PaintManager.m_pfnUpdateLayeredWindow != NULL );
-
-	if( IsHighContrast() )
-	{
-		CExtPaintManagerXP::DockMarker_AdjustHighlightedLayer(
-			hWnd,
-			nDX,
-			nDY,
-			bTabShape,
-			bTabsAtTop,
-			rcTabMainArea,
-			rcTabBottomMiddleArea,
-			clrAdjustMain,
-			clrAdjustBorder,
-			nBorderMetric
-			);
-		return;
-	}
-
-	if( clrAdjustMain == COLORREF(-1L) && stat_GetBPP() > 8 )
-	{
-		e_system_theme_t eCurrentTheme = OnQuerySystemTheme();
-		if(		eCurrentTheme == ThemeLunaBlue
-			||	eCurrentTheme == ThemeLunaRoyale       // +2.87
-			||	eCurrentTheme == ThemeVistaOrLaterUX   // +2.87
-			||	eCurrentTheme == ThemeVistaOrLaterDWM  // +2.87
-			)
-			clrAdjustMain = RGB( 0, 0, 128 );
-		else if( eCurrentTheme == ThemeLunaOlive )
-			clrAdjustMain = RGB( 0x0AA, 0x0BB, 0x083 );
-		else if( eCurrentTheme == ThemeLunaSilver )
-			clrAdjustMain = RGB( 96, 96, 144 );
-	}
-
-	CExtPaintManagerXP::DockMarker_AdjustHighlightedLayer(
-		hWnd,
-		nDX,
-		nDY,
-		bTabShape,
-		bTabsAtTop,
-		rcTabMainArea,
-		rcTabBottomMiddleArea,
-		clrAdjustMain,
-		clrAdjustBorder,
-		nBorderMetric
-		);
-}
-
-BYTE CExtPaintManagerStudio2008::DockMarker_GetAlpha(
-	bool bHighlight,
-	CObject * pHelperSrc,
-	LPARAM lParam // = 0L
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT_VALID( this );
-	if(		(! g_PaintManager.m_bIsWin2000orLater )
-		||	stat_GetBPP() < 24
-		||	IsHighContrast()
-		)
-		return
-			CExtPaintManagerStudio2005::DockMarker_GetAlpha(
-				bHighlight,
-				pHelperSrc,
-				lParam
-				);
-	return bHighlight ? BYTE(255) : BYTE(144);
-}
-
-BYTE CExtPaintManagerStudio2010::DockMarker_GetAlpha(
-	bool bHighlight,
-	CObject * pHelperSrc,
-	LPARAM lParam // = 0L
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT_VALID( this );
-	if(		(! g_PaintManager.m_bIsWin2000orLater )
-		||	stat_GetBPP() < 24
-		||	IsHighContrast()
-		)
-		return
-			CExtPaintManagerStudio2005::DockMarker_GetAlpha(
-				bHighlight,
-				pHelperSrc,
-				lParam
-				);
-	return bHighlight ? BYTE(255) : BYTE(144);
-}
-
-bool CExtPaintManagerStudio2008::DockMarker_IsAdjustBmpsRequired(
-	eDockMarkerType_t eDockMarkerType
-	) const
-{
-	ASSERT_VALID( this );
-	if(		(! g_PaintManager.m_bIsWin2000orLater )
-		||	stat_GetBPP() < 24
-		||	IsHighContrast()
-		)
-		return CExtPaintManagerStudio2005::DockMarker_IsAdjustBmpsRequired( eDockMarkerType );
-	return false;
-}
-
-void CExtPaintManagerStudio2008::DockMarker_AdjustBmps(
-	eDockMarkerType_t eDockMarkerType,
-	CExtBitmap & bmpIn,
-	COLORREF clrTransparentIn,
-	CExtBitmap & bmpOut,
-	COLORREF clrTransparentOut
-	)
-{
-	ASSERT_VALID( this );
-	if(		(! g_PaintManager.m_bIsWin2000orLater )
-		||	stat_GetBPP() < 24
-		||	IsHighContrast()
-		)
-		CExtPaintManagerStudio2005::DockMarker_AdjustBmps(
-			eDockMarkerType,
-			bmpIn,
-			clrTransparentIn,
-			bmpOut,
-			clrTransparentOut
-			);
-}
-
 #endif // (!defined __EXT_MFC_NO_DOCK_MARKERS)
 
 void CExtPaintManager::Header_GetButtonPadding(
@@ -11729,27 +11367,6 @@ COLORREF clrHeaderBackground = GetColor( XPCLR_3DFACE_DARK, pHelperSrc, lParam )
 	dc.FillSolidRect( rc, clrHeaderBackground );
 }
 
-void CExtPaintManagerOffice2003::Header_PaintBackground(
-	CDC & dc,
-	CRect rc,
-	CObject * pHelperSrc,
-	LPARAM lParam // = 0L
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT( dc.GetSafeHdc() != NULL );
-	if( IsHighContrast() )
-	{
-		CExtPaintManagerXP::Header_PaintBackground( dc, rc, pHelperSrc, lParam );
-		return;
-	}
-COLORREF clrHeaderBackground1 = GetColor( XPCLR_3DFACE_NORMAL, pHelperSrc, lParam );
-COLORREF clrHeaderBackground2 = clrHeaderBackground1;
-	clrHeaderBackground1 = stat_HLS_Adjust( clrHeaderBackground1, 0.0, +0.05 );
-	clrHeaderBackground2 = stat_HLS_Adjust( clrHeaderBackground2, 0.0, -0.25 );
-	stat_PaintGradientRect( dc, rc, clrHeaderBackground2, clrHeaderBackground1, true );
-}
-
 bool CExtPaintManagerNativeXP::stat_PaintHeaderPartUsingUxTheme(
 	CDC & dc,
 	CRect rc,
@@ -11824,23 +11441,6 @@ void CExtPaintManagerNativeXP::Header_PaintBackground(
 	}
 	if( ! stat_PaintHeaderPartUsingUxTheme( dc, rc, pHelperSrc, lParam ) )
 		CExtPaintManager::Header_PaintBackground( dc, rc, pHelperSrc, lParam );
-}
-
-void CExtPaintManagerOffice2007_Impl::Header_PaintBackground(
-	CDC & dc,
-	CRect rc,
-	CObject * pHelperSrc,
-	LPARAM lParam // = 0L
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT( dc.GetSafeHdc() != NULL );
-	if( IsHighContrast() )
-	{
-		CExtPaintManagerOffice2003::Header_PaintBackground( dc, rc, pHelperSrc, lParam );
-		return;
-	}
-	stat_PaintGradientRect( dc, rc, m_clrGridHeaderBkBottom, m_clrGridHeaderBkTop, true );
 }
 
 void CExtPaintManager::Header_PaintItem(
@@ -12088,47 +11688,6 @@ INT nTextLen = ( LPCTSTR(strItemText) != NULL ) ? INT( _tcslen(LPCTSTR(strItemTe
 	}
 }
 
-void CExtPaintManagerOffice2003::Header_PaintItem(
-	CDC & dc,
-	CRect rcItemEntire,
-	CRect rcItemData,
-	CRect rcIcon,
-	CRect rcText,
-	CRect rcSortArrow,
-	CRect rcButton,
-	CRect rcButtonIcon,
-	bool bSorted,
-	bool bSortedAscending,
-	INT nColNo,
-	INT nColCount,
-	const CExtCmdIcon & iconItem,
-	const CExtCmdIcon & iconButton,
-	bool bHover,
-	bool bPressed,
-	bool bButtonEvent,
-	__EXT_MFC_SAFE_LPCTSTR strItemText,
-	CObject * pHelperSrc,
-	LPARAM lParam // = 0L
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT( dc.GetSafeHdc() != NULL );
-	if( IsHighContrast() )
-	{
-		CExtPaintManagerXP::Header_PaintItem(
-			dc, rcItemEntire, rcItemData, rcIcon, rcText, rcSortArrow, rcButton, rcButtonIcon,
-			bSorted, bSortedAscending, nColNo, nColCount, iconItem, iconButton, bHover, bPressed, bButtonEvent,
-			strItemText, pHelperSrc, lParam
-			);
-		return;
-	}
-	CExtPaintManagerXP::Header_PaintItem(
-		dc, rcItemEntire, rcItemData, rcIcon, rcText, rcSortArrow, rcButton, rcButtonIcon,
-		bSorted, bSortedAscending, nColNo, nColCount, iconItem, iconButton, bHover, bPressed, bButtonEvent,
-		strItemText, pHelperSrc, lParam
-		);
-}
-
 void CExtPaintManagerNativeXP::Header_PaintItem(
 	CDC & dc,
 	CRect rcItemEntire,
@@ -12258,47 +11817,6 @@ INT nTextLen = ( LPCTSTR(strItemText) != NULL ) ? INT( _tcslen(LPCTSTR(strItemTe
 		dc.SetTextColor( clrOldText );
 		dc.SetBkMode( nOldBkMode );
 	}
-}
-
-void CExtPaintManagerOffice2007_Impl::Header_PaintItem(
-	CDC & dc,
-	CRect rcItemEntire,
-	CRect rcItemData,
-	CRect rcIcon,
-	CRect rcText,
-	CRect rcSortArrow,
-	CRect rcButton,
-	CRect rcButtonIcon,
-	bool bSorted,
-	bool bSortedAscending,
-	INT nColNo,
-	INT nColCount,
-	const CExtCmdIcon & iconItem,
-	const CExtCmdIcon & iconButton,
-	bool bHover,
-	bool bPressed,
-	bool bButtonEvent,
-	__EXT_MFC_SAFE_LPCTSTR strItemText,
-	CObject * pHelperSrc,
-	LPARAM lParam // = 0L
-	)
-{
-	ASSERT_VALID( this );
-	ASSERT( dc.GetSafeHdc() != NULL );
-	if( IsHighContrast() )
-	{
-		CExtPaintManagerOffice2003::Header_PaintItem(
-			dc, rcItemEntire, rcItemData, rcIcon, rcText, rcSortArrow, rcButton, rcButtonIcon,
-			bSorted, bSortedAscending, nColNo, nColCount, iconItem, iconButton, bHover, bPressed, bButtonEvent,
-			strItemText, pHelperSrc, lParam
-			);
-		return;
-	}
-	CExtPaintManagerOffice2003::Header_PaintItem(
-		dc, rcItemEntire, rcItemData, rcIcon, rcText, rcSortArrow, rcButton, rcButtonIcon,
-		bSorted, bSortedAscending, nColNo, nColCount, iconItem, iconButton, bHover, bPressed, bButtonEvent,
-		strItemText, pHelperSrc, lParam
-		);
 }
 
 bool CExtPaintManager::PaintGroupBoxLabel(

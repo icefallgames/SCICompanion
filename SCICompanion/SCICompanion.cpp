@@ -409,14 +409,14 @@ BOOL SCICompanionApp::InitInstance()
     CWinApp *pApp = ::AfxGetApp();
     if (resetSettings)
     {
-        g_PaintManager.InstallPaintManager(new CExtPaintManagerOffice2007_R2_LunaBlue);
+        g_PaintManager.InstallPaintManager(new CExtPaintManagerNativeXP);
         g_PaintManager.PaintManagerStateSave(pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName);
     }
     else
     {
         if (!g_PaintManager.PaintManagerStateLoad(pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName))
         {
-            g_PaintManager.InstallPaintManager(new CExtPaintManagerOffice2007_R2_LunaBlue);
+            g_PaintManager.InstallPaintManager(new CExtPaintManagerNativeXP);
         }
     }
 

@@ -533,6 +533,8 @@ bool CExtThemeSwitcherToolControlBar::ThemeSwitcherInit(
 	CExtThemeSwitcherToolControlBar::e_ThemeIconSize_t _eTIS_ToolBar // = __ETIS_24x24
 	)
 {
+	return false;
+	/*
 	ASSERT_VALID( this );
 	if( GetSafeHwnd() == NULL )
 		return false;
@@ -607,77 +609,8 @@ static const UINT g_arrToolBarResources[] =
 				CRuntimeClass * pRTC = NULL;
 				switch( nButtonCmdID )
 				{
-				case ID_EXT_PM_THEME_Office2000:
-					pRTC = RUNTIME_CLASS(CExtPaintManager);
-				break;
-				case ID_EXT_PM_THEME_OfficeXP:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerXP);
-				break;
-				case ID_EXT_PM_THEME_Office2003:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2003);
-				break;
-				case ID_EXT_PM_THEME_Office2003NoThemes:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2003NoThemes);
-				break;
-				case ID_EXT_PM_THEME_Studio2005:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerStudio2005);
-				break;
-				case ID_EXT_PM_THEME_Studio2008:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerStudio2008);
-				break;
-				case ID_EXT_PM_THEME_Studio2010:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerStudio2010);
-				break;
 				case ID_EXT_PM_THEME_NativeXP:
 					pRTC = RUNTIME_CLASS(CExtPaintManagerNativeXP);
-				break;
-				case ID_EXT_PM_THEME_Office2007_R1:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2007_R1);
-				break;
-				case ID_EXT_PM_THEME_Office2007_R2_LunaBlue:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2007_R2_LunaBlue);
-				break;
-				case ID_EXT_PM_THEME_Office2007_R2_Obsidian:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2007_R2_Obsidian);
-				break;
-				case ID_EXT_PM_THEME_Office2007_R2_Silver:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2007_R2_Silver);
-				break;
-				case ID_EXT_PM_THEME_Office2007_R3_LunaBlue:
-					if( ! m_bEnableOffice2007r3 )
-					{
-						delete pIcon;
-						continue;
-					}
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2007_R3_LunaBlue);
-				break;
-				case ID_EXT_PM_THEME_Office2007_R3_Obsidian:
-					if( ! m_bEnableOffice2007r3 )
-					{
-						delete pIcon;
-						continue;
-					}
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2007_R3_Obsidian);
-				break;
-				case ID_EXT_PM_THEME_Office2007_R3_Silver:
-					if( ! m_bEnableOffice2007r3 )
-					{
-						delete pIcon;
-						continue;
-					}
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2007_R3_Silver);
-				break;
-				case ID_EXT_PM_THEME_Office2010_R1:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2010_R1);
-				break;
-				case ID_EXT_PM_THEME_Office2010_R2_Blue:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2010_R2_Blue);
-				break;
-				case ID_EXT_PM_THEME_Office2010_R2_Silver:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2010_R2_Silver);
-				break;
-				case ID_EXT_PM_THEME_Office2010_R2_Black:
-					pRTC = RUNTIME_CLASS(CExtPaintManagerOffice2010_R2_Black);
 				break;
 				} // switch( nButtonCmdID )
 				CExtCmdItem * pCmdItem =
@@ -758,6 +691,7 @@ bool bButtonsInitialized = false;
 	if( ! bButtonsInitialized )
 		return false;
 	return true;
+	*/
 }
 
 bool CExtThemeSwitcherToolControlBar::OnHookWndMsg(
