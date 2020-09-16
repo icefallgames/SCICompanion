@@ -1358,6 +1358,7 @@ void CMainFrame::_PrepareRasterCommands()
         { ID_GREYSCALE, IDI_GREYSCALE },
         { ID_DITHER, IDI_DITHER },
         { ID_SETPLACEMENT, IDI_PLACEMENT },
+        { ID_UNDITHERPIC, IDI_UNDITHERPIC },
     };
     _AssignIcons(c_rasterIcons, ARRAYSIZE(c_rasterIcons));
 }

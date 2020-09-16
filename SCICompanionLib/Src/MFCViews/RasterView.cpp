@@ -314,7 +314,7 @@ void CRasterView::SelectionManager::DrawSelection(CRect rectSelection, int iInde
 
 IMPLEMENT_DYNCREATE(CRasterView, CView)
 
-CRasterView::CRasterView()
+CRasterView::CRasterView() : _showDithered(false)
 {
     if (g_AffectAllBitmap.IsEmpty())
     {
@@ -460,6 +460,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_ROTATE_CCW, OnRotate90CCW)
     ON_COMMAND(ID_ROTATE_180, OnRotate180)
     ON_COMMAND(ID_ROTATE_ARBITRARY, OnRotateArbitrary)
+    ON_COMMAND(ID_UNDITHERPIC, ToggleShowDither)
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -508,6 +509,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_VIEW_SHRINKWRAPCEL, OnUpdateAlwaysOn)
     ON_UPDATE_COMMAND_UI(ID_VIEW_LEFTONIONSKIN, OnUpdateLeftOnion)
     ON_UPDATE_COMMAND_UI(ID_VIEW_RIGHTONIONSKIN, OnUpdateRightOnion)
+    ON_UPDATE_COMMAND_UI(ID_UNDITHERPIC, OnUpdateDitherView)
 END_MESSAGE_MAP()
 
 
@@ -1706,7 +1708,42 @@ void CRasterView::_OnDraw(CDC* pDC)
             // Just a straight copy from our raw bits to the buffer.
             // - it involves palette conversion, so it could be expensive.
             SCIBitmapInfo bmi(_sizeView.cx, _sizeView.cy, _palette, _paletteCount);
-            StretchDIBits((HDC)*pDC, 0, 0, _sizeView.cx, _sizeView.cy, 0, 0, _sizeView.cx, _sizeView.cy, _GetMainViewData(), &bmi, DIB_RGB_COLORS, SRCCOPY);
+
+            if (_showDithered)
+            {
+                // Show dithered patterns in our undithered EGA. 
+                // NOTE: We're assuming a standard EGA palette here.
+                _EnsureScratchBuffer1(_sizeView);
+                int count = PaddedSize(_sizeScratch1);
+                int padding = CX_ACTUAL(_sizeView.cx);
+                for (int y = 0; y < _sizeView.cy; y++)
+                {
+                    uint8_t *src = _GetMainViewData() + padding * y;
+                    uint8_t *dest = _pBitsScratch1.get() + padding * y;
+                    for (int x = 0; x < _sizeView.cx; x++, src++, dest++)
+                    {
+                        uint8_t value = *src;
+                        if ((x^y) & 1)
+                        {
+                            // repeat high bits
+                            value = 0xf0 & value;
+                            value |= (value >> 4);
+                        }
+                        else
+                        {
+                            // repeat low bits
+                            value = 0x0f & value;
+                            value |= (value << 4);
+                        }
+                        *dest = value;
+                    }
+                }
+                StretchDIBits((HDC)*pDC, 0, 0, _sizeView.cx, _sizeView.cy, 0, 0, _sizeView.cx, _sizeView.cy, _pBitsScratch1.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);
+            }
+            else
+            {
+                StretchDIBits((HDC)*pDC, 0, 0, _sizeView.cx, _sizeView.cy, 0, 0, _sizeView.cx, _sizeView.cy, _GetMainViewData(), &bmi, DIB_RGB_COLORS, SRCCOPY);
+            }
         }
 
         // Layers on top of our buffer. Selection rect and other stuff.
@@ -2861,6 +2898,14 @@ void CRasterView::OnUpdateRightOnion(CCmdUI *pCmdUI)
     pCmdUI->SetCheck((GetDoc() && GetDoc()->GetOnionSkin().Right.Enabled) ? BST_CHECKED : BST_UNCHECKED);
 }
 
+void CRasterView::OnUpdateDitherView(CCmdUI *pCmdUI)
+{
+    pCmdUI->SetCheck(_showDithered);
+    // Disabled if VGA
+    const RasterComponent *raster = _GetRaster();
+    pCmdUI->Enable(raster && (raster->Traits.PaletteType == PaletteType::VGA_256));
+}
+
 void CRasterView::ToggleLeftOnion()
 {
     if (GetDoc())
@@ -2907,6 +2952,13 @@ void CRasterView::OnRotateArbitrary()
         _OnRotate(dialog.GetDegrees());
         defaultRotation = dialog.GetDegrees();
     }
+}
+
+void CRasterView::ToggleShowDither()
+{
+    // phil
+    _showDithered = !_showDithered;
+    _InvalidateViewArea();
 }
 
 void CRasterView::_OnRotate(int degrees)

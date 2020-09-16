@@ -312,6 +312,7 @@ private:
     afx_msg void OnIndicatorPixelColor(CCmdUI *pCmdUI);
     afx_msg void OnUpdateLeftOnion(CCmdUI *pCmdUI);
     afx_msg void OnUpdateRightOnion(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateDitherView(CCmdUI *pCmdUI);
     afx_msg void OnFlipHorz();
     afx_msg void OnFlipVert();
     afx_msg void OnInvert();
@@ -338,6 +339,7 @@ private:
     afx_msg void OnRotate90CCW();
     afx_msg void OnRotate180();
     afx_msg void OnRotateArbitrary();
+    afx_msg void ToggleShowDither();
     
     void _OnRotate(int degrees);
     void _OnShift(int x, int y);
@@ -442,6 +444,8 @@ private:
     int _cyViewZoom;
     int _iZoomFactor;
     bool _obtainedZoom;
+
+    bool _showDithered;
 
     // Bitmap for double-buffering
     std::unique_ptr<CBitmap> _pbitmapDoubleBuf;
