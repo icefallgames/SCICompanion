@@ -262,6 +262,7 @@ protected:
     afx_msg void OnCopyFakeEgoAttributes();
     afx_msg void OnAppendCopyFakeEgoAttributes();
     afx_msg void OnExportPalettizedBitmap();
+    afx_msg void OnExportAsAnimatedGIF();
     afx_msg void EditVGAPalette();
     afx_msg void ChangeDimensions();
     afx_msg void OnEnableFakeEgoCustom();

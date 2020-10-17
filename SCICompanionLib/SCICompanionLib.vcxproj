@@ -424,6 +424,7 @@
     <ClInclude Include="Src\Resources\AudioCacheResourceSource.h" />
     <ClInclude Include="Src\Resources\AudioNegative.h" />
     <ClInclude Include="Src\Resources\AudioResourceSource.h" />
+    <ClInclude Include="Src\Resources\DrawPixelCallback.h" />
     <ClInclude Include="Src\Resources\NamedPosition.h" />
     <ClInclude Include="Src\Resources\NounsAndCases.h" />
     <ClInclude Include="Src\Resources\PatchResourceSource.h" />

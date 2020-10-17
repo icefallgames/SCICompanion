@@ -152,3 +152,4 @@ void DeserializeCelRuntime(sci::istream &in, Cel &cel);
 
 RasterChange AdvancedRasterCopy(const AdvancedRasterCopyInfo &copyInfo, const RasterComponent &source, CelIndex celIndexSource, int cCels, RasterComponent &dest, CelIndex celIndexDest);
 RasterChange QuantizeCel(RasterComponent &raster, CelIndex celIndex, int numLevels, bool gammaCorrected);
+void ScaleInPlace(Cel &cel, int scaleFactor);

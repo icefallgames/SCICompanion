@@ -551,6 +551,12 @@ PicDrawManager &CPicDoc::GetDrawManager()
     return _pdm;
 };
 
+std::unique_ptr<PicDrawManager> CPicDoc::GetDrawManagerCopy()
+{
+    return std::make_unique<PicDrawManager>(_GetPic(), _previewPalette ? _previewPalette : GetCurrentPaletteComponent(), _isUndithered, appState->GetVersion().NewSCI);
+}
+
+
 void CPicDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
     // Ideally we only want to do this if the polygons change.

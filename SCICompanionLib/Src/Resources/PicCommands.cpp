@@ -750,7 +750,7 @@ struct PlotVGA
     static const uint8_t White = 0xff;
 };
 
-template<typename _TFormat>
+template<typename _TFormat, PlotPixTool toolType>
 inline void _PlotPix(PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, PicScreenFlags auxSet, typename _TFormat::PixelType color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue)
 {
     if(x < 0 || y < 0 || x >= pData->size.cx || y >= pData->size.cy)
@@ -779,6 +779,11 @@ inline void _PlotPix(PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDraw
     }
 
     pData->pdataAux[p] |= (uint8_t)auxSet;
+
+    if (pData->drawPixelCallback)
+    {
+        pData->drawPixelCallback(dwDrawEnable, *pData, toolType);
+    }
 }
 
 template<typename _TFormat>
@@ -822,14 +827,14 @@ void _PlotPixNonStd(int cx, int cy, PicData *pData, int16_t x, int16_t y, PicScr
    incrE = ((deltanonlinear) > 0) ? -(deltanonlinear) : (deltanonlinear);  \
    d = nonlinearstart-1;  \
    while (linearvar != (linearend)) { \
-     _PlotPix<_TFormat>(pData, x,y, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue); \
+     _PlotPix<_TFormat, PlotPixTool::LineOrDot>(pData, x,y, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue); \
      linearvar += linearmod; \
      if ((d+=incrE) < 0) { \
        d += incrNE; \
        nonlinearvar += nonlinearmod; \
      }; \
    }; \
-   _PlotPix<_TFormat>(pData, x, y, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
+   _PlotPix<_TFormat, PlotPixTool::LineOrDot>(pData, x, y, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
 
 template<typename _TFormat>
 void _DitherLine(PicData *pData, int16_t xStart, int16_t yStart, int16_t xEnd, int16_t yEnd, typename _TFormat::PixelType color, uint8_t index, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
@@ -961,7 +966,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
                     {
                         if ( (junq[junqbit>>3] >> (7-(junqbit & 7))) & 1)
                         {
-                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
+                            _PlotPix<_TFormat, PlotPixTool::LineOrDot>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
                         }
                         junqbit++;
                         if (junqbit == 0xff)
@@ -971,7 +976,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
                     }
                     else
                     {
-                        _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
+                        _PlotPix<_TFormat, PlotPixTool::LineOrDot>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
                     }
                 }
             }
@@ -991,7 +996,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
                         {
                             if ((junq[junqbit>>3] >> (7-(junqbit & 7))) & 1)
                             {
-                                _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
+                                _PlotPix<_TFormat, PlotPixTool::LineOrDot>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
                             }
                             junqbit++;
                             if (junqbit == 0xff)
@@ -1001,7 +1006,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
                         }
                         else
                         {
-                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
+                            _PlotPix<_TFormat, PlotPixTool::LineOrDot>(pData, k, l, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
                         }
                     }
                     circlebit++;
@@ -1040,7 +1045,9 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
         true,
 		false, // REVIEW: check this
         size16(actualSize, actualSize),
-        false
+        false,
+        false,
+        nullptr
     };
 
     _DrawPattern<PlotVGA>(&data,
@@ -1640,7 +1647,7 @@ void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::Pixel
         {
             if (OK_TO_FILL(cx, cy, x1, y1, _TFormat))
             {
-                _PlotPix<_TFormat>(pdata, (int16_t)x1, (int16_t)y1, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
+                _PlotPix<_TFormat, PlotPixTool::Fill>(pdata, (int16_t)x1, (int16_t)y1, dwDrawEnable, auxSet, color, index, bPriorityValue, bControlValue);
 
                 // PERF: Tried removing OK_TO_FILL here, but it made it worse
                 // (It's technically uncessary)

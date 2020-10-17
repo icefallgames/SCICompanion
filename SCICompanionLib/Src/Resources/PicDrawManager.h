@@ -14,6 +14,7 @@
 #pragma once
 
 #include "BufferPool.h"
+#include "DrawPixelCallback.h"
 
 // fwd decl
 struct PicData;
@@ -61,7 +62,7 @@ public:
 
     // Use these to get the pic image:
     HBITMAP CreateBitmap(PicScreen screen, PicPosition position, size16 size, int cx, int cy, SCIBitmapInfo *pbmi = nullptr, uint8_t **pBitsDest = nullptr);
-    const uint8_t *GetPicBits(PicScreen screen, PicPosition position, size16 size);
+    const uint8_t *GetPicBits(PicScreen screen, PicPosition position, size16 size, DrawPixelCallback drawPixelCallback = nullptr);
     void CopyBitmap(PicScreen screen, PicPosition position, size16 size, uint8_t *pdataDisplay, uint8_t *pdataAux, BITMAPINFO **ppbmi);
     void GetBitmapInfo(PicScreen screen, BITMAPINFO **ppbmi);
     std::unique_ptr<Cel> MakeCelFromPic(PicScreen screen, PicPosition position);
@@ -90,7 +91,7 @@ private:
     void _Init();
     void _MoveToNextStep(PicPositionFlags requestedFlags, PicPosition posCompleted);
     ptrdiff_t _GetDrawPos() const { return _iDrawPos; }
-    void _RedrawBuffers(ViewPort *pState, PicScreenFlags dwRequestedMaps, PicPositionFlags picPositionFlags, bool assertIfCausedRedraw = false);
+    void _RedrawBuffers(ViewPort *pState, PicScreenFlags dwRequestedMaps, PicPositionFlags picPositionFlags, bool assertIfCausedRedraw = false, DrawPixelCallback drawPixelCallback = nullptr);
     HBITMAP _CreateBitmap(uint8_t *pData, size16 sizePic, int cxRequest, int cyRequest, const RGBQUAD *palette, int paletteCount, SCIBitmapInfo *pbmi = nullptr, uint8_t **pBitsDest = nullptr) const;
     HBITMAP _GetBitmapGDIP(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount) const;
     void _OnPosChanged(bool fNotify = true);

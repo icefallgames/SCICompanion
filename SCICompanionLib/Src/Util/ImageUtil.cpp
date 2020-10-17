@@ -396,7 +396,7 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
 char appExtensionBlockData[] = "NETSCAPE2.0";
 char continuationBlockData[] = "\1\0\0";
 
-void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &cels, int colorCount, const RGBQUAD *colors, const uint8_t *paletteMapping, uint8_t transparentIndex)
+void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &cels, int colorCount, const RGBQUAD *colors, const uint8_t *paletteMapping, uint8_t transparentIndex, const GIFConfiguration &config)
 {
     int error;
     GifFileType *fileType = EGifOpenFileName(filename, false, &error);
@@ -497,8 +497,17 @@ void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &c
 
             if (result == GIF_OK)
             {
+                int frameTime = config.FrameTime;
+                if (i == 0)
+                {
+                    frameTime = config.FirstFrameTime;
+                }
+                else if (i == (cels.size() - 1))
+                {
+                    frameTime = config.LastFrameTime;
+                }
                 GraphicsControlBlock gcb;
-                gcb.DelayTime = 10;
+                gcb.DelayTime = frameTime;
                 gcb.DisposalMode = 2;
                 gcb.TransparentColor = cel.TransparentColor;
                 gcb.UserInputFlag = false;

@@ -137,6 +137,14 @@ void ReallocBits(
     }
 }
 
+void ScaleInPlace(Cel &cel, int scaleFactor)
+{
+    size16 newSize = size16(cel.size.cx * scaleFactor, cel.size.cy * scaleFactor);
+    ReallocBits(cel, newSize, true, false, false, 0, RasterResizeFlags::Stretch);
+}
+
+
+
 void ReallocBits(
     RasterComponent &raster,
     CelIndex celIndex,

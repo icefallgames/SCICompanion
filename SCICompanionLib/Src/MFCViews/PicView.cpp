@@ -43,6 +43,7 @@
 #include "PicClipsDialog.h"
 #include "NearestColors.h" // for  g_nearestColorSource
 #include "Polygon.h"
+#include "RasterOperations.h"
 
 const int PicGutter = 5;
 using namespace Gdiplus;
@@ -370,6 +371,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_EGO_COPY, CPicView::OnCopyFakeEgoAttributes)
     ON_COMMAND(ID_EGO_APPENDCOPY, CPicView::OnAppendCopyFakeEgoAttributes)
     ON_COMMAND(ID_PIC_EXPORT8, CPicView::OnExportPalettizedBitmap)
+    ON_COMMAND(ID_PIC_EXPORTASANIMATEDGIF, CPicView::OnExportAsAnimatedGIF)
     ON_COMMAND(ID_PIC_EDITPALETTE, CPicView::EditVGAPalette)
     ON_COMMAND(ID_PIC_DELETEPOINT, CPicView::OnDeletePoint)
     ON_COMMAND(ID_PIC_CUTLINE, CPicView::OnCutLine)
@@ -428,6 +430,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_OBSERVECONTROLLINES, CPicView::OnUpdateObserveControlLines)
     ON_UPDATE_COMMAND_UI(ID_OBSERVEPOLYGONS, CPicView::OnUpdateObservePolygons)
     ON_UPDATE_COMMAND_UI(ID_PIC_EXPORT8, CPicView::OnUpdateIsVGA)
+    ON_UPDATE_COMMAND_UI(ID_PIC_EXPORTASANIMATEDGIF, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_PIC_EDITPALETTE, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_CHANGEDIMENSIONS, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_PIC_DELETEPOINT, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
@@ -890,6 +893,90 @@ void CPicView::EditVGAPalette()
             return WrapHint(hint);
         }
         );
+    }
+}
+
+Cel _MakeCelFromData(size16 size, const uint8_t *data)
+{
+    Cel cel;
+    cel.TransparentColor = 0xff;
+    cel.size = size;
+    cel.Stride32 = true;
+    cel.Data.allocate(cel.GetStride() * cel.size.cy);
+    cel.Data.assign(data, data + cel.Data.size());
+    return cel;
+}
+
+std::vector<Cel> exportGIFCels;
+int fillPixelCount = 0;
+int linePixelCount = 0;
+int fillPixelPeriod = 1000;
+int linePixelPeriod = 100;
+// TODO:
+// - last frame should last a long time
+// - fills should be fast, but not other things. So I need to expose the current tool. Need to change callback signature and do typedef like I should have done.
+// - optional size change?
+// - (adjust frame rate?)
+void _ExportGIFDrawCallback(PicScreenFlags dwDrawFlags, const PicData &data, PlotPixTool tool)
+{
+    if (IsFlagSet(dwDrawFlags, PicScreenFlags::Visual))
+    {
+        switch (tool)
+        {
+        case PlotPixTool::Fill:
+                if ((fillPixelCount % fillPixelPeriod) == 0)
+                {
+                    exportGIFCels.push_back(_MakeCelFromData(data.size, data.pdataVisual));
+                }
+                fillPixelCount++;
+            break;
+        case PlotPixTool::LineOrDot:
+            if ((linePixelCount % linePixelPeriod) == 0)
+            {
+                exportGIFCels.push_back(_MakeCelFromData(data.size, data.pdataVisual));
+            }
+            linePixelCount++;
+            break;
+        }
+    }
+}
+const TCHAR g_rgszGIFFilter[] = TEXT("GIF Files (*.gif)|*.gif|All Files (*.*)|*.*");
+
+void CPicView::OnExportAsAnimatedGIF()
+{
+    exportGIFCels.clear();
+    fillPixelCount = 0;
+    linePixelCount = 0;
+    const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
+    if (globalPalette)
+    {
+        // Default extension should be the first one in the list for g_szGdiplus8BitSaveFilter
+        CFileDialog fileDialog(FALSE, ".gif", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, g_rgszGIFFilter);
+        if (IDOK == fileDialog.DoModal())
+        {
+            CString strFileName = fileDialog.GetPathName();
+            std::unique_ptr<PicDrawManager> drawManager = GetDocument()->GetDrawManagerCopy();
+            const uint8_t *bits = drawManager->GetPicBits(PicScreen::Visual, PicPosition::Final, _GetPicSize(), &_ExportGIFDrawCallback);
+            // Final frame:
+            Cel finalCel = _MakeCelFromData(_GetPicSize(), bits);
+            exportGIFCels.push_back(finalCel);
+            // Put it at the beginning too:
+            exportGIFCels.insert(exportGIFCels.begin(), finalCel);
+
+            // Optionally scale?
+            int scaleFactor = 2;
+            for (Cel &cel : exportGIFCels)
+            {
+                ScaleInPlace(cel, scaleFactor);
+            }
+
+            // Export
+            SaveCelsAndPaletteToGIFFile(strFileName, exportGIFCels, 256, globalPalette->Colors, globalPalette->Mapping, 0xff,  // white as transparent? Hmm.
+                GIFConfiguration(4, 100, 100) // 1 second at beginning and end, otherwise no.
+                );
+
+            exportGIFCels.clear();
+        }
     }
 }
 
@@ -2854,7 +2941,8 @@ void CPicView::_EnsurateCoordinates(PicCommand::CommandType commandType, _Functi
             false,
             size16(),
             false,
-            false
+            false,
+            nullptr
         };
 
         const PicComponent *pic = _GetEditPic();

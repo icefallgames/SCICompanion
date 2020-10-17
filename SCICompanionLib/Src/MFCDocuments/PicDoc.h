@@ -142,6 +142,7 @@ public:
     virtual void Dump(CDumpContext& dc) const;
 #endif
     PicDrawManager &GetDrawManager();
+    std::unique_ptr<PicDrawManager> GetDrawManagerCopy();
 
     // This transfers ownership of pic resource to this class.
     void SetEditPic(DependencyTracker &tracker, std::unique_ptr<ResourceEntity> pEditPic, int id = -1);

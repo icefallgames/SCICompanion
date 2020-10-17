@@ -31,6 +31,16 @@ enum class ColorMatching
     CCIR = 1,
 };
 
+struct GIFConfiguration
+{
+    GIFConfiguration() : FrameTime(10), FirstFrameTime(10), LastFrameTime(10) {}
+    GIFConfiguration(int frameTime, int firstFrameTime, int lastFrameTime) : FrameTime(frameTime), FirstFrameTime(firstFrameTime), LastFrameTime(lastFrameTime) {}
+
+    int FrameTime; // In units of 0.01s.
+    int FirstFrameTime;
+    int LastFrameTime;
+};
+
 enum class DitherAlgorithm
 {
     None = 0,
@@ -58,7 +68,7 @@ int CountActualUsedColors(const Cel &cel, bool *used);
 int CountActualUsedColors(const std::vector<const Cel*> &cels, bool *used);
 std::unique_ptr<PaletteComponent> GetPaletteFromImage(Gdiplus::Bitmap &bitmap, int *numberOfUsedEntriesOut = nullptr);
 bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, std::vector<PaletteComponent> &palette, PaletteComponent &globalPalette);
-void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &cels, int colorCount, const  RGBQUAD *colors, const uint8_t *paletteMapping, uint8_t transparentIndex);
+void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &cels, int colorCount, const  RGBQUAD *colors, const uint8_t *paletteMapping, uint8_t transparentIndex, const GIFConfiguration &config);
 bool GetCelsAndPaletteFromGdiplus(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, std::vector<Cel> &cels, PaletteComponent &palette);
 bool DoPalettesMatch(const PaletteComponent &paletteA, const PaletteComponent &paletteB);
 void ConvertCelToNewPalette(Cel &cel, const PaletteComponent &currentPalette, uint8_t transparentColor, bool ditherImages, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors);

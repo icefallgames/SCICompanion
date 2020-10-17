@@ -649,6 +649,7 @@ BEGIN
         MENUITEM "Toggle &grid lines\tCtrl-L",  ID_TOGGLEGRIDLINES
         MENUITEM SEPARATOR
         MENUITEM "&Import bitmap to pic",       ID_EDIT_IMPORTPICBACKGROUND
+        MENUITEM "Export as animated GIF",      ID_PIC_EXPORTASANIMATEDGIF
         MENUITEM "&Export 8-bit pic bitmap",    ID_PIC_EXPORT8
         MENUITEM "Edit p&alette",               ID_PIC_EDITPALETTE
         MENUITEM "Change &height",              ID_PIC_CHANGEDIMENSIONS

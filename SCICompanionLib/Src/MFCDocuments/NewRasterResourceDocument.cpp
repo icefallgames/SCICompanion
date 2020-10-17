@@ -1029,7 +1029,7 @@ void CNewRasterResourceDocument::ExportAsGif()
         {
             _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
         }
-        SaveCelsAndPaletteToGIFFile(strFileName, raster.Loops[_nLoop].Cels, colorCount, colors, paletteMapping, raster.Loops[_nLoop].Cels[0].TransparentColor);
+        SaveCelsAndPaletteToGIFFile(strFileName, raster.Loops[_nLoop].Cels, colorCount, colors, paletteMapping, raster.Loops[_nLoop].Cels[0].TransparentColor, GIFConfiguration());
     }
 }
 
@@ -1063,7 +1063,7 @@ void CNewRasterResourceDocument::PostSuccessfulSave(const ResourceEntity *pResou
             std::vector<Cel> cels;
             cels.push_back(raster.Loops[loop].Cels[cel]); // REVIEW perf making a copy
             std::string fileName = map.Helper().GameFolder + "\\..\\Assets\\Views\\" + fileSpec;
-            SaveCelsAndPaletteToGIFFile(fileName.c_str(), cels, colorCount, colors, paletteMapping, cels[0].TransparentColor);
+            SaveCelsAndPaletteToGIFFile(fileName.c_str(), cels, colorCount, colors, paletteMapping, cels[0].TransparentColor, GIFConfiguration());
         }
     }
     */

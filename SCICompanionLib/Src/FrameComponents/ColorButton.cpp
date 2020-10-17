@@ -308,7 +308,7 @@ void CBrushButton::_OnDraw(HDC hdc, RECT *prc)
             memset(dataBrush.get(), 0x0f, cMin * cMin);
 
             // Fake a PicData to draw into, with a visual brush.
-            PicData data = { PicScreenFlags::Visual, dataBrush.get(), nullptr, nullptr, nullptr, dataIndex.get(), false, false, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT) };
+            PicData data = { PicScreenFlags::Visual, dataBrush.get(), nullptr, nullptr, nullptr, dataIndex.get(), false, false, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT), false, false, nullptr };
 
             DrawPatternInRect(cMin, cMin, &data, 8, 8, color, 0, 0, 0, PicScreenFlags::Visual, &_penStyle);
 
