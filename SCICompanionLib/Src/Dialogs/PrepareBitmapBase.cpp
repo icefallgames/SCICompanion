@@ -17,6 +17,7 @@
 #include "PaletteOperations.h"
 #include "ImageUtil.h"
 #include "format.h"
+#include <VersionHelpers.h>
 
 using namespace std;
 using namespace Gdiplus;
@@ -358,10 +359,7 @@ void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
 
         Gdiplus::Status status = Ok;
 
-        OSVERSIONINFO versionInfo = { 0 };
-        versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
-        GetVersionEx(&versionInfo);
-        if (versionInfo.dwMajorVersion >= 6)
+        if (IsWindowsVersionOrGreater(6, 0, 0))
         {
             std::ifstream is((PCSTR)strFileName, std::ifstream::binary);
             if (is)
