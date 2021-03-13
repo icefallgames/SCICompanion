@@ -353,6 +353,15 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
                     g_compileIOTimer.Stop();
                     fRet = true;
                 }
+                else
+                {
+                    // phil temp, save SCO anyway
+                    const GameFolderHelper &helper = appState->GetResourceMap().Helper();
+                    CSCOFile &sco = results.GetSCO();
+                    {
+                        SaveSCOFile(helper, sco, script);
+                    }
+                }
             }
         }
         log.CalculateErrors();

@@ -3483,10 +3483,22 @@ bool CPicView::WillDrawOnPic()
 void CPicView::_DrawNamedPositionsEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags)
 {
     int index = 0;
-    for (const NamedPosition &thing : GetDocument()->GetPolygonComponent()->NamedPositions)
+    // Make a copy and sort it so it draws in the right order.
+    std::vector<NamedPosition> sortedNamedPositions = GetDocument()->GetPolygonComponent()->NamedPositions;
+    bool needCorrectIndices = (_fCapturing && (_currentTool == NamedPositions));
+    if (!needCorrectIndices)
+    {
+        std::sort(sortedNamedPositions.begin(), sortedNamedPositions.end(),
+            [](NamedPosition &one, NamedPosition &two)  -> bool
+        {
+            return one.Position.y < two.Position.y;
+        }
+            );
+    }
+    for (const NamedPosition &thing : sortedNamedPositions)
     {
         // When dragging we use the one being dragged, not the official one.
-        const NamedPosition &toDraw = (_fCapturing && (_currentTool == NamedPositions) && (index == GetDocument()->GetCurrentNamedPositionIndex())) ?
+        const NamedPosition &toDraw = (needCorrectIndices && (index == GetDocument()->GetCurrentNamedPositionIndex())) ?
             _capturedNamedPosition : thing;
 
         switch (toDraw.Type)

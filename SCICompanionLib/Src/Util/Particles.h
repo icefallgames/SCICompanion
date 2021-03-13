@@ -15,3 +15,4 @@
 #include "View.h"
 
 void RunChaiScript(const std::string &filename, RasterComponent &raster, CelIndex selectedCel);
+void DrawCaptureToolHelper(CDC *pDCIn, Cel &cel, point16 start, point16 end, int penWidth, uint8_t color);

@@ -45,6 +45,8 @@ private:
     afx_msg void OnPlay();
     afx_msg void OnBnClickedButtonbg();
     afx_msg void OnCbnSelchangeFiles();
+    afx_msg void OnClose();
+    afx_msg void OnCancel();
 
     void _UpdateBackground();
     void _AutoSize();

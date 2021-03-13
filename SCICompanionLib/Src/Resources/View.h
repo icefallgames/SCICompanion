@@ -64,6 +64,8 @@ struct Cel
 
     // For chai scripts
     void drawPixel(point16 point, byte color);
+    void discardDrawPixel(point16 point, byte color);
+    void drawLine(point16 start, point16 end, byte color, int percentEnd);
     Pixel getRandomPixel();
     void clear();
     int getWidth();

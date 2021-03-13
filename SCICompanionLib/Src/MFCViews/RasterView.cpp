@@ -1258,6 +1258,32 @@ int CRasterView::_GetPenWidth()
     return penWidth;
 }
 
+void DrawCaptureToolHelper(CDC *pDCIn, Cel &cel, point16 start, point16 end, int penWidth, uint8_t color)
+{
+    CPoint ptStart = PointToCPoint(start);
+    CPoint ptEnd = PointToCPoint(end);
+    CSCIDrawHelper helper(pDCIn, cel.Data.begin(), SizeToCSize(cel.size), g_continuousPriorityColors, 256);
+
+    // Some handy defaults:
+    LOGBRUSH logbrush = { 0 };
+
+    // Herein lies the issue.
+    //logbrush.lbColor = _SCIColorToCOLORREF(_fAux ? _color : _alternateColor);
+    logbrush.lbColor = _ToGreenCOLORREF(color);
+    logbrush.lbStyle = BS_SOLID;
+
+    // For dithered stuff:
+    CPen pen;
+    int crTextOld, crBkOld;
+    int nPenEndCaps = PS_ENDCAP_ROUND;// (_currentTool == Line) ? PS_ENDCAP_ROUND : PS_ENDCAP_FLAT;
+    pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logbrush, 0, nullptr);
+
+    HGDIOBJ hOld = helper.dc.SelectObject(&pen);
+    helper.dc.MoveTo(ptStart);
+    helper.dc.LineTo(ptEnd);
+    helper.dc.SelectObject(hOld);
+}
+
 void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
 {
     int penWidth = _GetPenWidth();
@@ -1280,12 +1306,12 @@ void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
     logbrush.lbStyle = BS_SOLID;
 
     // For dithered stuff:
-    LOGBRUSH logBrushDither = { BS_PATTERN, 0, (ULONG_PTR)(HBITMAP)_bitmapBrush };
     CPen pen;
     int crTextOld, crBkOld;
     int nPenEndCaps = (_currentTool == Line) ? PS_ENDCAP_ROUND : PS_ENDCAP_FLAT;
     if (_fDithered)
     {
+        LOGBRUSH logBrushDither = { BS_PATTERN, 0, (ULONG_PTR)(HBITMAP)_bitmapBrush };
         pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logBrushDither, 0, nullptr);
         crTextOld = pDC->SetTextColor(_ToGreenCOLORREF(_color));
         crBkOld = pDC->SetBkColor(_ToGreenCOLORREF(_alternateColor));

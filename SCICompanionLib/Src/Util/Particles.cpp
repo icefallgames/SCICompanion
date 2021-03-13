@@ -265,6 +265,12 @@ void simulateParticles()
         }
     }
 }
+
+point16 makePoint(int x, int y)
+{
+    return point16(x, y);
+}
+
 void simulateParticlesOneAtATime()
 {
     for (Loop &loop : g_raster->Loops)
@@ -372,6 +378,9 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
         g_chai->add(chaiscript::fun(&sinDegrees), "sin");
         g_chai->add(chaiscript::fun(&cosDegrees), "cos");
 
+        g_chai->add(chaiscript::user_type<point16>(), "point16");
+        g_chai->add(chaiscript::fun(&makePoint), "makePoint");
+
         g_chai->add(chaiscript::user_type<Pixel>(), "Pixel");
         g_chai->add(chaiscript::bootstrap::standard_library::vector_type<std::vector<Pixel> >("PixelVector"));
 
@@ -380,6 +389,7 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
         g_chai->add(chaiscript::fun(&Cel::getHeight), "getHeight");
         g_chai->add(chaiscript::fun(&Cel::getTransparent), "getTransparent");
         g_chai->add(chaiscript::fun(&Cel::drawPixel), "drawPixel");
+        g_chai->add(chaiscript::fun(&Cel::drawLine), "drawLine");
         g_chai->add(chaiscript::fun(&Cel::getRandomPixel), "getRandomPixel");
         g_chai->add(chaiscript::fun(&Cel::selectPixelsOfColor), "selectPixelsOfColor");
         g_chai->add(chaiscript::fun(&Cel::selectPixelsNotOfColor), "selectPixelsNotOfColor");
@@ -438,12 +448,104 @@ Pixel Cel::getPixel(point16 point)
     return Pixel{ point, Data[x + y * GetStride()] };
 }
 
+// clamps
 void Cel::drawPixel(point16 point, byte color)
 {
     int x = max(0, min(point.x, size.cx - 1));
     int y = max(0, min(point.y, size.cy - 1));
     Data[x + y * GetStride()] = color;
 }
+void Cel::discardDrawPixel(point16 point, byte color)
+{
+    if (point.x >= 0 && point.x < size.cx && point.y >= 0 && point.y < size.cy)
+    {
+        Data[point.x + point.y * GetStride()] = color;
+    }
+}
+
+//#define LINEMACRO(pData, startx, starty, deltalinear, deltanonlinear, linearvar, nonlinearvar, \
+  //                linearend, nonlinearstart, linearmod, nonlinearmod) \
+
+
+void LineMacro(Cel &cel, byte color, int& x, int& y, int deltalinear, int deltanonlinear, int& linearvar, int& nonlinearvar, int linearend, int nonlinearstart, int linearmod, int nonlinearmod)
+{
+    int incrNE = ((deltalinear) > 0) ? (deltalinear) : -(deltalinear);
+    incrNE <<= 1;
+    deltanonlinear <<= 1;
+    int incrE = ((deltanonlinear) > 0) ? -(deltanonlinear) : (deltanonlinear);
+    int d = nonlinearstart - 1;
+    while (linearvar != (linearend))
+    {
+        cel.discardDrawPixel(point16(x, y), color);
+        linearvar += linearmod;
+        if ((d += incrE) < 0) {
+                d += incrNE;
+                nonlinearvar += nonlinearmod;
+        };
+    };
+    cel.discardDrawPixel(point16(x, y), color);
+}
+
+void Cel::drawLine(point16 start, point16 end, byte color, int percentEnd)
+{
+    int xStart = start.x;
+    int yStart = start.y;
+    int xEnd = end.x;
+    int yEnd = end.y;
+    //DrawCaptureToolHelper(nullptr, *this, start, end, 1, color);
+    // Copied from pic commands so we can use a bresenham algorithm, and control how much of a line we draw.
+    int dx, dy, finalx, finaly;
+    int x = (int)xStart;
+    int y = (int)yStart;
+    dx = xEnd - x;
+    dy = yEnd - y;
+
+    finalx = xStart + dx * percentEnd / 100;
+    finaly = yStart + dy * percentEnd / 100;
+
+    dx = abs(dx);
+    dy = abs(dy);
+
+    if (dx > dy) {
+        if (finalx < x) {
+            if (finaly < y) { /* llu == left-left-up */
+                LineMacro(*this, color, x, y, dx, dy, x, y, finalx, dx, -1, -1);
+            }
+            else {         /* lld */
+                LineMacro(*this, color, x, y, dx, dy, x, y, finalx, dx, -1, 1);
+            }
+        }
+        else { /* x1 >= x */
+            if (finaly < y) { /* rru */
+                LineMacro(*this, color, x, y, dx, dy, x, y, finalx, dx, 1, -1);
+            }
+            else {         /* rrd */
+                LineMacro(*this, color, x, y, dx, dy, x, y, finalx, dx, 1, 1);
+            }
+        }
+    }
+    else { /* dx <= dy */
+        if (finaly < y) {
+            if (finalx < x) { /* luu */
+                LineMacro(*this, color, x, y, dy, dx, y, x, finaly, dy, -1, -1);
+            }
+            else {         /* ruu */
+                LineMacro(*this, color, x, y, dy, dx, y, x, finaly, dy, -1, 1);
+            }
+        }
+        else { /* y1 >= y */
+            if (finalx < x) { /* ldd */
+                LineMacro(*this, color, x, y, dy, dx, y, x, finaly, dy, 1, -1);
+            }
+            else {         /* rdd */
+                LineMacro(*this, color, x, y, dy, dx, y, x, finaly, dy, 1, 1);
+            }
+        }
+    }
+}
+
+
+
 Pixel Cel::getRandomPixel()
 {
     point16 p;

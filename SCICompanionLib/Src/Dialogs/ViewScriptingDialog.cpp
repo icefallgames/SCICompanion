@@ -113,6 +113,7 @@ BEGIN_MESSAGE_MAP(ViewScriptingDialog, CExtResizableDialog)
     ON_COMMAND(IDC_BUTTONPLAY, OnPlay)
     ON_BN_CLICKED(IDC_BUTTONBG, &ViewScriptingDialog::OnBnClickedButtonbg)
     ON_CBN_SELCHANGE(IDC_COMBOFILES, &OnCbnSelchangeFiles)
+    ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 void ViewScriptingDialog::OnBnClickedSave()
@@ -225,6 +226,18 @@ void ViewScriptingDialog::SetResource(const ResourceEntity *resource, const Pale
     {
         m_wndAnimate.SetResource(_resource, _palette);
     }
+}
+
+void ViewScriptingDialog::OnClose()
+{
+    SetResource(nullptr, nullptr);
+    __super::OnClose();
+}
+
+void ViewScriptingDialog::OnCancel()
+{
+    SetResource(nullptr, nullptr);
+    __super::OnCancel();
 }
 
 void ViewScriptingDialog::SetLoop(int nLoop)
