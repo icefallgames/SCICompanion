@@ -339,6 +339,11 @@ float randomRangeF(float min, float max)
     return distribution(g_mt);
 }
 
+void seedRandom(int seed)
+{
+    g_mt.seed(seed);
+}
+
 const double DegreesToReadians = 0.0174533;
 
 double sinDegrees(double angle)
@@ -361,6 +366,7 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
 
         g_chai->add(chaiscript::fun(&randomRange), "rand");
         g_chai->add(chaiscript::fun(&randomRangeF), "randf");
+        g_chai->add(chaiscript::fun(&seedRandom), "randseed");
 
         g_chai->add(chaiscript::fun(&addParticle), "addParticle");
         g_chai->add(chaiscript::fun(&addLineParticle), "addLineParticle");
@@ -500,6 +506,9 @@ void Cel::drawLine(point16 start, point16 end, byte color, int percentEnd)
     dx = xEnd - x;
     dy = yEnd - y;
 
+    int finalxFull = xStart + dx;
+    int finalyFull = yStart + dy;
+
     finalx = xStart + dx * percentEnd / 100;
     finaly = yStart + dy * percentEnd / 100;
 
@@ -507,8 +516,8 @@ void Cel::drawLine(point16 start, point16 end, byte color, int percentEnd)
     dy = abs(dy);
 
     if (dx > dy) {
-        if (finalx < x) {
-            if (finaly < y) { /* llu == left-left-up */
+        if (finalxFull < x) {
+            if (finalyFull < y) { /* llu == left-left-up */
                 LineMacro(*this, color, x, y, dx, dy, x, y, finalx, dx, -1, -1);
             }
             else {         /* lld */
@@ -516,7 +525,7 @@ void Cel::drawLine(point16 start, point16 end, byte color, int percentEnd)
             }
         }
         else { /* x1 >= x */
-            if (finaly < y) { /* rru */
+            if (finalyFull < y) { /* rru */
                 LineMacro(*this, color, x, y, dx, dy, x, y, finalx, dx, 1, -1);
             }
             else {         /* rrd */
@@ -525,8 +534,8 @@ void Cel::drawLine(point16 start, point16 end, byte color, int percentEnd)
         }
     }
     else { /* dx <= dy */
-        if (finaly < y) {
-            if (finalx < x) { /* luu */
+        if (finalyFull < y) {
+            if (finalxFull < x) { /* luu */
                 LineMacro(*this, color, x, y, dy, dx, y, x, finaly, dy, -1, -1);
             }
             else {         /* ruu */
@@ -534,7 +543,7 @@ void Cel::drawLine(point16 start, point16 end, byte color, int percentEnd)
             }
         }
         else { /* y1 >= y */
-            if (finalx < x) { /* ldd */
+            if (finalxFull < x) { /* ldd */
                 LineMacro(*this, color, x, y, dy, dx, y, x, finaly, dy, 1, -1);
             }
             else {         /* rdd */

@@ -1626,6 +1626,8 @@ unique_ptr<SyntaxNode> _MakeVerbOrNounComparison(const string &itemOrVerb, const
 
 void _ProcessInventoryVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbHandler)
 {
+    unordered_set<string> usedVerbs;
+
     PropertyValueVector nothing;
     nothing.push_back(PropertyValue(NoItem, ValueType::Token));
 
@@ -1643,6 +1645,11 @@ void _ProcessInventoryVerbHandler(ClassDefinition &theClass, VerbHandlerDefiniti
         assert(statement->GetNodeType() == NodeTypeVerbClause);
         VerbClauseStatement &verbClause = static_cast<VerbClauseStatement&>(*statement);
         unique_ptr<CaseStatement> theCase = make_unique<CaseStatement>();
+
+        for (const PropertyValue &verb : verbClause.Verbs)
+        {
+            usedVerbs.insert(verb.GetStringValue());
+        }
 
         // put them in an and
         unique_ptr<BinaryOp> andStatement = make_unique<BinaryOp>(BinaryOperator::LogicalAnd);
@@ -1680,6 +1687,26 @@ void _ProcessInventoryVerbHandler(ClassDefinition &theClass, VerbHandlerDefiniti
     invDoVerbMethod->AddStatement(move(retValue));
 
     theClass.AddMethod(move(invDoVerbMethod));
+
+    // Now a thing that says if its handled:
+    std::string methodName = "_isInvVerb";
+    unique_ptr<MethodDefinition> isXXXVerbMethod = make_unique<MethodDefinition>();
+    isXXXVerbMethod->SetName(methodName);
+    isXXXVerbMethod->SetOwnerClass(&theClass);
+    isXXXVerbMethod->AddSignature(_CreateIsVerbHandlerSignature());
+    unique_ptr<ReturnStatement> returnStatement = make_unique<ReturnStatement>();
+    unique_ptr<BinaryOp> orStatement = make_unique<BinaryOp>(BinaryOperator::LogicalOr);
+    unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(IsOneOfCall);
+    procCall->AddStatement(make_unique<PropertyValue>("verb", ValueType::Token));
+    for (auto &usedVerb : usedVerbs)
+    {
+        procCall->AddStatement(make_unique<PropertyValue>(usedVerb, ValueType::Token));
+    }
+    orStatement->SetStatement1(move(procCall));
+    orStatement->SetStatement2(_MakeSuperCallTo(methodName, "verb"));
+    returnStatement->SetStatement1(move(orStatement));
+    isXXXVerbMethod->AddStatement(move(returnStatement));
+    theClass.AddMethod(move(isXXXVerbMethod));
 }
 
 void _ProcessVerbHandler(ClassDefinition &theClass, VerbHandlerDefinition &verbHandler, CondStatement **pCondWeak)
