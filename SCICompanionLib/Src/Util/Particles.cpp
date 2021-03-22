@@ -128,18 +128,21 @@ void DrawParticle(const Particle &p, Cel &cel)
     }
     else
     {
-        int x = max(0, min(cel.size.cx - 1, p.x));
-        int y = max(0, min(cel.size.cy - 1, p.y));
+        if (p.x >= 0 && p.x < cel.size.cx && p.y >= 0 && p.y < cel.size.cy) // I changed this from accumulate on edge to discard... might want it to be an option instead?
+        {
+            int x = max(0, min(cel.size.cx - 1, p.x));
+            int y = max(0, min(cel.size.cy - 1, p.y));
 
-        if (p.line)
-        {
-            int xPrev = max(0, min(cel.size.cx - 1, p.xPrev));
-            int yPrev = max(0, min(cel.size.cy - 1, p.yPrev));
-            bresenham(cel, p.color, xPrev, yPrev, x, y);
-        }
-        else
-        {
-            cel.Data[y * cel.GetStride() + x] = p.color;
+            if (p.line)
+            {
+                int xPrev = max(0, min(cel.size.cx - 1, p.xPrev));
+                int yPrev = max(0, min(cel.size.cy - 1, p.yPrev));
+                bresenham(cel, p.color, xPrev, yPrev, x, y);
+            }
+            else
+            {
+                cel.Data[y * cel.GetStride() + x] = p.color;
+            }
         }
     }
 }
