@@ -16,6 +16,7 @@
 #include <random>
 #define CHAISCRIPT_NO_THREADS 1
 #include "chaiscript.hpp"
+//#include <algorithm>
 
 
 struct Particle
@@ -274,6 +275,48 @@ point16 makePoint(int x, int y)
     return point16(x, y);
 }
 
+void randomizePixelList(std::vector<Pixel> &inList)
+{
+    std::random_shuffle(inList.begin(), inList.end());
+}
+
+int lerpPower(double power, double from, double to, double start, double end, double current)
+{
+    float progress = (current - start) / (end - start); // Ostensibly between 0 and 1
+    float value = pow(progress, power);
+    value = from + (to - from) * value;
+    return (int)round(value);
+}
+
+
+double lerpf(double from, double to, double start, double end, double current)
+{
+    return lerpPower(1.0, from, to, start, end, current);
+}
+
+double lerpPowerf(double power, double from, double to, double start, double end, double current)
+{
+    float progress = (current - start) / (end - start); // Ostensibly between 0 and 1
+    float value = pow(progress, power);
+    value = from + (to - from) * value;
+    return value;
+}
+
+double signHelper(double value)
+{
+    return signbit(value) ? -1.0 : 1.0;
+}
+double absHelper(double value)
+{
+    return abs(value);
+}
+
+int lerp(double from, double to, double start, double end, double current)
+{
+    return lerpPower(1.0, from, to, start, end, current);
+}
+
+
 void simulateParticlesOneAtATime()
 {
     for (Loop &loop : g_raster->Loops)
@@ -333,7 +376,7 @@ std::unique_ptr<chaiscript::ChaiScript> g_chai;
 
 int randomRange(int min, int max)
 {
-    std::uniform_int_distribution<int32_t> distribution(min, max);
+    std::uniform_int_distribution<int32_t> distribution(min, max - 1); // -1 since I want it to be exclusive.
     return distribution(g_mt);
 }
 float randomRangeF(float min, float max)
@@ -357,6 +400,10 @@ double cosDegrees(double angle)
 {
     return cos(angle * DegreesToReadians);
 }
+double atanDegrees(double y, double x)
+{
+    return atan2(y, x) / DegreesToReadians;
+}
 
 void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelIndex selectedCel)
 {
@@ -378,6 +425,12 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
         g_chai->add(chaiscript::fun(&simulateParticlesOneAtATime), "simulateParticlesOneAtATime");
         g_chai->add(chaiscript::fun(&simulateParticlesRoundRobin), "simulateParticlesRoundRobin");
         
+        g_chai->add(chaiscript::fun(&lerp), "lerp");
+        g_chai->add(chaiscript::fun(&lerpf), "lerpf");
+        g_chai->add(chaiscript::fun(&lerpPower), "lerpPower");
+        g_chai->add(chaiscript::fun(&lerpPowerf), "lerpPowerf");
+        g_chai->add(chaiscript::fun(&signHelper), "sign");
+        g_chai->add(chaiscript::fun(&absHelper), "abs");
 
         g_chai->add(chaiscript::fun(&point16::x), "x");
         g_chai->add(chaiscript::fun(&point16::y), "y");
@@ -386,6 +439,7 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
 
         g_chai->add(chaiscript::fun(&sinDegrees), "sin");
         g_chai->add(chaiscript::fun(&cosDegrees), "cos");
+        g_chai->add(chaiscript::fun(&atanDegrees), "atan");
 
         g_chai->add(chaiscript::user_type<point16>(), "point16");
         g_chai->add(chaiscript::fun(&makePoint), "makePoint");
@@ -393,6 +447,7 @@ void RunChaiScript(const std::string &script, RasterComponent &rasterIn, CelInde
         g_chai->add(chaiscript::user_type<Pixel>(), "Pixel");
         g_chai->add(chaiscript::bootstrap::standard_library::vector_type<std::vector<Pixel> >("PixelVector"));
 
+        g_chai->add(chaiscript::fun(&randomizePixelList), "randomizePixelList");
         g_chai->add(chaiscript::fun(&Cel::getPixel), "getPixel");
         g_chai->add(chaiscript::fun(&Cel::getWidth), "getWidth");
         g_chai->add(chaiscript::fun(&Cel::getHeight), "getHeight");
