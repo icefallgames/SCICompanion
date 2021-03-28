@@ -68,6 +68,7 @@ struct Cel
     void drawLine(point16 start, point16 end, byte color, int percentEnd);
     Pixel getRandomPixel();
     void clear();
+    void fill(point16 point, byte color);
     int getWidth();
     int getHeight();
     Pixel getPixel(point16 point);
