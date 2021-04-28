@@ -45,6 +45,10 @@
 const int PicGutter = 5;
 using namespace Gdiplus;
 
+// 119 is actually the maximum, because double the value (238) is stored in
+// a byte, and that byte has to be < 240 in order not to be interpretered as a command.
+const uint8_t MaxPatternNr = 119;
+
 std::unique_ptr<PicClipsDialog> g_PicClipsDialog;
 
 #ifdef _DEBUG
@@ -3334,7 +3338,7 @@ void CPicView::_MakeRandomNR()
     {
         if (pDoc->GetPenStyle().fRandomNR)
         {
-            _bRandomNR = (rand() % 128);
+            _bRandomNR = (rand() % MaxPatternNr);
         }
     }
 }
@@ -3359,7 +3363,7 @@ void CPicView::_OnPatternRClick()
 {
     // cycle patternNR.
     _bRandomNR++;
-    _bRandomNR = _bRandomNR % 128;
+    _bRandomNR = _bRandomNR % MaxPatternNr;
 
     // FEATURE: we can really optimize the clip region here.
     _GetDrawManager().InvalidatePlugins();
