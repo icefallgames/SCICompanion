@@ -68,7 +68,7 @@
 #include <filesystem>
 #include <regex>
 
-using namespace std::tr2::sys;
+using namespace std::filesystem;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -1697,7 +1697,7 @@ PATCH_FILE_HEAP
 
 const TCHAR g_szResourceSpec[] = PATCH_FILE_TYPES;
 
-const TCHAR* g_szResourceSpecByType[ResourceType::Max] =
+const TCHAR* g_szResourceSpecByType[(int)ResourceType::Max] =
 {
     PATCH_FILE_VIEW,
     PATCH_FILE_PIC,

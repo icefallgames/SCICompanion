@@ -22,7 +22,7 @@
 // CNonViewHostDocument
 void CNonViewHostDocument::UpdateAllViewsAndNonViews(CView *pSender, LPARAM lHint, CObject *pObject)
 {
-    std::for_each(_nonViewClients.begin(), _nonViewClients.end(), std::bind2nd(_UpdateNonView(), pObject));
+    std::for_each(_nonViewClients.begin(), _nonViewClients.end(), [pObject](INonViewClient *pClient) { pClient->UpdateNonView(pObject); });
     __super::UpdateAllViews(pSender, lHint, pObject);
 }
 

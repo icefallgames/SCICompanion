@@ -35,7 +35,7 @@ public:
 };
 
 // stl helper
-struct _UpdateNonView : public std::binary_function<INonViewClient*, CObject*, void>
+struct _UpdateNonView
 {
     void operator()(INonViewClient *pClient, CObject *pObjec) const
     {

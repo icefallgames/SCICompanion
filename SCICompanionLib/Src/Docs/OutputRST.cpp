@@ -21,7 +21,7 @@
 #include <regex>
 #include "StringUtil.h"
 
-using namespace std::tr2::sys;
+using namespace std::filesystem;
 
 // The code in this file is responsible for generating .rst documentation based on compiling the source code
 // and reading comments in the source dode.

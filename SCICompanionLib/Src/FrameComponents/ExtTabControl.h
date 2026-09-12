@@ -25,4 +25,6 @@ private:
 
     void OnPaint();
     BOOL OnEraseBkgnd(CDC *pDC);
+
+    HFONT _hLastFontSet = nullptr;
 };

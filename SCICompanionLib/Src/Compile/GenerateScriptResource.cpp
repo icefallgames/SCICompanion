@@ -132,7 +132,7 @@ typedef struct
 
 typedef std::vector<species_property> property_vector;
 
-struct MatchSelector : public std::binary_function<species_property, WORD, bool>
+struct MatchSelector
 {
     bool operator()(const species_property &prop, WORD wSelector) const
     {
@@ -1119,7 +1119,7 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
             // name is tracked by default (since we populate with a string by default)
             // Other species props are not tracked by default.
             bool fTrackRelocation = (iIndex == nameIndex);
-            property_vector::const_iterator overriddenIt = find_if(newProps.begin(), newProps.end(), bind2nd(MatchSelector(), speciesProp.wSelector));
+            property_vector::const_iterator overriddenIt = find_if(newProps.begin(), newProps.end(), [&speciesProp](const species_property &prop) { return prop.wSelector == speciesProp.wSelector; });
             if (overriddenIt != newProps.end())
             {
                 wValue = overriddenIt->wValue;
@@ -1133,7 +1133,7 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
         for (species_property &newProp : newProps)
         {
             // Is this a new property, not defined by the superclass?
-            property_vector::const_iterator speciesIt = find_if(speciesProps.begin(), speciesProps.end(), bind2nd(MatchSelector(), newProp.wSelector));
+            property_vector::const_iterator speciesIt = find_if(speciesProps.begin(), speciesProps.end(), [&newProp](const species_property &prop) { return prop.wSelector == newProp.wSelector; });
             if (speciesIt == speciesProps.end())
             {
                 // Must be - we didn't find it in the species props.

@@ -19,7 +19,7 @@
 #include "TlHelp32.h"
 #include <filesystem>
 
-using namespace std::tr2::sys;
+using namespace std::filesystem;
 using namespace fmt;
 
 __declspec(dllexport) void _cdecl DummyFunctionSoWeBuildALib()
