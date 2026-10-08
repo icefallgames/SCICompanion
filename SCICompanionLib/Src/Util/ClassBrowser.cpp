@@ -31,7 +31,6 @@
 
 using namespace sci;
 using namespace std;
-using namespace stdext;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

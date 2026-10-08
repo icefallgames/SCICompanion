@@ -26,7 +26,7 @@
 #include "ResourceBlob.h"
 #include "ResourceMap.h"
 
-using namespace std::tr2;
+namespace sys = std::filesystem;
 
 // Tracks which cached audio files are currently up-to-date in the game's main resources.
 // Prevents us from having to rebuild resource.aud/sfx unnecessarily.

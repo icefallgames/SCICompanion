@@ -18,7 +18,6 @@
 #include "ResourceEntity.h"
 
 using namespace std;
-using namespace stdext;
 
 
 bool IsValidVocabChar(TCHAR ch)
@@ -237,7 +236,7 @@ int CountMatchingCharacters(PCTSTR psz1, PCTSTR psz2)
 
 bool Vocab000::LookupWord(const std::string &word, WordGroup &dwGroup) const
 {
-    word2group_map::const_iterator it = _mapWordToGroup.lower_bound(word);
+    word2group_map::const_iterator it = _mapWordToGroup.find(word);
     if (it != _mapWordToGroup.end())
     {
         dwGroup = it->second;
@@ -554,7 +553,7 @@ VocabChangeHint Vocab000::RemoveWord(PCTSTR pszWord)
         _words.erase(wordIt);
 
         // Remove it from the lookup table.
-        _mapWordToGroup.erase(_mapWordToGroup.lower_bound(strLower));
+        _mapWordToGroup.erase(strLower);
 
         hint |= _FixupGroupToString(dwGroup);
     }

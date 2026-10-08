@@ -22,7 +22,7 @@
 #include <filesystem>
 #include <regex>
 
-using namespace std::tr2::sys;
+using namespace std::filesystem;
 
 #define UWM_STARTCOMPILE (WM_APP + 0)
 

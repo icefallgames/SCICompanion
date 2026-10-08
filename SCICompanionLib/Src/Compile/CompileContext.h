@@ -392,7 +392,7 @@ private:
 };
 
 template<typename T>
-class GenericOutputByteCode2 : public std::unary_function<std::unique_ptr<T>, void>
+class GenericOutputByteCode2
 {
 public:
 	GenericOutputByteCode2(CompileContext &context) : _context(context) {}
@@ -435,7 +435,7 @@ private:
 };
 
 
-class GenericOutputByteCode : public std::unary_function<IOutputByteCode*, void>
+class GenericOutputByteCode
 {
 public:
     GenericOutputByteCode(CompileContext &context) : _context(context) {}
