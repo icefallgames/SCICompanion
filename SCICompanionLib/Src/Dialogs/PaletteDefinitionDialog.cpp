@@ -15,6 +15,7 @@
 //
 
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "Resource.h"
 #include "ChooseColorDialog.h"
 #include "PaletteDefinitionDialog.h"
@@ -255,7 +256,7 @@ void CPaletteDefinitionDialog::OnColorClick(BYTE bIndex, int nID, BOOL fLeftClic
 
 bool _GetPaletteFilename(bool open, const std::string &dialogTitle, std::string &filename)
 {
-    CFileDialog fileDialog(open, ".pal", nullptr, OFN_NOCHANGEDIR, "PAL files (*.pal)|*.pal|All Files|*.*|");
+    CPersistentFileDialog fileDialog(open, ".pal", nullptr, 0, "PAL files (*.pal)|*.pal|All Files|*.*|");
     fileDialog.m_ofn.lpstrTitle = dialogTitle.c_str();;
     if (IDOK == fileDialog.DoModal())
     {

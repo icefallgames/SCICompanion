@@ -684,6 +684,9 @@
     <ClCompile Include="Src\Util\PhonemeMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Util\PersistentFileDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Src\FrameComponents\ViewUIElement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1578,6 +1581,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Util\PhonemeMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Util\PersistentFileDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\FrameComponents\ViewUIElement.h">

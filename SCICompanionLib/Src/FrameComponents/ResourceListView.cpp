@@ -18,6 +18,7 @@
 //#define MAKE_UNITTEST_FILES 1
 
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "AppState.h"
 #include "ResourceListView.h"
 #include "ResourceListDoc.h"
@@ -630,7 +631,7 @@ void CResourceListCtrl::OnExtractResources()
         {
             std::string filename = GetFileNameFor(*pData);
             std::string filter = GetFileDialogFilterFor(pData->GetType(), pData->GetVersion());
-            CFileDialog fileDialog(FALSE, NULL, filename.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter.c_str());
+            CPersistentFileDialog fileDialog(FALSE, NULL, filename.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter.c_str());
             if (IDOK == fileDialog.DoModal())
             {
                 CString strFileName = fileDialog.GetPathName();

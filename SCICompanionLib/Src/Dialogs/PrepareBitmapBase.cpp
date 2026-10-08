@@ -12,6 +12,7 @@
     GNU General Public License for more details.
 ***************************************************************************/
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "NoFlickerStatic.h"
 #include "PrepareBitmapBase.h"
 #include "PaletteOperations.h"
@@ -349,7 +350,7 @@ void PrepareBitmapBase::_OnPasteFromClipboard(CWnd *pwnd)
 
 void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
 {
-    CFileDialog dialog(TRUE, nullptr, nullptr, OFN_NOCHANGEDIR, g_szGdiplusFilter);
+    CPersistentFileDialog dialog(TRUE, nullptr, nullptr, 0, g_szGdiplusFilter);
     if (IDOK == dialog.DoModal())
     {
         CString strFileName = dialog.GetPathName();

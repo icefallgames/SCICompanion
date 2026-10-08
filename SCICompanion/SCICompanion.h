@@ -71,6 +71,7 @@ public:
     afx_msg void OnRunGame();
     afx_msg void OnDebugGame();
     afx_msg void OnCloseGame();
+    afx_msg void OnFileOpen();
     afx_msg void OnGameProperties();
     afx_msg void OnGameVersionDetection();
     afx_msg void OnRoomExplorer();

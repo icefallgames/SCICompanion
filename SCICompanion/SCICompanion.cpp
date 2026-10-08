@@ -23,6 +23,7 @@
 
 
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 
 #include "AppState.h"
 #include "MainFrm.h"
@@ -147,7 +148,7 @@ BEGIN_MESSAGE_MAP(SCICompanionApp, CWinApp)
     ON_COMMAND(ID_HELP_GETGAMES, GetGames)
     ON_COMMAND(ID_HELP_SCICOMPANION, OnSCICompHelp)
     // Standard file based document commands
-    ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
+    ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
     ON_COMMAND(ID_RUNGAME, OnRunGame)
     ON_COMMAND(ID_DEBUGGAME, OnDebugGame)
     ON_COMMAND(ID_ROOM_EXPLORER, OnRoomExplorer)
@@ -749,7 +750,34 @@ void SCICompanionApp::AddToRecentFileList(PCTSTR lpszPathName)
         {
             *pszFileName = 0;
             __super::AddToRecentFileList(szBuffer);
+            // Also remember this as the starting folder for the next
+            // File > Open Game -- see OnFileOpen() and
+            // PersistentFileDialog.h for why this isn't left to Wine's
+            // own (apparently non-functional here) file-dialog memory.
+            SetLastUsedFolder(szBuffer);
         }
+    }
+}
+
+void SCICompanionApp::OnFileOpen()
+{
+    // The stock CWinApp::OnFileOpen()/CDocManager::DoPromptFileName()
+    // flow owns its CFileDialog internally, giving us no way to set
+    // lpstrInitialDir on it -- so it falls back entirely to comdlg32's
+    // own "remember last folder" memory, which is exactly the thing
+    // that doesn't persist under Wine (see PersistentFileDialog.h).
+    // There's also no filter registered for the game doc template
+    // (IDR_MAINFRAME has no STRINGTABLE entry), so that stock dialog
+    // was only ever showing the *other* resource types' filters plus
+    // "All Files" here anyway. Using our own CPersistentFileDialog,
+    // filtered specifically to resource.map, both fixes the folder
+    // memory and better matches what this command actually does.
+    CPersistentFileDialog fileDialog(TRUE, nullptr, nullptr,
+        OFN_HIDEREADONLY | OFN_FILEMUSTEXIST,
+        _T("Game Resource Map (resource.map)|resource.map|All Files (*.*)|*.*||"), nullptr);
+    if (fileDialog.DoModal() == IDOK)
+    {
+        OpenDocumentFile(fileDialog.GetPathName());
     }
 }
 

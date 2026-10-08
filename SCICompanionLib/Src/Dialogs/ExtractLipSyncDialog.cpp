@@ -12,6 +12,7 @@
     GNU General Public License for more details.
 ***************************************************************************/
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "ExtractLipSyncDialog.h"
 #include "PhonemeMap.h"
 #include "Sync.h"
@@ -464,7 +465,7 @@ void ExtractLipSyncDialog::OnBnClickedButtonExportsync()
 {
     if (_audioResource->TryGetComponent<SyncComponent>())
     {
-        CFileDialog fileDialog(FALSE, ".txt", fmt::format("{0}_lipsync.txt", default_reskey(_audioResource->ResourceNumber, _audioResource->Base36Number)).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, c_szLipSyncTxtFilter);
+        CPersistentFileDialog fileDialog(FALSE, ".txt", fmt::format("{0}_lipsync.txt", default_reskey(_audioResource->ResourceNumber, _audioResource->Base36Number)).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, c_szLipSyncTxtFilter);
         if (IDOK == fileDialog.DoModal())
         {
             CString strFileName = fileDialog.GetPathName();
@@ -475,7 +476,7 @@ void ExtractLipSyncDialog::OnBnClickedButtonExportsync()
 
 void ExtractLipSyncDialog::OnBnClickedButtonImportsync()
 {
-    CFileDialog fileDialog(TRUE, ".txt", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, c_szLipSyncTxtFilter);
+    CPersistentFileDialog fileDialog(TRUE, ".txt", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, c_szLipSyncTxtFilter);
     if (IDOK == fileDialog.DoModal())
     {
         CString strFileName = fileDialog.GetPathName();

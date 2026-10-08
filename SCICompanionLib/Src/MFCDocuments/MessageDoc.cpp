@@ -16,6 +16,7 @@
 //
 
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "AppState.h"
 #include "MessageDoc.h"
 #include "Text.h"
@@ -323,7 +324,7 @@ void CMessageDoc::ImportMessage()
         [&](TextComponent &text)
     {
         MessageChangeHint hint = MessageChangeHint::None;
-        CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, c_szMessageTxtFilter);
+        CPersistentFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY, c_szMessageTxtFilter);
         if (IDOK == fileDialog.DoModal())
         {
             CString strFileName = fileDialog.GetPathName();
@@ -344,7 +345,7 @@ void CMessageDoc::ExportMessage()
     const ResourceEntity *resource = GetResource();
     if (resource)
     {
-        CFileDialog fileDialog(FALSE, nullptr, fmt::format("{0}.txt", resource->ResourceNumber).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, c_szMessageTxtFilter);
+        CPersistentFileDialog fileDialog(FALSE, nullptr, fmt::format("{0}.txt", resource->ResourceNumber).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, c_szMessageTxtFilter);
         if (IDOK == fileDialog.DoModal())
         {
             CString strFileName = fileDialog.GetPathName();

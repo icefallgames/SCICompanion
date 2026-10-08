@@ -16,6 +16,7 @@
 //
 
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "AppState.h"
 #include "NewRasterResourceDocument.h"
 #include "AnimateDialog.h"
@@ -689,7 +690,7 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool 
 void CNewRasterResourceDocument::OnImportImage()
 {
     // Create a file dialog.
-    CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_NOCHANGEDIR, g_szGdiplusFilter);
+    CPersistentFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER, g_szGdiplusFilter);
     fileDialog.m_ofn.lpstrTitle = TEXT("Import image");
 
     if (IDOK == fileDialog.DoModal())
@@ -702,7 +703,7 @@ void CNewRasterResourceDocument::OnImportImage()
 void CNewRasterResourceDocument::OnImportImageSequence()
 {
     // Create a file dialog.
-    CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR, g_szGdiplusFilter);
+    CPersistentFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT, g_szGdiplusFilter);
     fileDialog.m_ofn.lpstrTitle = TEXT("Import image sequence");
 
     // set a buffer to keep at least 100 full path and file names
@@ -745,7 +746,7 @@ void CNewRasterResourceDocument::_OnExportAsImageWorker(CelIndex celIndex)
             celEntire.Data.allocate(celEntire.GetDataSize());
             celEntire.Data.assign(pBitsDest, pBitsDest + celEntire.GetDataSize());
             // Default extension should be the first one in the list for g_szGdiplus8BitSaveFilter
-            CFileDialog fileDialog(FALSE, ".bmp", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, g_szGdiplus8BitSaveFilter);
+            CPersistentFileDialog fileDialog(FALSE, ".bmp", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, g_szGdiplus8BitSaveFilter);
             if (IDOK == fileDialog.DoModal())
             {
                 CString strFileName = fileDialog.GetPathName();
@@ -822,10 +823,10 @@ void CNewRasterResourceDocument::ExportAsGif()
     _ValidateCelIndex();
     // Set up the save dialog.
     std::string filespec = fmt::format("{0}{1}-{2}", ri.pszTitleDefault, GetResource()->ResourceNumber, _nLoop);
-    CFileDialog fileDialog(FALSE,
+    CPersistentFileDialog fileDialog(FALSE,
         ".gif",
         filespec.c_str(),
-        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR,
+        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
         g_rgszHeaderFilter);
     if (IDOK == fileDialog.DoModal())
     {

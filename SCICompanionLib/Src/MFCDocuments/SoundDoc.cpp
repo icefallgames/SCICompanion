@@ -16,6 +16,7 @@
 //
 
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "AppState.h"
 #include "SoundDoc.h"
 #include "ResourceEntity.h"
@@ -143,7 +144,7 @@ void CSoundDoc::_OnImportWav()
     const ResourceEntity *resource = GetResource();
     if (resource && (appState->GetVersion().SoundFormat == SoundFormat::SCI1))
     {
-        CFileDialog fileDialog(TRUE, nullptr, nullptr, 0, "WAV files (*.wav)|*.wav|All Files|*.*|");
+        CPersistentFileDialog fileDialog(TRUE, nullptr, nullptr, 0, "WAV files (*.wav)|*.wav|All Files|*.*|");
         fileDialog.m_ofn.lpstrTitle = "Add wav to game";
         if (IDOK == fileDialog.DoModal())
         {
@@ -273,7 +274,7 @@ bool ImportMidi(std::vector<DeviceType> devices, ResourceEntity *resourceEntity)
 {
     bool success = false;
     // Create a file dialog.
-    CFileDialog fileDialog(TRUE, NULL, NULL, OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_NOCHANGEDIR, c_szMidiFilter);
+    CPersistentFileDialog fileDialog(TRUE, NULL, NULL, OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY, c_szMidiFilter);
     fileDialog.m_ofn.lpstrTitle = TEXT("Import midi file");
     if (IDOK == fileDialog.DoModal())
     {

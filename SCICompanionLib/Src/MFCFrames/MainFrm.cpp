@@ -16,6 +16,7 @@
 //
 
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "AppState.h"
 #include "Pic.h"
 #include "PicDoc.h"
@@ -1740,7 +1741,7 @@ const TCHAR g_szResourceFilter[] = TEXT("All resources|" PATCH_FILE_TYPES "|"
 //
 void CMainFrame::OnFileOpenResource()
 {
-    CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, g_szResourceFilter);
+    CPersistentFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY, g_szResourceFilter);
     if (IDOK == fileDialog.DoModal())
     {
         CString strFileName = fileDialog.GetPathName();
@@ -1785,7 +1786,7 @@ int ResourceNumberFromFileName(PCTSTR pszFileName)
 //
 void CMainFrame::OnFileAddResource()
 {
-    CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, g_szResourceFilter);
+    CPersistentFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY, g_szResourceFilter);
     if (IDOK == fileDialog.DoModal())
     {
         CString strFileName = fileDialog.GetPathName();

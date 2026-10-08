@@ -16,6 +16,7 @@
 //
 
 #include "stdafx.h"
+#include "PersistentFileDialog.h"
 #include "AppState.h"
 #include "PicChildFrame.h"
 #include "PicDoc.h"
@@ -817,7 +818,7 @@ void CPicView::OnExportPalettizedBitmap()
             if (command.type == PicCommand::CommandType::DrawBitmap)
             {
                 // Default extension should be the first one in the list for g_szGdiplus8BitSaveFilter
-                CFileDialog fileDialog(FALSE, ".bmp", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, g_szGdiplus8BitSaveFilter);
+                CPersistentFileDialog fileDialog(FALSE, ".bmp", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, g_szGdiplus8BitSaveFilter);
                 if (IDOK == fileDialog.DoModal())
                 {
                     CString strFileName = fileDialog.GetPathName();
@@ -910,7 +911,7 @@ extern TCHAR g_szGdiplusFilter[] = "Image Files|*.jpg;*.jpeg;*.bmp;*.gif;*.png;*
 void CPicView::OnTraceBitmap()
 {
     // Create a file dialog.
-    CFileDialog fileDialog(TRUE, NULL, NULL, OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_NOCHANGEDIR, g_szGdiplusFilter, this);
+    CPersistentFileDialog fileDialog(TRUE, NULL, NULL, OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY, g_szGdiplusFilter, this);
     fileDialog.m_ofn.lpstrTitle = TEXT("Loading tracing image");
     if (IDOK == fileDialog.DoModal())
     {

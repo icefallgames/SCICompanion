@@ -416,6 +416,7 @@
     <ClCompile Include="Src\Util\LipSyncutil.cpp" />
     <ClCompile Include="Src\Util\MidiPlayer.cpp" />
     <ClCompile Include="Src\Util\PerfTimer.cpp" />
+    <ClCompile Include="Src\Util\PersistentFileDialog.cpp" />
     <ClCompile Include="Src\Util\PhonemeMap.cpp" />
     <ClCompile Include="Src\Util\PostBuildThread.cpp" />
     <ClCompile Include="Src\Util\RGBOctree.cpp" />
@@ -607,6 +608,7 @@
     <ClInclude Include="Src\Util\LipSyncUtil.h" />
     <ClInclude Include="Src\Util\MidiPlayer.h" />
     <ClInclude Include="Src\Util\PerfTimer.h" />
+    <ClInclude Include="Src\Util\PersistentFileDialog.h" />
     <ClInclude Include="Src\Util\PhonemeMap.h" />
     <ClInclude Include="Src\Util\PostBuildThread.h" />
     <ClInclude Include="Src\Util\RGBOctree.h" />
