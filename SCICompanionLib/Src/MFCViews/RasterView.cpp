@@ -1969,14 +1969,43 @@ void CRasterView::_DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t altern
     PenStyle penStyle = GetDoc()->GetPenStyle();
     if (_EnsurePenBitmap())
     {
-        int penWidth = penStyle.bPatternSize * 2 + 1;
-        int crTextOld = pDC->SetTextColor(_SCIColorToCOLORREF(fUseForeground ? color : alternateColor));
-        CDC dcMem;
-        dcMem.CreateCompatibleDC(pDC);
-        HGDIOBJ hOldBitmap = dcMem.SelectObject(_penBitmap);
-        pDC->TransparentBlt(point.x - penStyle.bPatternSize, point.y - penStyle.bPatternSize, penWidth, penWidth, &dcMem, 0, 0, penWidth, penWidth, RGB(255, 255, 255));
-        dcMem.SelectObject(hOldBitmap);
-        pDC->SetTextColor(crTextOld);
+        // Used to do this with pDC->TransparentBlt(...) of _penBitmap (a
+        // 1bpp mono bitmap, see CreatePatternBitmap) after SetTextColor()
+        // above it -- relying on the documented Win32 behavior that
+        // blitting a monochrome bitmap onto a color DC substitutes the
+        // destination's current text color for the bitmap's 0-bits.
+        // Real, but Wine's GDI doesn't reproduce that substitution
+        // correctly, so the brush always painted black under Wine
+        // regardless of the selected color. Reading the pen bitmap's own
+        // bits and setting each "on" pixel explicitly sidesteps that
+        // platform difference entirely -- basic enough GDI (SetPixelV)
+        // to not depend on any implementation-specific blit behavior,
+        // and the pen bitmap is tiny (bPatternSize is small), so the
+        // per-pixel cost here is a non-issue.
+        COLORREF colorRef = _SCIColorToCOLORREF(fUseForeground ? color : alternateColor);
+        BITMAP bm;
+        _penBitmap.GetObject(sizeof(bm), &bm);
+        std::unique_ptr<uint8_t[]> bits = std::make_unique<uint8_t[]>((size_t)bm.bmWidthBytes * bm.bmHeight);
+        _penBitmap.GetBitmapBits((LONG)((size_t)bm.bmWidthBytes * bm.bmHeight), bits.get());
+
+        int originX = point.x - penStyle.bPatternSize;
+        int originY = point.y - penStyle.bPatternSize;
+        for (int y = 0; y < bm.bmHeight; y++)
+        {
+            uint8_t *row = bits.get() + (size_t)y * bm.bmWidthBytes;
+            for (int x = 0; x < bm.bmWidth; x++)
+            {
+                // 0-bit = pen shape (CreatePatternBitmap sets a bit only
+                // for "background"/transparent pixels), 1-bit = leave
+                // the destination untouched -- same shape, drawn directly
+                // instead of via color-keyed transparency.
+                bool onPixel = (row[x / 8] & (0x80 >> (x % 8))) == 0;
+                if (onPixel)
+                {
+                    pDC->SetPixelV(originX + x, originY + y, colorRef);
+                }
+            }
+        }
     }
 }
 
