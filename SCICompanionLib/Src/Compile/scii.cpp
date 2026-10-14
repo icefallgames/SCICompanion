@@ -516,7 +516,7 @@ uint16_t scicode::calc_size()
         }
         if (fNeedToRedo)
         {
-            for_each(_code.begin(), _code.end(), std::mem_fun_ref(&scii::reset_size));
+            for_each(_code.begin(), _code.end(), [](scii &s) { s.reset_size(); });
         }
     } while (fNeedToRedo);
 
@@ -870,10 +870,4 @@ bool scii::_is_label_instruction()
 
 
 
-// This craziness is so that code_pos can be used in a multimap.
-// We use the node pointer as a < comparator.  Just something consistent but meaningless.
-bool operator<(const code_pos &_Right, const code_pos &_Left)
-{
-    return _Right._Mynode() < _Left._Mynode();
-}
 

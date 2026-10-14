@@ -537,7 +537,7 @@ void movefile(const std::string &from, const std::string &to);
 void testopenforwrite(const std::string &filename);
 uint32_t GetResourceOffsetInFile(uint8_t secondHeaderByte);
 extern const TCHAR g_szResourceSpec[];
-extern const TCHAR* g_szResourceSpecByType[ResourceType::Max];
+extern const TCHAR* g_szResourceSpecByType[(int)ResourceType::Max];
 std::string GetMessageFromLastError(const std::string &details);
 void ToUpper(std::string &aString);
 bool IsCodeFile(const std::string &text);

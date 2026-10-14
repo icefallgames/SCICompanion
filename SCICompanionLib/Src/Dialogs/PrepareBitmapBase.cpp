@@ -360,7 +360,10 @@ void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
 
         OSVERSIONINFO versionInfo = { 0 };
         versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+#pragma warning(push)
+#pragma warning(disable: 4996) // GetVersionEx is deprecated; kept as-is, just checking for Vista+
         GetVersionEx(&versionInfo);
+#pragma warning(pop)
         if (versionInfo.dwMajorVersion >= 6)
         {
             std::ifstream is((PCSTR)strFileName, std::ifstream::binary);

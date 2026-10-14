@@ -108,7 +108,7 @@ static const uint16_t tableDPCM16[128] = {
 };
 
 
-static void deDPCM16(byte *soundBuf, sci::istream &audioStream, uint32_t n) {
+static void deDPCM16(BYTE *soundBuf, sci::istream &audioStream, uint32_t n) {
     int16_t *out = (int16_t *)soundBuf;
 
     int32_t s = 0;
@@ -127,7 +127,7 @@ static void deDPCM16(byte *soundBuf, sci::istream &audioStream, uint32_t n) {
 
 static const uint8_t tableDPCM8[8] = { 0, 1, 2, 3, 6, 10, 15, 21 };
 
-static void deDPCM8Nibble(byte *soundBuf, int32_t &s, uint8_t b) {
+static void deDPCM8Nibble(BYTE *soundBuf, int32_t &s, uint8_t b) {
     if (b & 8) {
             s -= tableDPCM8[7 - (b & 7)];
     }

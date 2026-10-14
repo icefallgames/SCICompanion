@@ -22,7 +22,7 @@
 #include <filesystem>
 #include <regex>
 
-using namespace std::tr2::sys;
+using namespace std::filesystem;
 
 #define UWM_STARTCOMPILE (WM_APP + 0)
 
@@ -160,7 +160,9 @@ BOOL CNewCompileDialog::OnInitDialog()
                 path enumPath = appState->GetResourceMap().Helper().GetSrcFolder();
                 std::vector<std::string> filenames;
                 auto matchRSTRegex = std::regex("(\\w+)\\.sc$");
-                for (auto it = directory_iterator(enumPath); it != directory_iterator(); ++it)
+                // A missing folder lists as empty; std::filesystem would otherwise throw.
+                std::error_code ec;
+                for (auto it = directory_iterator(enumPath, ec); !ec && it != directory_iterator(); it.increment(ec))
                 {
                     const auto &file = it->path();
                     std::smatch sm;

@@ -268,7 +268,7 @@ void CompileContext::AddDefine(Define *pDefine)
     WORD wDummy;
     bool fDupe = false;
     const string &defineLabel = pDefine->GetLabel();
-    if (_localDefines.lower_bound(defineLabel) != _localDefines.end())
+    if (_localDefines.find(defineLabel) != _localDefines.end())
     {
         fDupe = true;
     }
@@ -1245,7 +1245,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
                 for (; defineIt != defines.end(); ++defineIt)
                 {
                     const string &defineLabel = (*defineIt)->GetLabel();
-                    if (_defines.lower_bound(defineLabel) != _defines.end())
+                    if (_defines.find(defineLabel) != _defines.end())
                     {
                         context.ReportWarning((*defineIt).get(), "Duplicate defines: '%s'", defineLabel.c_str());
                     }

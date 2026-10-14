@@ -1536,6 +1536,23 @@ LPRECT pInfo = (LPRECT)dwData;
 	return TRUE;
 }
 
+// Wine's built-in explorer.exe answers SHAppBarMessage(ABM_GETSTATE) with a
+// hardcoded ABS_ALWAYSONTOP|ABS_AUTOHIDE regardless of any real taskbar
+// setting (see programs/explorer/appbar.c in Wine), which makes the
+// auto-hide-taskbar sizing adjustment below fire on every WM_GETMINMAXINFO
+// and drive docked panes into a resize/requery loop. Skip that adjustment
+// under Wine; real Windows behavior is untouched.
+static bool stat_IsRunningUnderWine()
+{
+	static int s_nCached = -1;
+	if( s_nCached < 0 )
+	{
+		HMODULE hNtDll = ::GetModuleHandleA( "ntdll.dll" );
+		s_nCached = ( hNtDll != NULL && ::GetProcAddress( hNtDll, "wine_get_version" ) != NULL ) ? 1 : 0;
+	}
+	return ( s_nCached != 0 );
+}
+
 bool CExtNcFrameImpl::NcFrameImpl_GetMinMaxInfo(
 	LPMINMAXINFO pMMI
 	) const
@@ -1557,7 +1574,8 @@ CExtPaintManager::monitor_parms_t _mp;
 		_data.cbSize = sizeof(APPBARDATA);
 		UINT nSHR = (UINT)::SHAppBarMessage( ABM_GETSTATE, &_data );
 	//	if( nSHR == (ABS_AUTOHIDE|ABS_ALWAYSONTOP) )
-		if(		( nSHR & (ABS_AUTOHIDE) ) != 0
+		if(		( ! stat_IsRunningUnderWine() )
+			&&	( nSHR & (ABS_AUTOHIDE) ) != 0
 			&&	_mp.m_rcWorkArea.PtInRect( CPoint( ( _data.rc.right - _data.rc.left ) / 2, ( _data.rc.bottom - _data.rc.top ) / 2 ) )
 			)
 		{
@@ -1618,7 +1636,7 @@ CExtPaintManager::monitor_parms_t _mp;
 		::memset( &_data, 0, sizeof(APPBARDATA) );
 		_data.cbSize = sizeof(APPBARDATA);
 		UINT nSHR = (UINT)::SHAppBarMessage( ABM_GETSTATE, &_data );
-		if( nSHR == (ABS_AUTOHIDE|ABS_ALWAYSONTOP) )
+		if( ( ! stat_IsRunningUnderWine() ) && nSHR == (ABS_AUTOHIDE|ABS_ALWAYSONTOP) )
 		{
 			nSHR = (UINT)::SHAppBarMessage( ABM_GETTASKBARPOS, &_data );
 			if( nSHR == 1 )

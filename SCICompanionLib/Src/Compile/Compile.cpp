@@ -171,7 +171,7 @@ WORD PushToStackIfAppropriate(CompileContext &context, int lineNumber)
     return wBytes;
 }
 
-class PerformPreScan : public std::binary_function<IOutputByteCode*, CompileContext, void>
+class PerformPreScan
 {
 public:
     PerformPreScan(CompileContext &context) : _context(context) {}

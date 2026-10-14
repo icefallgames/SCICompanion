@@ -68,7 +68,7 @@
 #include <filesystem>
 #include <regex>
 
-using namespace std::tr2::sys;
+using namespace std::filesystem;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -793,7 +793,9 @@ void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
     std::vector<path> pluginDirectories;
     // First get the plugin folders.
     path pluginFolder = GetExeSubFolder("Plugins");
-    for (auto it = directory_iterator(pluginFolder); it != directory_iterator(); ++it)
+    // A missing folder lists as empty; std::filesystem would otherwise throw.
+    std::error_code ec;
+    for (auto it = directory_iterator(pluginFolder, ec); !ec && it != directory_iterator(); it.increment(ec))
     {
         const auto &folder = it->path();
         if (is_directory(folder))
@@ -808,7 +810,9 @@ void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
     auto matchEXERegex = std::regex("(\\w+)\\.exe", std::regex_constants::icase);
     for (path pluginSubDirectory : pluginDirectories)
     {
-        for (auto it = directory_iterator(pluginSubDirectory); it != directory_iterator(); ++it)
+        // A missing folder lists as empty; std::filesystem would otherwise throw.
+        std::error_code ecSub;
+        for (auto it = directory_iterator(pluginSubDirectory, ecSub); !ecSub && it != directory_iterator(); it.increment(ecSub))
         {
             const auto &file = it->path();
             std::smatch sm;
@@ -1697,7 +1701,7 @@ PATCH_FILE_HEAP
 
 const TCHAR g_szResourceSpec[] = PATCH_FILE_TYPES;
 
-const TCHAR* g_szResourceSpecByType[ResourceType::Max] =
+const TCHAR* g_szResourceSpecByType[(int)ResourceType::Max] =
 {
     PATCH_FILE_VIEW,
     PATCH_FILE_PIC,
