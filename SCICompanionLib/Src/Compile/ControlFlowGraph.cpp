@@ -1587,9 +1587,11 @@ ControlFlowNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
     // But apparently I made code_pos a list iterator because we insert instructions not always at the end.
 
     // Map from code_pos to the node that starts that guy.
-    map<code_pos, RawCodeNode*> posToNode;
+    // Keys can be end (e.g. the instruction after a final branch); CodePosLess handles that safely.
+    // end must be the list's end(), which Generate's caller passes.
+    map<code_pos, RawCodeNode*, CodePosLess> posToNode(CodePosLess{ end });
     // List of predecessors for a node, where the key is the "start" code_pos of the node
-    map<code_pos, vector<code_pos>> predecessors;
+    map<code_pos, vector<code_pos>, CodePosLess> predecessors(CodePosLess{ end });
 
     // First, let's break our sequence of instructions into natural boundaries based on branching instructions
     // "intervals"

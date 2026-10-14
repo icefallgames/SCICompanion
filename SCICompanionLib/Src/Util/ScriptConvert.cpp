@@ -111,7 +111,10 @@ void EnumScriptIds(vector<ScriptId> &scripts, const std::string &folder, const s
     path enumPath = path(folder);
     std::string searchString = "(\\w+)\\.";
     auto matchRSTRegex = std::regex(searchString + fileExt);
-    for (auto it = directory_iterator(enumPath); it != directory_iterator(); ++it)
+    // Not every game has polygon or message folders (e.g. SCI0). std::filesystem throws for a
+    // missing folder, so treat any error as "no files" rather than aborting the conversion.
+    std::error_code ec;
+    for (auto it = directory_iterator(enumPath, ec); !ec && it != directory_iterator(); it.increment(ec))
     {
         const auto &file = it->path();
         std::smatch sm;

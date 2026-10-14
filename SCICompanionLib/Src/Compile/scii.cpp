@@ -870,12 +870,4 @@ bool scii::_is_label_instruction()
 
 
 
-// This craziness is so that code_pos can be used in a multimap.
-// We use the address of the pointed-to element as a < comparator (stable for
-// the lifetime of that list node, since std::list never relocates existing
-// elements). Just something consistent but meaningless.
-bool operator<(const code_pos &_Right, const code_pos &_Left)
-{
-    return &(*_Right) < &(*_Left);
-}
 

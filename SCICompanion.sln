@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 18
+VisualStudioVersion = 18.11.12306.390 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCICompanionLib", "SCICompanionLib\SCICompanionLib.vcxproj", "{761DE01C-57F6-45C5-AAFC-AC48000C423F}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -23,9 +23,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\Unit
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		ANSI Debug RDE|Win32 = ANSI Debug RDE|Win32
 		ANSI Debug RDE|x64 = ANSI Debug RDE|x64
@@ -129,6 +126,7 @@ Global
 		{761DE01C-57F6-45C5-AAFC-AC48000C423F}.Debug|Win32.ActiveCfg = Debug|Win32
 		{761DE01C-57F6-45C5-AAFC-AC48000C423F}.Debug|Win32.Build.0 = Debug|Win32
 		{761DE01C-57F6-45C5-AAFC-AC48000C423F}.Debug|x64.ActiveCfg = Debug|Win32
+		{761DE01C-57F6-45C5-AAFC-AC48000C423F}.Debug|x64.Build.0 = Debug|Win32
 		{761DE01C-57F6-45C5-AAFC-AC48000C423F}.MBCS Debug RDE|Win32.ActiveCfg = Debug|Win32
 		{761DE01C-57F6-45C5-AAFC-AC48000C423F}.MBCS Debug RDE|Win32.Build.0 = Debug|Win32
 		{761DE01C-57F6-45C5-AAFC-AC48000C423F}.MBCS Debug RDE|x64.ActiveCfg = DeadCodeAnalysis|Win32
@@ -413,6 +411,7 @@ Global
 		{6F805ECA-9DC8-42E0-A918-38A7315C7E8F}.Debug|Win32.ActiveCfg = Debug|Win32
 		{6F805ECA-9DC8-42E0-A918-38A7315C7E8F}.Debug|Win32.Build.0 = Debug|Win32
 		{6F805ECA-9DC8-42E0-A918-38A7315C7E8F}.Debug|x64.ActiveCfg = Debug|Win32
+		{6F805ECA-9DC8-42E0-A918-38A7315C7E8F}.Debug|x64.Build.0 = Debug|Win32
 		{6F805ECA-9DC8-42E0-A918-38A7315C7E8F}.MBCS Debug RDE|Win32.ActiveCfg = Debug|Win32
 		{6F805ECA-9DC8-42E0-A918-38A7315C7E8F}.MBCS Debug RDE|Win32.Build.0 = Debug|Win32
 		{6F805ECA-9DC8-42E0-A918-38A7315C7E8F}.MBCS Debug RDE|x64.ActiveCfg = DeadCodeAnalysis|Win32
@@ -566,6 +565,7 @@ Global
 		{00FF83C9-DD78-4F2C-BC94-8577D79B52CE}.Debug|Win32.ActiveCfg = Debug|Win32
 		{00FF83C9-DD78-4F2C-BC94-8577D79B52CE}.Debug|Win32.Build.0 = Debug|Win32
 		{00FF83C9-DD78-4F2C-BC94-8577D79B52CE}.Debug|x64.ActiveCfg = Debug|Win32
+		{00FF83C9-DD78-4F2C-BC94-8577D79B52CE}.Debug|x64.Build.0 = Debug|Win32
 		{00FF83C9-DD78-4F2C-BC94-8577D79B52CE}.MBCS Debug RDE|Win32.ActiveCfg = Debug|Win32
 		{00FF83C9-DD78-4F2C-BC94-8577D79B52CE}.MBCS Debug RDE|Win32.Build.0 = Debug|Win32
 		{00FF83C9-DD78-4F2C-BC94-8577D79B52CE}.MBCS Debug RDE|x64.ActiveCfg = DeadCodeAnalysis|Win32
@@ -700,5 +700,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8AE9050E-17A7-4F0A-927C-CD586620AD4D}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

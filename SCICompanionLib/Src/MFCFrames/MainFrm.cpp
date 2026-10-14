@@ -793,7 +793,9 @@ void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
     std::vector<path> pluginDirectories;
     // First get the plugin folders.
     path pluginFolder = GetExeSubFolder("Plugins");
-    for (auto it = directory_iterator(pluginFolder); it != directory_iterator(); ++it)
+    // A missing folder lists as empty; std::filesystem would otherwise throw.
+    std::error_code ec;
+    for (auto it = directory_iterator(pluginFolder, ec); !ec && it != directory_iterator(); it.increment(ec))
     {
         const auto &folder = it->path();
         if (is_directory(folder))
@@ -808,7 +810,9 @@ void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
     auto matchEXERegex = std::regex("(\\w+)\\.exe", std::regex_constants::icase);
     for (path pluginSubDirectory : pluginDirectories)
     {
-        for (auto it = directory_iterator(pluginSubDirectory); it != directory_iterator(); ++it)
+        // A missing folder lists as empty; std::filesystem would otherwise throw.
+        std::error_code ecSub;
+        for (auto it = directory_iterator(pluginSubDirectory, ecSub); !ecSub && it != directory_iterator(); it.increment(ecSub))
         {
             const auto &file = it->path();
             std::smatch sm;

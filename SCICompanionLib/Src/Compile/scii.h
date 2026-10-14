@@ -152,13 +152,27 @@ typedef std::unordered_map<BranchBlockIndex, fixup_todos> fixup_todos_map;
 typedef std::vector<fixup_todos> fixup_frames;
 typedef std::unordered_map<BranchBlockIndex, fixup_frames> fixup_frames_map;
 
+// Orders code_pos keys (std::list iterators have no ordering) by element address: consistent but
+// meaningless. Keys can be the list's end() (an unwritten branch target, or the instruction after a
+// function's last branch), and dereferencing end() is undefined (the debug STL asserts), so end()
+// maps to a fixed null key instead. A std::list end() iterator stays valid for the list's lifetime.
+struct CodePosLess
+{
+    code_pos end;
+    const scii *key(const code_pos &pos) const { return (pos == end) ? nullptr : &*pos; }
+    bool operator()(const code_pos &a, const code_pos &b) const { return std::less<const scii*>()(key(a), key(b)); }
+};
+
 // Is a map of "this target" was pointed at by "these sources"
-typedef std::multimap<code_pos, code_pos> code_pos_multimap;
+typedef std::multimap<code_pos, code_pos, CodePosLess> code_pos_multimap;
 
 class scicode
 {
 public:
-    scicode(const SCIVersion &version) : _version(version) {}
+    scicode(const SCIVersion &version) : _targetToSources(CodePosLess{ _code.end() }), _version(version) {}
+    // _targetToSources' comparator holds _code.end(), so a copy would compare against the wrong list.
+    scicode(const scicode &) = delete;
+    scicode &operator=(const scicode &) = delete;
     ~scicode()
     {
         assert(_insertionPoints.empty());
@@ -311,7 +325,4 @@ private:
     const SCIVersion &_version;
 };
 
-// This craziness is so that code_pos can be used in a multimap.
-// We use the node pointer as a < comparator.  Just something consistent but meaningless.
-bool operator<(const code_pos &_Right, const code_pos &_Left);
 

@@ -576,7 +576,9 @@ void OutputIndexRSTHelper(const std::string &rstFolder, const std::string &pream
     path enumPath = rootPath / path(subFolder);
     std::vector<std::string> filenames;
     auto matchRSTRegex = std::regex("(\\w+)\\.rst");
-    for (auto it = directory_iterator(enumPath); it != directory_iterator(); ++it)
+    // A missing folder lists as empty; std::filesystem would otherwise throw.
+    std::error_code ec;
+    for (auto it = directory_iterator(enumPath, ec); !ec && it != directory_iterator(); it.increment(ec))
     {
         const auto &file = it->path();
         std::smatch sm;

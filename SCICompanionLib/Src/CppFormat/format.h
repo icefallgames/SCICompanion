@@ -40,8 +40,14 @@
 #include <string>
 #include <sstream>
 
-#if _SECURE_SCL
+// SCI Companion: stdext::checked_array_iterator was deprecated in VS 2022 and removed
+// from the MSVC STL in VS 2026. Only VS 2015 and earlier warned about raw-pointer
+// std::copy, so use the checked iterator only there.
+#if defined(_MSC_VER) && _MSC_VER < 1910 && _SECURE_SCL
+# define FMT_USE_CHECKED_ITERATOR 1
 # include <iterator>
+#else
+# define FMT_USE_CHECKED_ITERATOR 0
 #endif
 
 #ifdef __GNUC__
@@ -247,7 +253,7 @@ namespace internal {
 // to avoid dynamic memory allocation.
 enum { INLINE_BUFFER_SIZE = 500 };
 
-#if _SECURE_SCL
+#if FMT_USE_CHECKED_ITERATOR
 // Use checked iterator to avoid warnings on MSVC.
 template <typename T>
 inline stdext::checked_array_iterator<T*> make_ptr(T *ptr, std::size_t size) {
@@ -432,7 +438,7 @@ inline int isinfinity(long double x) { return !_finite(static_cast<double>(x)); 
 template <typename Char>
 class BasicCharTraits {
  public:
-#if _SECURE_SCL
+#if FMT_USE_CHECKED_ITERATOR
   typedef stdext::checked_array_iterator<Char*> CharPtr;
 #else
   typedef Char *CharPtr;
@@ -1497,7 +1503,7 @@ class BasicWriter {
 
   typedef typename internal::CharTraits<Char>::CharPtr CharPtr;
 
-#if _SECURE_SCL
+#if FMT_USE_CHECKED_ITERATOR
   // Returns pointer value.
   static Char *get(CharPtr p) { return p.base(); }
 #else
